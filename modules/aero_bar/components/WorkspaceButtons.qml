@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell.Hyprland
 import QtQuick.Layouts
 import Quickshell.Widgets
-import Qt5Compat.GraphicalEffects
 
 RowLayout {
     spacing: 8
@@ -19,8 +18,9 @@ RowLayout {
             Behavior on isActive {
                 NumberAnimation {
                     duration: 150
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
+                    easing.type: Easing.Linear
+                    // easing.type: Easing.BezierSpline
+                    // easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
                 }
             }
 

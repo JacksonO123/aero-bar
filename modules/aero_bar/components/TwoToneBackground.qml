@@ -1,7 +1,8 @@
 import QtQuick
 import Qt5Compat.GraphicalEffects
+import Quickshell.Widgets
 
-Rectangle {
+ClippingRectangle {
     id: root
 
     /// foreground/background

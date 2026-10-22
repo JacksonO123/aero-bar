@@ -1,11 +1,14 @@
 import QtQuick
+import "../../../utils/constants.js" as Constants
 
 Rectangle {
     id: root
     signal clicked
 
-    implicitHeight: 39
+    property real padding: 2
+    implicitHeight: Constants.BAR_HEIGHT - padding * 2
     implicitWidth: implicitHeight
+    anchors.verticalCenter: parent.verticalCenter
     width: height
     radius: height / 2
     color: "transparent"

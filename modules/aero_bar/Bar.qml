@@ -1,10 +1,10 @@
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
-import Qt5Compat.GraphicalEffects
 import "components"
 import "../../services"
+import "../../utils/path.js" as PathUtils
+import "../../utils/constants.js" as Constants
 
 Variants {
     model: Quickshell.screens
@@ -20,13 +20,9 @@ Variants {
             left: true
             right: true
         }
-        implicitHeight: 41
-        color: "transparent"
 
-        SystemClock {
-            id: clock
-            precision: SystemClock.Minutes
-        }
+        implicitHeight: Constants.BAR_HEIGHT
+        color: "transparent"
 
         Rectangle {
             anchors.fill: parent
@@ -34,35 +30,36 @@ Variants {
 
             TwoToneBackground {}
 
-            RowLayout {
-                id: rootRowLayout
-                anchors.fill: parent
-                spacing: 2
+            Rectangle {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.leftMargin: 18
+                width: leftIcons.implicitWidth
+                color: "transparent"
 
-                ArchIcon {
-                    onClicked: Quickshell.execDetached(["/home/jotto/.local/bin/control-center"])
-                    Layout.rightMargin: 12
-                    Layout.leftMargin: 16
+                Row {
+                    id: leftIcons
+                    height: parent.height
+                    spacing: 12
+
+                    ArchIcon {
+                        onClicked: Quickshell.execDetached([PathUtils.pathRelativeToHome(".local/bin/control-center")])
+                    }
+
+                    AppIcons {
+                        apps: Apps.apps
+                    }
                 }
+            }
 
-                AppIcons {
-                    apps: Apps.apps
-                }
+            WorkspaceButtons {
+                anchors.centerIn: parent
+            }
 
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                WorkspaceButtons {}
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                Text {
-                    text: Qt.formatDateTime(clock.date, "ddd HH:mm")
-                    color: "#cdd6f4"
-                }
+            TimeBox {
+                anchors.right: parent.right
+                date: Clock.date
             }
         }
     }

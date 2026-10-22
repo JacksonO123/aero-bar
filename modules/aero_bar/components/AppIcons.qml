@@ -1,64 +1,49 @@
+pragma ComponentBehavior: Bound
+
 import Quickshell.Widgets
-import QtQuick.Layouts
 import Quickshell
 import QtQuick
 import Qt5Compat.GraphicalEffects
+import "../../../utils/constants.js" as Constants
 
-Repeater {
-    id: repeater
+Row {
+    id: root
     required property var apps
-    model: repeater.apps
+    spacing: 2
+    height: Constants.BAR_HEIGHT
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
 
-    AppIconFrame {
-        id: entry
+    Repeater {
+        model: root.apps
 
-        required property var modelData
+        AppIconFrame {
+            id: entry
 
-        Layout.fillHeight: true
-        implicitWidth: 62
-        onClicked: Quickshell.execDetached(entry.modelData.cmd)
-        frameOpacity: entry.hoverT
+            required property var modelData
 
-        Image {
-            id: appImage
-            property int size: entry.modelData.size
+            implicitHeight: Constants.BAR_HEIGHT
+            implicitWidth: Constants.ICON_BUTTON_WIDTH
+            onClicked: Quickshell.execDetached(entry.modelData.cmd)
+            frameOpacity: entry.hoverT
 
-            anchors.centerIn: parent
-            anchors.verticalCenterOffset: entry.modelData.offset
+            Image {
+                id: appImage
+                property int size: entry.modelData.size
 
-            source: entry.modelData.img
-            sourceSize: Qt.size(width * 2, height * 2)
-            width: size
-            height: size * 2
-        }
+                anchors.centerIn: parent
+                anchors.verticalCenterOffset: entry.modelData.offset
 
-        ClippingRectangle {
-            anchors.fill: parent
-            radius: entry.radius
-            color: "transparent"
-            opacity: entry.hoverT
+                source: entry.modelData.img
+                sourceSize: Qt.size(width * 2, height * 2)
+                width: size
+                height: size * 2
+            }
 
-            RadialGradient {
-                anchors.fill: parent
-                horizontalOffset: -entry.width * 0.25
-                verticalOffset: -entry.height / 2
-                horizontalRadius: entry.width * 0.75 * Math.SQRT2
-                verticalRadius: entry.height * Math.SQRT2
-
-                gradient: Gradient {
-                    GradientStop {
-                        position: 0.0
-                        color: Qt.rgba(1, 1, 1, 0.38 + (0.1 * entry.pressedT))
-                    }
-                    GradientStop {
-                        position: 0.6
-                        color: Qt.rgba(1, 1, 1, 0.04 + (0.1 * entry.pressedT))
-                    }
-                    GradientStop {
-                        position: 1.0
-                        color: Qt.rgba(1, 1, 1, 0.12 + (0.1 * entry.pressedT))
-                    }
-                }
+            Win7Hover {
+                radius: entry.radius
+                opacity: entry.hoverT
+                pressedT: entry.pressedT
             }
         }
     }
