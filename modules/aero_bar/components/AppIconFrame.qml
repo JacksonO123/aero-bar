@@ -6,21 +6,23 @@ Item {
     signal clicked
     default property alias content: contentArea.data
 
-    property real t: mouse.containsMouse ? 1 : 0
-    property real p: mouse.pressed ? 1 : 0
+    property real hoverT: mouse.containsMouse ? 1 : 0
+    property real pressedT: mouse.pressed ? 1 : 0
 
-    Behavior on t {
+    property real frameOpacity
+
+    Behavior on hoverT {
         NumberAnimation {
             duration: 150
-            easing.type: Easing.BezierCurve
+            easing.type: Easing.BezierSpline
             easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
         }
     }
 
-    Behavior on p {
+    Behavior on pressedT {
         NumberAnimation {
             duration: 150
-            easing.type: Easing.BezierCurve
+            easing.type: Easing.BezierSpline
             easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
         }
     }
@@ -31,7 +33,7 @@ Item {
         radius: Math.max(0, root.radius - 1)
         color: "transparent"
         border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.35 * root.t)
+        border.color: Qt.rgba(1, 1, 1, 0.35 * root.frameOpacity)
     }
 
     Rectangle {
@@ -41,7 +43,7 @@ Item {
         anchors.right: parent.right
         anchors.leftMargin: root.radius
         anchors.rightMargin: root.radius
-        color: Qt.rgba(1, 1, 1, 0.55 * root.t)
+        color: Qt.rgba(1, 1, 1, 0.55 * root.frameOpacity)
     }
 
     Item {
@@ -54,7 +56,7 @@ Item {
         radius: root.radius
         color: "transparent"
         border.width: 1
-        border.color: Qt.rgba(0, 0, 0, 0.6 * root.t)
+        border.color: Qt.rgba(0, 0, 0, 0.6 * root.frameOpacity)
     }
 
     MouseArea {
