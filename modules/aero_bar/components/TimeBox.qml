@@ -11,7 +11,7 @@ AppIconFrame {
 
     Behavior on mix {
         NumberAnimation {
-            duration: 220
+            duration: 150
             easing.type: Easing.InOutQuad
         }
     }
@@ -31,7 +31,7 @@ AppIconFrame {
         id: timeText
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -root.mix * 6
-        text: Qt.formatDateTime(root.date, "hh:mm ap")
+        text: Qt.formatDateTime(root.date, "h:mm ap")
         color: "white"
         font.bold: false
         font.pointSize: 10.5
