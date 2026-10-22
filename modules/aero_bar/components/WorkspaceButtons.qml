@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Hyprland
 import QtQuick.Layouts
 import Quickshell.Widgets
+import "../../../utils/colors.js" as ColorUtils
 
 RowLayout {
     spacing: 8
@@ -14,13 +15,21 @@ RowLayout {
 
             required property var modelData
             property real isActive: frame.modelData.active
+            property real hasContent: frame.modelData.toplevels.values.length
 
             Behavior on isActive {
                 NumberAnimation {
                     duration: 150
-                    easing.type: Easing.Linear
-                    // easing.type: Easing.BezierSpline
-                    // easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
+                }
+            }
+
+            Behavior on hasContent {
+                NumberAnimation {
+                    duration: 150
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
                 }
             }
 
@@ -53,7 +62,7 @@ RowLayout {
                     height: 7
                     radius: height / 2
                     anchors.centerIn: parent
-                    color: frame.modelData.toplevels.values.length > 0 ? "white" : "gray"
+                    color: ColorUtils.interpolateColors("gray", "white", frame.hasContent)
                 }
             }
         }
