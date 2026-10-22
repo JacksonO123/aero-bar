@@ -13,7 +13,7 @@ Rectangle {
     radius: height / 2
     color: "transparent"
 
-    property real hoverT: mouse.reallyContainsMouse ? 1 : 0
+    property real hoverT: mouse.containsMouse ? 1 : 0
     property real pressedT: mouse.pressed ? 1 : 0
 
     Behavior on hoverT {
@@ -56,21 +56,13 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
 
-        function isInsideCircle(mx, my) {
-            var dx = mx - (root.width / 2);
-            var dy = my - (root.height / 2);
-            var r = root.width / 2;
-            return (dx * dx + dy * dy) <= (r * r);
-        }
-
-        property bool reallyContainsMouse: {
-            if (!containsMouse)
-                return false;
-            let pt = mapToItem(root, mouseX, mouseY);
-            let dx = pt.x - (root.width / 2);
-            let dy = pt.y - (root.height / 2);
-            let r = root.width / 2;
-            return (dx * dx + dy * dy) <= (r * r);
+        containmentMask: QtObject {
+            function contains(point: point): bool {
+                const r = root.width / 2;
+                const dx = point.x - r;
+                const dy = point.y - r;
+                return dx * dx + dy * dy <= r * r;
+            }
         }
     }
 }
