@@ -33,7 +33,9 @@ RowLayout {
                 }
             }
 
-            implicitWidth: 46 + (frame.isActive * 10)
+            scale: 1 - (0.05 * frame.pressedT)
+
+            implicitWidth: 46 + (frame.isActive * 12)
             implicitHeight: 22
             frameOpacity: 2 + frame.pressedT + (frame.hoverT / 2)
 
@@ -50,7 +52,7 @@ RowLayout {
                 id: workspaceButton
 
                 anchors.fill: parent
-                color: Qt.rgba(1, 1, 1, 0.2 * frame.hoverT + 0.1 * frame.pressedT)
+                color: Qt.rgba(1, 1, 1, 0.2 * frame.hoverT + 0.15 * frame.pressedT)
                 radius: frame.radius
 
                 TwoToneBackground {
