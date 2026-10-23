@@ -20,16 +20,14 @@ RowLayout {
             Behavior on isActive {
                 NumberAnimation {
                     duration: 150
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
+                    easing.type: Easing.OutSine
                 }
             }
 
             Behavior on hasContent {
                 NumberAnimation {
                     duration: 150
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
+                    easing.type: Easing.OutSine
                 }
             }
 

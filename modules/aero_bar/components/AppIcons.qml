@@ -1,9 +1,7 @@
 pragma ComponentBehavior: Bound
 
-import Quickshell.Widgets
 import Quickshell
 import QtQuick
-import Qt5Compat.GraphicalEffects
 import "../../../utils/constants.js" as Constants
 
 Row {
@@ -22,7 +20,9 @@ Row {
 
             required property var modelData
 
-            implicitHeight: Constants.BAR_HEIGHT
+            anchors.top: parent.top
+            anchors.topMargin: -1
+            implicitHeight: Constants.BAR_HEIGHT + 1
             implicitWidth: Constants.ICON_BUTTON_WIDTH
             onClicked: Quickshell.execDetached(entry.modelData.cmd)
             frameOpacity: entry.hoverT

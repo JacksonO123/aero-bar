@@ -19,16 +19,14 @@ Rectangle {
     Behavior on hoverT {
         NumberAnimation {
             duration: 150
-            easing.type: Easing.BezierSpline
-            easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
+            easing.type: Easing.OutQuad
         }
     }
 
     Behavior on pressedT {
         NumberAnimation {
-            duration: 150
-            easing.type: Easing.BezierSpline
-            easing.bezierCurve: [0.25, 0.1, 0.25, 1.0, 1.0, 1.0]
+            duration: 90
+            easing.type: Easing.OutQuad
         }
     }
 
