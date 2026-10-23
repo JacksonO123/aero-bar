@@ -20,7 +20,7 @@ Item {
 
     Behavior on pressedT {
         NumberAnimation {
-            duration: 150
+            duration: 80
             easing.type: Easing.OutQuad
         }
     }
