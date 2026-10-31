@@ -15,7 +15,8 @@ Row {
     Repeater {
         model: ToplevelManager.toplevels
 
-        OpenAppIcon {
+        ImageIcon {
+            id: iconHere
             required property var modelData
 
             size: 24

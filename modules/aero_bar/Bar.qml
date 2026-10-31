@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 import "components"
+import "components/tray"
 import "../../services"
 import "../../utils/path.js" as PathUtils
 import "../../utils/constants.js" as Constants
@@ -64,6 +65,8 @@ Variants {
                 anchors.right: parent.right
                 anchors.rightMargin: 4
                 spacing: 4
+
+                Tray {}
 
                 TimeBox {
                     anchors.top: parent.top

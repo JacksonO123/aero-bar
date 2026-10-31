@@ -3,7 +3,7 @@ import QtQuick
 Item {
     id: root
     property int radius: 4
-    signal clicked
+    signal clicked(var mouse)
     default property alias content: contentArea.data
 
     property real hoverT: mouse.containsMouse ? 1 : 0
@@ -62,6 +62,6 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.clicked()
+        onClicked: mouse => root.clicked(mouse)
     }
 }
