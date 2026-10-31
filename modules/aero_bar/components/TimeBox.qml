@@ -1,52 +1,34 @@
 import QtQuick
 
-AppIconFrame {
+Rectangle {
     id: root
 
     required property var date
-    property real padding: (root.height - timeText.height) / 1.2
+    property real padding_n: (root.height - timeText.height) / 1.2
 
-    property bool showDate: false
-    property real mix: showDate ? 1 : 0
+    width: Math.max(timeText.contentWidth, dateText.contentWidth) + padding_n * 2
 
-    Behavior on mix {
-        NumberAnimation {
-            duration: 150
-            easing.type: Easing.InOutQuad
-        }
-    }
-
-    frameOpacity: 1
-
-    width: (timeText.contentWidth * (1 - mix) + dateText.contentWidth * mix) + padding * 2
-
-    onClicked: root.showDate = !root.showDate
+    color: "transparent"
 
     Text {
         id: timeText
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: -root.mix * 6
         text: Qt.formatDateTime(root.date, "h:mm ap")
         color: "white"
         font.bold: false
         font.pointSize: 10.5
-        opacity: 1 - root.mix
+        anchors.top: root.top
+        anchors.right: root.right
+        anchors.rightMargin: 4
     }
 
     Text {
         id: dateText
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: (1 - root.mix) * 6
         text: Qt.formatDate(root.date, "dd/M/yy")
         color: "white"
         font.bold: false
         font.pointSize: 10.5
-        opacity: root.mix
-    }
-
-    Win7Hover {
-        radius: root.radius
-        opacity: root.hoverT
-        pressedT: root.pressedT
+        anchors.bottom: root.bottom
+        anchors.right: root.right
+        anchors.rightMargin: 4
     }
 }
