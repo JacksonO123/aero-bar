@@ -2,7 +2,7 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 import "components"
-import "components/tray"
+import "tray"
 import "../../services"
 import "../../utils/path.js" as PathUtils
 import "../../utils/constants.js" as Constants

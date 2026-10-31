@@ -17,6 +17,7 @@ Rectangle {
         font.bold: false
         font.pointSize: 10.5
         anchors.top: root.top
+        anchors.topMargin: -1
         anchors.right: root.right
         anchors.rightMargin: 4
     }
@@ -30,5 +31,6 @@ Rectangle {
         anchors.bottom: root.bottom
         anchors.right: root.right
         anchors.rightMargin: 4
+        anchors.bottomMargin: -1
     }
 }

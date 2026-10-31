@@ -60,6 +60,7 @@ Item {
     MouseArea {
         id: mouse
         anchors.fill: parent
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: mouse => root.clicked(mouse)

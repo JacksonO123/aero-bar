@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Services.SystemTray
+import "../components"
 
 Row {
     id: tray
@@ -9,15 +10,10 @@ Row {
     anchors.bottom: parent.bottom
 
     Repeater {
-        id: r
         model: SystemTray.items
 
         TrayItem {
             required property var modelData
-
-            Component.onCompleted: {
-                console.log(JSON.stringify(modelData));
-            }
 
             trayItemData: modelData
         }

@@ -15,7 +15,7 @@ Row {
     Repeater {
         model: root.apps
 
-        AppIconFrame {
+        Win7Frame {
             id: entry
 
             required property var modelData

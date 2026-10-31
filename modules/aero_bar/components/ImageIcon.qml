@@ -13,7 +13,10 @@ IconImage {
     implicitSize: size
     asynchronous: true
 
-    readonly property var entry: wmClass.length > 0 ? DesktopEntries.heuristicLookup(wmClass) : null
+    readonly property var entry: {
+        DesktopEntries.applications.values;
+        return wmClass.length > 0 ? DesktopEntries.heuristicLookup(wmClass) : null;
+    }
 
     source: {
         const names = [desktopIcon, entry?.icon, wmClass, wmClass.toLowerCase()];
@@ -27,7 +30,9 @@ IconImage {
             if (path !== "") {
                 return path;
             }
+        }
 
+        if (backupSource !== "") {
             return backupSource;
         }
 

@@ -10,7 +10,7 @@ RowLayout {
         id: workspaceButtonsRepeater
         model: Hyprland.workspaces
 
-        AppIconFrame {
+        Win7Frame {
             id: frame
 
             required property var modelData
