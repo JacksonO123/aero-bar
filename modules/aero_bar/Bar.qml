@@ -57,9 +57,21 @@ Variants {
                 anchors.centerIn: parent
             }
 
-            TimeBox {
+            Row {
+                id: rightIcons
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
                 anchors.right: parent.right
-                date: Clock.date
+                anchors.rightMargin: 4
+                spacing: 4
+
+                TimeBox {
+                    anchors.top: parent.top
+                    anchors.topMargin: 4
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 4
+                    date: Clock.date
+                }
             }
         }
     }

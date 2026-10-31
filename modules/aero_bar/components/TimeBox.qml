@@ -16,11 +16,6 @@ AppIconFrame {
         }
     }
 
-    anchors.top: parent.top
-    anchors.bottom: parent.bottom
-    anchors.right: parent.right
-    anchors.margins: 4
-
     frameOpacity: 1
 
     width: (timeText.contentWidth * (1 - mix) + dateText.contentWidth * mix) + padding * 2
