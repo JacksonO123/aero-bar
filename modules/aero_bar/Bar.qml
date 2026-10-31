@@ -65,8 +65,6 @@ Variants {
                 anchors.rightMargin: 4
                 spacing: 4
 
-                OpenAppList {}
-
                 TimeBox {
                     anchors.top: parent.top
                     anchors.topMargin: 4
