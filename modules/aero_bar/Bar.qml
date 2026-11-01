@@ -1,8 +1,11 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+
 import "components"
 import "tray"
+import "flyout"
+
 import "../../services"
 import "../../utils/path.js" as PathUtils
 import "../../utils/constants.js" as Constants
@@ -22,11 +25,24 @@ Variants {
             right: true
         }
 
-        implicitHeight: Constants.BAR_HEIGHT
+        implicitHeight: Constants.FULL_ALLOCATED_HEIGHT
+        exclusiveZone: Constants.BAR_HEIGHT
         color: "transparent"
 
+        mask: Region {
+            item: bar
+            Region {
+                item: flyout.aeroframe
+            }
+        }
+
         Rectangle {
-            anchors.fill: parent
+            id: bar
+
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            implicitHeight: Constants.BAR_HEIGHT
             color: "transparent"
 
             TwoToneBackground {}
@@ -68,13 +84,68 @@ Variants {
 
                 Tray {}
 
-                TimeBox {
+                AudioInline {
+                    id: audioInlineOther
+                    flyoutEl: flyout
+                }
+
+                AudioInline {
+                    id: audioInline
+                    flyoutEl: flyout
+                }
+
+                Time {
                     anchors.top: parent.top
                     anchors.topMargin: 4
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 4
                     date: Clock.date
                 }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.color: "red"
+                border.width: 2
+            }
+        }
+
+        Flyout {
+            id: flyout
+
+            anchors.bottom: bar.top
+            anchors.bottomMargin: 10
+
+            FlyoutPane {
+                owner: audioInlineOther
+
+                Row {
+                    padding: 8
+
+                    Text {
+                        text: "other text aaahaahklsdhflkasdjhflkasdjhlkfahsd"
+                    }
+                }
+            }
+
+            FlyoutPane {
+                owner: audioInline
+
+                Row {
+                    padding: 8
+
+                    Text {
+                        text: "i am text here"
+                    }
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.color: "red"
+                border.width: 2
             }
         }
     }

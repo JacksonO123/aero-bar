@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell.Services.SystemTray
-import "../components"
+import "./components"
 
 Row {
     id: tray

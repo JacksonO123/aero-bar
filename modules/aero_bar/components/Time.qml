@@ -4,22 +4,22 @@ Rectangle {
     id: root
 
     required property var date
-    property real padding_n: (root.height - timeText.height) / 1.2
+    property real paddingRight: 4
 
-    width: Math.max(timeText.contentWidth, dateText.contentWidth) + padding_n * 2
+    width: Math.max(timeText.contentWidth, dateText.contentWidth) + paddingRight
 
     color: "transparent"
 
     Text {
         id: timeText
-        text: Qt.formatDateTime(root.date, "h:mm ap")
+        text: Qt.formatDateTime(root.date, "h:mm AP")
         color: "white"
         font.bold: false
         font.pointSize: 10.5
         anchors.top: root.top
         anchors.topMargin: -1
         anchors.right: root.right
-        anchors.rightMargin: 4
+        anchors.rightMargin: root.paddingRight
     }
 
     Text {
@@ -30,7 +30,7 @@ Rectangle {
         font.pointSize: 10.5
         anchors.bottom: root.bottom
         anchors.right: root.right
-        anchors.rightMargin: 4
+        anchors.rightMargin: root.paddingRight
         anchors.bottomMargin: -1
     }
 }

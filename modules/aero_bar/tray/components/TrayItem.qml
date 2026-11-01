@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 import Quickshell.Services.Mpris
+import "../../components"
 
 Win7Frame {
     id: trayItem
