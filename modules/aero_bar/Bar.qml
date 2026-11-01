@@ -102,13 +102,6 @@ Variants {
                     date: Clock.date
                 }
             }
-
-            Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-                border.color: "red"
-                border.width: 2
-            }
         }
 
         Flyout {
@@ -139,13 +132,6 @@ Variants {
                         text: "i am text here"
                     }
                 }
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-                border.color: "red"
-                border.width: 2
             }
         }
     }
