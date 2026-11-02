@@ -6,8 +6,10 @@ Item {
 
     default property alias panes: holder.data
     property alias aeroframe: frame
+    property Item last: null
     property Item current: null
     property real centerX: 0
+    property real animatedCenterX: centerX
 
     readonly property real edgeMargin: 10
     readonly property real windowWidth: parent ? parent.width : 0
@@ -42,8 +44,16 @@ Item {
         }
     }
 
+    Behavior on animatedCenterX {
+        NumberAnimation {
+            duration: 110
+            easing: Easing.InOutCubic
+        }
+    }
+
     function hover(item) {
         closeTimer.stop();
+        last = current;
         current = item;
         centerX = item.mapToItem(root.parent, item.width / 2, 0).x;
     }
@@ -55,7 +65,10 @@ Item {
     Timer {
         id: closeTimer
         interval: root.closeDelay
-        onTriggered: root.current = null
+        onTriggered: {
+            root.current = null;
+            root.last = null;
+        }
     }
 
     Aeroframe {
@@ -65,7 +78,7 @@ Item {
         frameOpacity: root.current === null ? 0 : 1
         width: root.targetWidth
         height: root.targetHeight
-        x: Math.max(root.edgeMargin, Math.min(root.windowWidth - frame.width - root.edgeMargin, root.centerX - (frame.width / 2) - (frame.width / 2) * (1 - frame.scale)))
+        x: Math.max(root.edgeMargin, Math.min(root.windowWidth - frame.width - root.edgeMargin, (root.last === null ? root.centerX : root.animatedCenterX) - (frame.width / 2) - (frame.width / 2) * (1 - frame.scale)))
         scale: root.current === null ? 0.75 : 1
         transformOrigin: Qt.BottomEdge
 
