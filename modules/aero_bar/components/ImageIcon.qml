@@ -25,6 +25,11 @@ IconImage {
                 continue;
             }
 
+            // desktop files may point straight at an image file
+            if (name.startsWith("/")) {
+                return "file://" + name;
+            }
+
             const path = Quickshell.iconPath(name, true);
 
             if (path !== "") {

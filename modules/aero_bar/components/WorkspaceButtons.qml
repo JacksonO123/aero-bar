@@ -5,7 +5,34 @@ import Quickshell.Widgets
 import "../../../utils/colors.js" as ColorUtils
 
 RowLayout {
+    id: root
     spacing: 8
+
+    // the overview opens after resting on the buttons, and lights up the button of whatever
+    // workspace is hovered / targeted in it
+    readonly property bool hovered: hoverHandler.hovered
+    property int highlightWorkspaceId: -99999
+    signal buttonClicked
+
+    // workspace whose button is under (px, py) of `item`, or null
+    function workspaceAt(item, px, py) {
+        for (let i = 0; i < workspaceButtonsRepeater.count; i++) {
+            const button = workspaceButtonsRepeater.itemAt(i);
+            if (!button) {
+                continue;
+            }
+            const p = button.mapFromItem(item, px, py);
+            if (p.x >= -4 && p.y >= -6 && p.x <= button.width + 4 && p.y <= button.height + 6) {
+                return button.modelData;
+            }
+        }
+        return null;
+    }
+
+    HoverHandler {
+        id: hoverHandler
+    }
+
     Repeater {
         id: workspaceButtonsRepeater
         model: Hyprland.workspaces
@@ -16,6 +43,7 @@ RowLayout {
             required property var modelData
             property real isActive: frame.modelData.active
             property real hasContent: frame.modelData.toplevels.values.length
+            property real highlightT: root.highlightWorkspaceId === frame.modelData.id ? 1 : 0
 
             Behavior on isActive {
                 NumberAnimation {
@@ -31,13 +59,23 @@ RowLayout {
                 }
             }
 
+            Behavior on highlightT {
+                NumberAnimation {
+                    duration: 150
+                    easing.type: Easing.OutSine
+                }
+            }
+
             scale: 1 - (0.05 * frame.pressedT)
 
             implicitWidth: 46 + (frame.isActive * 12)
             implicitHeight: 22
-            frameOpacity: 2 + frame.pressedT + (frame.hoverT / 2)
+            frameOpacity: 2 + frame.pressedT + (frame.hoverT / 2) + frame.highlightT
 
-            onClicked: frame.modelData.activate()
+            onClicked: {
+                frame.modelData.activate();
+                root.buttonClicked();
+            }
 
             Rectangle {
                 anchors.fill: parent
@@ -55,6 +93,11 @@ RowLayout {
 
                 TwoToneBackground {
                     type: "foreground"
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: Qt.rgba(0.55, 0.88, 1.0, 0.35 * frame.highlightT)
                 }
 
                 Rectangle {

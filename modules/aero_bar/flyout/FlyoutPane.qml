@@ -15,7 +15,7 @@ Item {
     Behavior on opacity {
         NumberAnimation {
             duration: 110
-            easing: Easing.InOutCubic
+            easing.type: Easing.InOutCubic
         }
     }
 }

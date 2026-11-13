@@ -1,14 +1,22 @@
 import QtQuick
 
-Rectangle {
+// Clock in the corner. Click to pin the calendar flyout open.
+Win7Frame {
     id: root
 
     required property var date
     property real paddingRight: 4
+    // true while the calendar it opened is showing
+    property bool active: false
 
-    width: Math.max(timeText.contentWidth, dateText.contentWidth) + paddingRight
+    implicitWidth: Math.max(timeText.contentWidth, dateText.contentWidth) + paddingRight + 10
+    frameOpacity: Math.max(hoverT, active ? 1 : 0)
 
-    color: "transparent"
+    Win7Hover {
+        radius: root.radius
+        opacity: Math.max(root.hoverT, root.active ? 0.85 : 0)
+        pressedT: Math.max(root.pressedT, root.active ? 0.6 : 0)
+    }
 
     Text {
         id: timeText
@@ -16,10 +24,10 @@ Rectangle {
         color: "white"
         font.bold: false
         font.pointSize: 10.5
-        anchors.top: root.top
+        anchors.top: parent.top
         anchors.topMargin: -1
-        anchors.right: root.right
-        anchors.rightMargin: root.paddingRight
+        anchors.right: parent.right
+        anchors.rightMargin: root.paddingRight + 4
     }
 
     Text {
@@ -28,9 +36,9 @@ Rectangle {
         color: "white"
         font.bold: false
         font.pointSize: 10.5
-        anchors.bottom: root.bottom
-        anchors.right: root.right
-        anchors.rightMargin: root.paddingRight
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.rightMargin: root.paddingRight + 4
         anchors.bottomMargin: -1
     }
 }

@@ -1,0 +1,201 @@
+import QtQuick
+
+// Media Player style transport: a silver capsule with prev/next, and a big glass play orb on top.
+Item {
+    id: root
+
+    property bool playing: false
+    property bool canPrevious: true
+    property bool canNext: true
+    property bool canToggle: true
+
+    signal previous
+    signal next
+    signal toggle
+
+    readonly property real orbSize: 40
+    readonly property real capsuleHeight: 26
+
+    implicitWidth: 140
+    implicitHeight: orbSize + 4
+
+    component CapsuleSegment: Item {
+        id: segment
+
+        property string glyph: "prev"
+        property bool leftSide: true
+        property bool active: true
+        signal activated
+
+        opacity: active ? 1 : 0.4
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 2
+            radius: height / 2
+            opacity: segmentMouse.containsMouse ? 1 : 0
+
+            gradient: Gradient {
+                GradientStop {
+                    position: 0.0
+                    color: segmentMouse.pressed ? "#cfe9fa" : "#eef8ff"
+                }
+                GradientStop {
+                    position: 0.5
+                    color: segmentMouse.pressed ? "#9fd2f2" : "#cbe9fc"
+                }
+                GradientStop {
+                    position: 0.51
+                    color: segmentMouse.pressed ? "#79bfea" : "#a9dcfa"
+                }
+                GradientStop {
+                    position: 1.0
+                    color: segmentMouse.pressed ? "#a6d6f3" : "#d4eefd"
+                }
+            }
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 140
+                }
+            }
+        }
+
+        MediaGlyph {
+            anchors.verticalCenter: parent.verticalCenter
+            x: segment.leftSide ? 12 : parent.width - width - 12
+            width: 13
+            height: 11
+            kind: segment.glyph
+            color: "#22364a"
+            shadowColor: Qt.rgba(1, 1, 1, 0.85)
+        }
+
+        MouseArea {
+            id: segmentMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            enabled: segment.active
+            cursorShape: Qt.PointingHandCursor
+            onClicked: segment.activated()
+        }
+    }
+
+    Rectangle {
+        id: capsule
+        anchors.centerIn: parent
+        width: parent.width
+        height: root.capsuleHeight
+        radius: height / 2
+        border.width: 1
+        border.color: "#7b8794"
+
+        gradient: Gradient {
+            GradientStop {
+                position: 0.0
+                color: "#fdfdfd"
+            }
+            GradientStop {
+                position: 0.49
+                color: "#e6e9ec"
+            }
+            GradientStop {
+                position: 0.5
+                color: "#d1d6db"
+            }
+            GradientStop {
+                position: 1.0
+                color: "#eceff2"
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            radius: height / 2
+            color: "transparent"
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.8)
+        }
+    }
+
+    CapsuleSegment {
+        x: capsule.x
+        y: capsule.y
+        width: capsule.width / 2
+        height: capsule.height
+        glyph: "prev"
+        leftSide: true
+        active: root.canPrevious
+        onActivated: root.previous()
+    }
+
+    CapsuleSegment {
+        x: capsule.x + capsule.width / 2
+        y: capsule.y
+        width: capsule.width / 2
+        height: capsule.height
+        glyph: "next"
+        leftSide: false
+        active: root.canNext
+        onActivated: root.next()
+    }
+
+    // silver bezel that seats the orb in the capsule
+    Rectangle {
+        anchors.centerIn: parent
+        width: root.orbSize + 6
+        height: width
+        radius: width / 2
+        border.width: 1
+        border.color: "#8995a1"
+
+        gradient: Gradient {
+            GradientStop {
+                position: 0.0
+                color: "#ffffff"
+            }
+            GradientStop {
+                position: 1.0
+                color: "#c4ccd4"
+            }
+        }
+    }
+
+    GlassOrb {
+        id: orb
+        anchors.centerIn: parent
+        size: root.orbSize
+        hoverT: orbMouse.containsMouse ? 1 : 0
+        pressedT: orbMouse.pressed ? 1 : 0
+        opacity: root.canToggle ? 1 : 0.6
+
+        MediaGlyph {
+            anchors.centerIn: parent
+            anchors.horizontalCenterOffset: root.playing ? 0 : 1.5
+            width: 15
+            height: 16
+            kind: root.playing ? "pause" : "play"
+            color: "white"
+            shadowColor: Qt.rgba(0, 0.05, 0.2, 0.6)
+        }
+
+        MouseArea {
+            id: orbMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            enabled: root.canToggle
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.toggle()
+
+            containmentMask: QtObject {
+                function contains(point: point): bool {
+                    const r = orb.width / 2;
+                    const dx = point.x - r;
+                    const dy = point.y - r;
+                    return dx * dx + dy * dy <= r * r;
+                }
+            }
+        }
+    }
+}

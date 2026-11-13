@@ -15,6 +15,8 @@ Item {
     property real radius: 6
     property real contentRadius: 4
     property bool clipContent: true
+    // false: no inset content well, the whole frame is glass (e.g. the start menu)
+    property bool showContentFrame: true
 
     //   Sky #6b74b8fc
     //   Twilight #a80046ad
@@ -211,6 +213,7 @@ Item {
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.4)
         opacity: root.frameOpacity
+        visible: root.showContentFrame
     }
 
     Rectangle {
@@ -223,8 +226,8 @@ Item {
             bottomMargin: root.frameWidth
         }
         radius: root.contentRadius
-        color: root.contentColor
-        border.width: 1
+        color: root.showContentFrame ? root.contentColor : "transparent"
+        border.width: root.showContentFrame ? 1 : 0
         border.color: Qt.rgba(0, 0, 0, 0.6)
         opacity: root.frameOpacity
 

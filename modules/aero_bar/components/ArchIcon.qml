@@ -4,6 +4,8 @@ import "../../../utils/constants.js" as Constants
 Rectangle {
     id: root
     signal clicked
+    // lit while the start menu is open
+    property bool active: false
 
     property real padding: 2
     implicitHeight: Constants.BAR_HEIGHT - padding * 2
@@ -43,7 +45,7 @@ Rectangle {
         anchors.fill: root
         source: Qt.resolvedUrl("../../../assets/arch-orb-bright.png")
         sourceSize: Qt.size(width * 2, height * 2)
-        opacity: root.hoverT
+        opacity: Math.max(root.hoverT, root.active ? 1 : 0)
         scale: 1 - (0.07 * root.pressedT)
     }
 
