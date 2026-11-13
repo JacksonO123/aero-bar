@@ -65,6 +65,12 @@ Singleton {
             command: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
         },
         {
+            label: "Personalization",
+            icon: "preferences-desktop-color",
+            // a function runs in the shell instead of launching a program
+            command: () => Theme.openDialog(root.screenName)
+        },
+        {
             label: "Terminal",
             icon: "utilities-terminal",
             command: ["alacritty"]
@@ -175,8 +181,12 @@ Singleton {
     }
 
     function run(command) {
-        Quickshell.execDetached(command);
         close();
+        if (typeof command === "function") {
+            command();
+        } else {
+            Quickshell.execDetached(command);
+        }
     }
 
     function launch(entry) {

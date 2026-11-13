@@ -4,3 +4,4 @@ singleton Media Media.qml
 singleton Audio Audio.qml
 singleton HyprState HyprState.qml
 singleton StartMenuState StartMenuState.qml
+singleton Theme Theme.qml
