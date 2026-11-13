@@ -28,8 +28,15 @@ Item {
     height: content.height + padding * 2 - 2
 
     onShownChanged: {
+        Audio.flyoutsOpen += shown ? 1 : -1;
         if (!shown) {
             devicesOpen = false;
+        }
+    }
+
+    Component.onDestruction: {
+        if (shown) {
+            Audio.flyoutsOpen -= 1;
         }
     }
 

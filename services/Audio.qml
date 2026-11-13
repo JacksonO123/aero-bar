@@ -16,6 +16,9 @@ Singleton {
     // the slider tops out here; volume set above it elsewhere still displays correctly
     property real maxVolume: 1.0
 
+    // volume flyouts currently open; the on-screen volume pop-up stays away while one is
+    property int flyoutsOpen: 0
+
     function setVolume(value) {
         if (!available) {
             return;

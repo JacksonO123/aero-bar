@@ -11,3 +11,5 @@ const OVERVIEW_HOVER_DELAY = 800;
 const VOLUME_MIXER_CMD = ["pavucontrol"];
 // prefix for launching terminal apps (Terminal=true desktop entries) from the start menu
 const TERMINAL_CMD = ["alacritty", "-e"];
+// how long the volume pop-up stays after the last change (ms)
+const OSD_TIMEOUT = 1600;
