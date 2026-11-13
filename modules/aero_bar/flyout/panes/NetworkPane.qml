@@ -1,16 +1,19 @@
 import QtQuick
 import Quickshell
 import Quickshell.Networking
+import ".."
 import "../../components"
 import "../../../../services"
 import "../../../../utils/constants.js" as Constants
 
 // Win7's network flyout: what you're connected to, wired adapters, and the Wi-Fi networks in
 // range. Click a network to connect, disconnect or forget it; secured networks ask for their key.
-Item {
+FlyoutPane {
     id: root
 
-    property bool shown: false
+    // the Wi-Fi key box
+    wantsKeyboard: true
+
     property var selected: null
     property bool askKey: false
     // the key being typed. Kept here, not in the row: a network that drops out of one scan and
@@ -22,12 +25,14 @@ Item {
     property var attempt: null
 
     readonly property real padding: 12
+    // there's a Wi-Fi adapter and it's switched on
+    readonly property bool wifiOn: NetState.wifiDevice !== null && Networking.wifiEnabled
 
     width: 330
     height: content.height + padding * 2
 
-    onShownChanged: {
-        if (!shown) {
+    onActiveChanged: {
+        if (!root.active) {
             select(null);
         }
     }
@@ -36,7 +41,7 @@ Item {
     OpenCounter {
         target: NetState
         counter: "panesOpen"
-        when: root.shown
+        when: root.active
     }
 
     function select(n) {
@@ -153,7 +158,7 @@ Item {
                     font.bold: true
                 }
                 Text {
-                    text: NetState.connected ? NetState.status : (NetState.wifiDevice && Networking.wifiEnabled ? "Connections are available" : "Plug in a cable or turn on Wi-Fi")
+                    text: NetState.connected ? NetState.status : (root.wifiOn ? "Connections are available" : "Plug in a cable or turn on Wi-Fi")
                     color: NetState.limited ? "#9a6a00" : "#6b7785"
                     font.pixelSize: 11
                 }
@@ -243,7 +248,7 @@ Item {
         }
 
         Text {
-            visible: NetState.wifiDevice !== null && Networking.wifiEnabled && NetState.wifiNetworks.length === 0
+            visible: root.wifiOn && NetState.wifiNetworks.length === 0
             text: "Looking for networks…"
             color: "#6b7785"
             font.pixelSize: 12
@@ -253,7 +258,7 @@ Item {
             id: wifiList
             width: parent.width
             height: Math.min(wifiColumn.height, 270)
-            visible: NetState.wifiDevice !== null && Networking.wifiEnabled && NetState.wifiNetworks.length > 0
+            visible: root.wifiOn && NetState.wifiNetworks.length > 0
             contentHeight: wifiColumn.height
             clip: true
             boundsBehavior: Flickable.StopAtBounds

@@ -140,75 +140,35 @@ Variants {
             anchors.bottom: bar.top
             anchors.bottomMargin: 10
 
-            FlyoutPane {
-                id: appFlyoutPane
-                // one pane for every taskbar app: it follows whichever is hovered
-                owner: flyout.current?.isAppButton ? flyout.current : null
-                glass: !flyout.pinned
-
-                AppPane {
-                    flyoutEl: flyout
-                    button: appFlyoutPane.owner
-                    // the bar window sits at the bottom of its screen
-                    windowOrigin: Qt.point(here.modelData.x, here.modelData.y + here.modelData.height - here.height)
-                }
+            AppPane {
+                flyoutEl: flyout
+                // the bar window sits at the bottom of its screen
+                windowOrigin: Qt.point(here.modelData.x, here.modelData.y + here.modelData.height - here.height)
             }
 
-            FlyoutPane {
-                id: mediaFlyoutPane
+            MediaPane {
                 owner: mediaInline
-
-                MediaPane {
-                    shown: mediaFlyoutPane.active
-                }
             }
 
-            FlyoutPane {
-                id: calendarFlyoutPane
+            CalendarPane {
                 owner: clockButton
-
-                CalendarPane {
-                    shown: calendarFlyoutPane.active
-                }
             }
 
-            FlyoutPane {
-                id: notificationsFlyoutPane
+            NotificationsPane {
                 owner: actionCenter
-
-                NotificationsPane {
-                    shown: notificationsFlyoutPane.active
-                }
             }
 
-            FlyoutPane {
-                id: networkFlyoutPane
+            NetworkPane {
                 owner: networkButton
-                // the Wi-Fi key box
-                wantsKeyboard: true
-
-                NetworkPane {
-                    shown: networkFlyoutPane.active
-                }
             }
 
-            FlyoutPane {
-                id: bluetoothFlyoutPane
+            BluetoothPane {
                 owner: bluetoothButton
-
-                BluetoothPane {
-                    shown: bluetoothFlyoutPane.active
-                }
             }
 
-            FlyoutPane {
-                id: volumeFlyoutPane
+            VolumePane {
                 owner: volumeInline
-
-                VolumePane {
-                    shown: volumeFlyoutPane.active
-                    flyoutEl: flyout
-                }
+                flyoutEl: flyout
             }
         }
 

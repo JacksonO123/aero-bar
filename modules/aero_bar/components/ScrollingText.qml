@@ -8,13 +8,12 @@ Item {
     property alias font: label.font
     property alias color: label.color
     property bool scrolling: false
-    property real maxWidth: 10000
 
     // measured separately: an elided Text can keep reporting its old (elided) implicitWidth
     readonly property real naturalWidth: Math.ceil(metrics.advanceWidth)
     readonly property real overflow: Math.max(0, naturalWidth - width)
 
-    implicitWidth: Math.min(naturalWidth, maxWidth)
+    implicitWidth: naturalWidth
     implicitHeight: label.implicitHeight
     clip: true
 

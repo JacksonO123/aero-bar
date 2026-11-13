@@ -205,7 +205,8 @@ Item {
             anchors.fill: parent
             anchors.margins: 1
 
-            layer.enabled: root.clipContent && root.contentRadius > 1
+            // (nothing to round off in a frame without content, like the start menu's backdrop)
+            layer.enabled: root.clipContent && root.contentRadius > 1 && children.length > 0
             layer.effect: MultiEffect {
                 maskEnabled: true
                 maskSource: contentMask

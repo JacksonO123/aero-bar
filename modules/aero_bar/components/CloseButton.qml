@@ -53,20 +53,11 @@ Item {
                 colors: ["#c97060", "#b0402a", "#8e1d06", "#c45a2c"]
                 opacity: mouse.pressed ? 1 : 0
             }
-            Rectangle {
+            Bevel {
                 anchors.fill: parent
                 radius: 4
-                color: "transparent"
-                border.width: 1
-                border.color: Qt.rgba(0.25, 0, 0, 0.75)
-            }
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 1
-                radius: 3
-                color: "transparent"
-                border.width: 1
-                border.color: Qt.rgba(1, 1, 1, 0.45 + 0.2 * root.hoverT)
+                outerColor: Qt.rgba(0.25, 0, 0, 0.75)
+                innerColor: Qt.rgba(1, 1, 1, 0.45 + 0.2 * root.hoverT)
             }
         }
     }

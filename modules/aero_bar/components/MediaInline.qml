@@ -81,7 +81,6 @@ Win7Frame {
 
             ScrollingText {
                 width: Math.min(implicitWidth, root.maxTextWidth)
-                maxWidth: root.maxTextWidth
                 text: Media.title
                 color: "white"
                 font.pointSize: 10
@@ -91,7 +90,6 @@ Win7Frame {
             ScrollingText {
                 visible: Media.artist !== ""
                 width: Math.min(implicitWidth, root.maxTextWidth)
-                maxWidth: root.maxTextWidth
                 text: Media.artist
                 color: Qt.rgba(1, 1, 1, 0.7)
                 font.pointSize: 8.5

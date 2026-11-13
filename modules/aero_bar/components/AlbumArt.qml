@@ -135,20 +135,10 @@ Item {
         }
     }
 
-    Rectangle {
+    Bevel {
         anchors.fill: parent
         radius: root.radius
-        color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(0, 0, 0, 0.55)
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: Math.max(0, root.radius - 1)
-        color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.35)
+        outerColor: Qt.rgba(0, 0, 0, 0.55)
+        innerColor: Qt.rgba(1, 1, 1, 0.35)
     }
 }

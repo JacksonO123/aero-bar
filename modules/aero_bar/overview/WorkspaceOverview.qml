@@ -81,22 +81,20 @@ Item {
     // ---- open / close ----------------------------------------------------------------------
 
     readonly property bool triggerHovered: anchorItem.hovered ?? false
-    readonly property bool frameHovered: frame.hovered
+
+    // whatever keeps it open right now; once nothing does, it closes after a moment
+    readonly property bool keepOpen: triggerHovered || frame.hovered || interacting
+
+    onKeepOpenChanged: keepOpen ? closeTimer.stop() : scheduleClose()
 
     onTriggerHoveredChanged: {
-        if (triggerHovered) {
-            closeTimer.stop();
-            if (!open) {
-                openTimer.restart();
-                HyprState.refresh(); // prefetch so the cards are ready when it opens
-            }
-        } else {
+        if (!triggerHovered) {
             openTimer.stop();
-            scheduleClose();
+        } else if (!open) {
+            openTimer.restart();
+            HyprState.refresh(); // prefetch so the cards are ready when it opens
         }
     }
-
-    onFrameHoveredChanged: frameHovered ? closeTimer.stop() : scheduleClose()
 
     onOpenChanged: {
         if (open) {
@@ -114,7 +112,7 @@ Item {
     }
 
     function scheduleClose() {
-        if (open && !triggerHovered && !frameHovered && !interacting) {
+        if (open && !keepOpen) {
             closeTimer.restart();
         }
     }
@@ -140,7 +138,7 @@ Item {
         id: closeTimer
         interval: 450
         onTriggered: {
-            if (!root.interacting && !root.frameHovered && !root.triggerHovered) {
+            if (!root.keepOpen) {
                 root.open = false;
             }
         }
@@ -210,8 +208,7 @@ Item {
 
         syncModel(wsModel, workspaces.map(w => ({
                     wsId: w.id,
-                    name: w.name,
-                    monitorId: w.monitorId
+                    name: w.name
                 })), "wsId");
 
         syncModel(winModel, HyprState.clients.filter(c => known.has(c.wsId)).map(c => ({
@@ -391,20 +388,26 @@ Item {
         return px >= r.x + ix && px <= r.x + r.w - ix && py >= r.y + iy && py <= r.y + r.h - iy;
     }
 
+    // a window's global rect, as the model holds it
+    function rectOf(o) {
+        return {
+            gx: o.gx,
+            gy: o.gy,
+            gw: o.gw,
+            gh: o.gh
+        };
+    }
+
     // the tiled windows on w's workspace, w included
     function tiledWindowsOf(w) {
         const list = [];
         for (let i = 0; i < winModel.count; i++) {
             const o = winModel.get(i);
             if (o.wsId === w.wsId && !o.floating && !o.fullscreen) {
-                list.push({
+                list.push(Object.assign({
                     index: i,
-                    address: o.address,
-                    gx: o.gx,
-                    gy: o.gy,
-                    gw: o.gw,
-                    gh: o.gh
-                });
+                    address: o.address
+                }, rectOf(o)));
             }
         }
         return list;
@@ -562,12 +565,9 @@ Item {
     // ---- dragging windows ----------------------------------------------------------------------
 
     function beginDrag(w, px, py) {
-        closeTimer.stop();
         w.held = true;
         dragInfo = {
             address: w.address,
-            wsId: w.wsId,
-            floating: w.floating,
             offX: px - w.vx,
             offY: py - w.vy,
             origin: {
@@ -584,7 +584,11 @@ Item {
         w.vx = px - dragInfo.offX;
         w.vy = py - dragInfo.offY;
         pointer = Qt.point(px, py);
-        dropTarget = hitTest(px, py, w);
+        // a new object on every move would re-run every window's and card's bindings
+        const target = hitTest(px, py, w);
+        if (JSON.stringify(target) !== JSON.stringify(dropTarget)) {
+            dropTarget = target;
+        }
     }
 
     function endDrag(w, px, py, cancelled) {
@@ -630,20 +634,12 @@ Item {
             const other = indexOf(t.address);
             const a = winModel.get(index);
             const b = winModel.get(other);
-            const ga = {
-                wsId: a.wsId,
-                gx: a.gx,
-                gy: a.gy,
-                gw: a.gw,
-                gh: a.gh
-            };
-            const gb = {
-                wsId: b.wsId,
-                gx: b.gx,
-                gy: b.gy,
-                gw: b.gw,
-                gh: b.gh
-            };
+            const ga = Object.assign({
+                wsId: a.wsId
+            }, rectOf(a));
+            const gb = Object.assign({
+                wsId: b.wsId
+            }, rectOf(b));
             // trade places now; hyprland's answer will settle the details
             updateWindow(index, gb);
             updateWindow(other, ga);
@@ -692,7 +688,6 @@ Item {
     // ---- resizing windows ----------------------------------------------------------------------
 
     function beginResize(w, edge, px, py) {
-        closeTimer.stop();
         const e = layout.byId[w.wsId];
         if (!e) {
             return;
@@ -706,12 +701,7 @@ Item {
             links.push({
                 index: indexOf(w.address),
                 address: w.address,
-                orig: {
-                    gx: w.gx,
-                    gy: w.gy,
-                    gw: w.gw,
-                    gh: w.gh
-                },
+                orig: rectOf(w),
                 l: hEdge === "l",
                 r: hEdge === "r",
                 t: vEdge === "t",
@@ -739,12 +729,7 @@ Item {
                 const link = {
                     index: c.o.index,
                     address: c.o.address,
-                    orig: {
-                        gx: c.o.gx,
-                        gy: c.o.gy,
-                        gw: c.o.gw,
-                        gh: c.o.gh
-                    },
+                    orig: rectOf(c.o),
                     l: c.l && onX.includes(c),
                     r: c.r && onX.includes(c),
                     t: c.t && onY.includes(c),

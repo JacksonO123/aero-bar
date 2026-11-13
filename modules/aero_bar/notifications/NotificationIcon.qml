@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import "../components"
+import "../../../services"
 
 // The picture for a notification: its image if it sent one, else the app's icon.
 Item {
@@ -17,11 +18,7 @@ Item {
     readonly property string appIconUrl: !appIconIsUrl ? "" : appIcon.startsWith("/") ? "file://" + appIcon : appIcon
 
     // the desktop entry's icon, tracking newly installed apps
-    readonly property string entryIcon: {
-        DesktopEntries.applications.values;
-        const id = notification?.desktopEntry ?? "";
-        return id !== "" ? (DesktopEntries.byId(id)?.icon ?? DesktopEntries.heuristicLookup(id)?.icon ?? "") : "";
-    }
+    readonly property string entryIcon: Taskbar.entryById(notification?.desktopEntry ?? "")?.icon ?? ""
 
     readonly property string iconName: !appIconIsUrl && appIcon !== "" ? appIcon : entryIcon || "dialog-information"
 

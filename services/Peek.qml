@@ -56,7 +56,11 @@ Singleton {
         clearOrigin = windowOrigin;
     }
 
-    function hide() {
+    // stop peeking at `t`, unless another window's peek has taken over already
+    function hide(t) {
+        if (t !== toplevel) {
+            return;
+        }
         toplevel = null;
         if (holding) {
             releaseTimer.restart();

@@ -1,18 +1,18 @@
 import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
+import ".."
 import "../../components"
 import "../../../../utils/constants.js" as Constants
 
 // Bluetooth flyout: turn the adapter on or off, connect paired devices, and "Add a device" to
 // search for new ones and pair them.
-Item {
+FlyoutPane {
     id: root
-
-    property bool shown: false
 
     readonly property var adapter: Bluetooth.defaultAdapter
     readonly property bool powered: adapter?.enabled ?? false
+    readonly property bool discovering: adapter?.discovering ?? false
     readonly property var all: Bluetooth.devices.values
     readonly property var paired: all.filter(d => d.paired || d.bonded || d.connected).sort((a, b) => b.connected - a.connected)
     readonly property var found: all.filter(d => !(d.paired || d.bonded || d.connected) && d.name !== "")
@@ -44,8 +44,8 @@ Item {
     width: 320
     height: content.height + padding * 2
 
-    onShownChanged: {
-        if (!shown && adapter?.discovering) {
+    onActiveChanged: {
+        if (!root.active && discovering) {
             adapter.discovering = false;
         }
     }
@@ -149,7 +149,6 @@ Item {
                 }
             }
         }
-
     }
 
     Column {
@@ -230,14 +229,14 @@ Item {
             spacing: 10
 
             PushButton {
-                text: root.adapter?.discovering ? "Stop searching" : "Add a device"
-                onClicked: root.adapter.discovering = !root.adapter.discovering
+                text: root.discovering ? "Stop searching" : "Add a device"
+                onClicked: root.adapter.discovering = !root.discovering
             }
 
             Text {
                 id: searching
                 anchors.verticalCenter: parent.verticalCenter
-                visible: root.adapter?.discovering ?? false
+                visible: root.discovering
                 property int dots: 1
                 text: "Searching" + ".".repeat(dots)
                 color: "#6b7785"
@@ -254,7 +253,7 @@ Item {
 
         Column {
             width: parent.width
-            visible: root.powered && (root.adapter?.discovering ?? false)
+            visible: root.powered && root.discovering
             spacing: 1
 
             SectionHeader {

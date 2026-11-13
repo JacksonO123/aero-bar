@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import ".."
 import "../../components"
 import "../../startmenu"
 import "../../../../services"
@@ -9,24 +10,25 @@ import "../../../../utils/constants.js" as Constants
 // The pane for a hovered taskbar app. Hover: Win7 thumbnails of the app's windows on the glass
 // (or just its name when it isn't running); hovering a thumbnail Aero Peeks at that window.
 // Right-click (pinned): the jump list, with the app's own tasks, launch and close.
-Item {
+FlyoutPane {
     id: root
 
     required property var flyoutEl
-    // the hovered taskbar button (the pane's owner), or null
-    property Item button: null
     // the bar window's top-left corner in layout coordinates, so Aero Peek can keep this flyout
     // uncovered
     property point windowOrigin: Qt.point(0, 0)
 
-    readonly property var app: button?.app ?? null
-    readonly property var windows: button?.windows ?? []
+    readonly property var app: owner?.app ?? null
+    readonly property var windows: owner?.windows ?? []
     readonly property bool jump: flyoutEl.pinned
-    readonly property bool shown: button !== null
     readonly property var entry: app ? Taskbar.entryFor(app) : null
 
     readonly property real thumbW: 196
     readonly property real thumbH: 124
+
+    // one pane for every taskbar app: it follows whichever is hovered (or right-clicked)
+    owner: flyoutEl.current?.isAppButton ? flyoutEl.current : null
+    glass: !jump
 
     width: jump ? jumpList.width : windows.length > 0 ? thumbs.width + 12 : nameLabel.implicitWidth + 24
     height: jump ? jumpList.height : windows.length > 0 ? thumbs.height + 10 : 30
@@ -68,11 +70,7 @@ Item {
 
                 // a thumbnail going away (flyout closed, jump list opened, its window closed, the
                 // screen unplugged) ends its peek
-                Component.onDestruction: {
-                    if (Peek.toplevel === toplevel) {
-                        Peek.hide();
-                    }
-                }
+                Component.onDestruction: Peek.hide(toplevel)
 
                 onHoveredChanged: {
                     if (hovered) {
@@ -80,9 +78,7 @@ Item {
                         peekTimer.restart();
                     } else {
                         peekTimer.stop();
-                        if (Peek.toplevel === toplevel) {
-                            Peek.hide();
-                        }
+                        Peek.hide(toplevel);
                     }
                 }
 
@@ -132,7 +128,7 @@ Item {
                     ScreencopyView {
                         id: preview
                         anchors.centerIn: parent
-                        captureSource: root.shown ? thumb.toplevel.wayland : null
+                        captureSource: root.active ? thumb.toplevel.wayland : null
                         live: true
                         constraintSize: Qt.size(parent.width, parent.height)
                         width: implicitWidth

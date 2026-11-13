@@ -1,7 +1,7 @@
 import QtQuick
 
-// One pane of the Flyout, shown while its owner is the flyout's current module. Its parent is
-// the Flyout's holder, whose activeOwner is that current module.
+// The base of every Flyout pane (MediaPane, CalendarPane, ...): shown while its owner is the
+// flyout's current module. Its parent is the Flyout's holder, whose activeOwner is that module.
 Item {
     id: root
 

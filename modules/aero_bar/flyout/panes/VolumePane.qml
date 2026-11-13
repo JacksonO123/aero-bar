@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire
+import ".."
 import "../../components"
 import "../../../../services"
 import "../../../../utils/constants.js" as Constants
@@ -9,10 +10,9 @@ import "../../../../utils/constants.js" as Constants
 //  - output device card (glossy speaker), click to pick another output
 //  - master slider with the orb knob and a live peak meter underneath
 //  - per-application volume for everything currently playing
-Item {
+FlyoutPane {
     id: root
 
-    property bool shown: false
     // the flyout is held open while a slider is being dragged
     required property var flyoutEl
     property bool devicesOpen: false
@@ -27,8 +27,8 @@ Item {
     width: 326
     height: content.height + padding * 2 - 2
 
-    onShownChanged: {
-        if (!shown) {
+    onActiveChanged: {
+        if (!root.active) {
             devicesOpen = false;
         }
     }
@@ -37,18 +37,18 @@ Item {
     OpenCounter {
         target: Audio
         counter: "panesOpen"
-        when: root.shown
+        when: root.active
     }
 
     // stream volumes/properties are only valid while bound; only bother while visible
     PwObjectTracker {
-        objects: root.shown ? root.streams.concat(root.sinks) : []
+        objects: root.active ? root.streams.concat(root.sinks) : []
     }
 
     PwNodePeakMonitor {
         id: peaks
         node: Audio.sink
-        enabled: root.shown && Audio.sink !== null
+        enabled: root.active && Audio.sink !== null
     }
 
     // light-blue Win7 hot-track highlight

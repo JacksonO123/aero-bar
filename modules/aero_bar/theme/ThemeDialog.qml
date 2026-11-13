@@ -68,13 +68,11 @@ Variants {
             x: window.shadowMargin
             y: window.shadowMargin + (window.wanted ? 0 : 10)
             width: 540
-            height: body.height + 40
             opacity: window.wanted ? 1 : 0
             title: "Window Color and Appearance"
             focus: true
             onCloseClicked: Theme.cancel()
 
-            Keys.onEscapePressed: Theme.cancel()
             Keys.onReturnPressed: Theme.save()
             Keys.onEnterPressed: Theme.save()
 
@@ -92,7 +90,7 @@ Variants {
 
             Item {
                 id: body
-                width: dialog.width - 18
+                width: parent.width
                 height: footer.y + footer.height
 
                 Text {

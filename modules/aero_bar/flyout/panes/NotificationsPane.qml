@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import ".."
 import "../../components"
 import "../../notifications"
 import "../../../../services"
@@ -7,10 +8,8 @@ import "../../../../utils/constants.js" as Constants
 
 // The Action Center: everything that hasn't been dismissed, newest app group first, with
 // "Do not disturb" and "Clear all" at the bottom.
-Item {
+FlyoutPane {
     id: root
-
-    property bool shown: false
 
     readonly property real padding: 12
     readonly property color linkColor: "#1c5ea8"
@@ -42,7 +41,7 @@ Item {
     OpenCounter {
         target: Notifications
         counter: "panesOpen"
-        when: root.shown
+        when: root.active
     }
 
     // today's notifications show the time, older ones the date (re-evaluated as the clock ticks)

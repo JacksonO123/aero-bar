@@ -11,6 +11,12 @@ Item {
 
     signal closeClicked
 
+    // as tall as its content needs (set a width; the content can fill it with parent.width)
+    implicitHeight: frame.implicitHeight
+
+    // Esc does what the close button does
+    Keys.onEscapePressed: closeClicked()
+
     // drop shadow
     Rectangle {
         anchors.fill: frame

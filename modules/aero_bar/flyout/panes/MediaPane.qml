@@ -1,11 +1,10 @@
 import QtQuick
+import ".."
 import "../../components"
 import "../../../../services"
 
-Item {
+FlyoutPane {
     id: root
-
-    property bool shown: false
 
     readonly property var player: Media.player
     readonly property real position: player?.position ?? 0
@@ -22,7 +21,7 @@ Item {
         interval: 500
         repeat: true
         triggeredOnStart: true
-        running: root.shown && Media.isPlaying
+        running: root.active && Media.isPlaying
         onTriggered: root.player?.positionChanged()
     }
 
@@ -93,7 +92,7 @@ Item {
                     color: "#13263a"
                     font.pixelSize: 14
                     font.bold: true
-                    scrolling: root.shown
+                    scrolling: root.active
                 }
 
                 ScrollingText {
@@ -101,7 +100,7 @@ Item {
                     text: Media.artist
                     color: "#2f4559"
                     font.pixelSize: 12
-                    scrolling: root.shown
+                    scrolling: root.active
                 }
 
                 ScrollingText {
@@ -110,7 +109,7 @@ Item {
                     text: Media.album
                     color: "#6b7785"
                     font.pixelSize: 11
-                    scrolling: root.shown
+                    scrolling: root.active
                 }
 
                 Item {
@@ -152,7 +151,7 @@ Item {
                 position: root.position
                 length: root.length
                 seekable: Media.canSeek
-                playing: Media.isPlaying && root.shown
+                playing: Media.isPlaying && root.active
                 onSeek: seconds => Media.seek(seconds)
             }
 

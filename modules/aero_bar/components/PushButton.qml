@@ -27,8 +27,9 @@ Item {
         }
     }
 
+    // (dialogs stay loaded while hidden: only pulse while the window is up)
     SequentialAnimation on pulse {
-        running: root.isDefault && root.enabled && root.visible && !root.hovered
+        running: root.isDefault && root.enabled && root.visible && (root.Window.window?.visible ?? false) && !root.hovered
         loops: Animation.Infinite
         alwaysRunToEnd: true
 
@@ -72,22 +73,12 @@ Item {
         opacity: root.pressed ? 1 : 0
     }
 
-    // inner highlight, then the outline
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: 2
-        color: "transparent"
-        border.width: 1
-        border.color: root.pressed ? Qt.rgba(0, 0.1, 0.25, 0.25) : Qt.rgba(1, 1, 1, 0.8)
-    }
-
-    Rectangle {
+    Bevel {
         anchors.fill: parent
         radius: 3
-        color: "transparent"
-        border.width: 1
-        border.color: root.pressed ? "#2c628b" : (root.hovered || root.isDefault) ? "#3c7fb1" : "#707070"
+        outerColor: root.pressed ? "#2c628b" : (root.hovered || root.isDefault) ? "#3c7fb1" : "#707070"
+        innerColor: root.pressed ? Qt.rgba(0, 0.1, 0.25, 0.25) : Qt.rgba(1, 1, 1, 0.8)
+        outlineOnTop: true
     }
 
     Text {

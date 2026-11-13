@@ -31,11 +31,8 @@ AeroWindow {
     }
 
     width: 500
-    height: body.height + 40
     title: "User Account Control"
     onCloseClicked: AuthAgent.cancel()
-
-    Keys.onEscapePressed: AuthAgent.cancel()
 
     Connections {
         target: AuthAgent
@@ -49,7 +46,7 @@ AeroWindow {
 
     Item {
         id: body
-        width: root.width - 18
+        width: parent.width
         height: footer.y + footer.height
 
         Rectangle {

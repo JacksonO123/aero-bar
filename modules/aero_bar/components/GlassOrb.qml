@@ -108,21 +108,11 @@ Item {
         opacity: root.pressedT
     }
 
-    Rectangle {
+    Bevel {
         anchors.fill: parent
         radius: width / 2
-        color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(0, 0, 0, 0.6)
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: width / 2
-        color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.22)
+        outerColor: Qt.rgba(0, 0, 0, 0.6)
+        innerColor: Qt.rgba(1, 1, 1, 0.22)
     }
 
     Item {

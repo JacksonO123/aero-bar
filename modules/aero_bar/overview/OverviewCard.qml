@@ -31,32 +31,26 @@ Item {
     height: entry ? entry.deskH + headerH : 0
     opacity: entry ? 1 : 0
 
+    // the geometry follows layout changes with this
+    component Glide: NumberAnimation {
+        duration: 280
+        easing.type: Easing.OutCubic
+    }
+
     Behavior on x {
-        NumberAnimation {
-            duration: 280
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on y {
-        NumberAnimation {
-            duration: 280
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on width {
-        NumberAnimation {
-            duration: 280
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on height {
-        NumberAnimation {
-            duration: 280
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on hoverT {
@@ -188,19 +182,8 @@ Item {
                 anchors.bottom: parent.bottom
                 height: Math.max(2, card.reserved[3] * card.s)
 
-                gradient: Gradient {
-                    GradientStop {
-                        position: 0.0
-                        color: Qt.rgba(0.75, 0.75, 0.75, 0.9)
-                    }
-                    GradientStop {
-                        position: 0.5
-                        color: Qt.rgba(0.2, 0.2, 0.2, 0.85)
-                    }
-                    GradientStop {
-                        position: 0.51
-                        color: Qt.rgba(0.06, 0.06, 0.06, 0.85)
-                    }
+                gradient: SplitGradient {
+                    colors: [Qt.rgba(0.75, 0.75, 0.75, 0.9), Qt.rgba(0.2, 0.2, 0.2, 0.85), Qt.rgba(0.06, 0.06, 0.06, 0.85), Qt.rgba(0.06, 0.06, 0.06, 0.85)]
                 }
 
                 Rectangle {
@@ -247,21 +230,11 @@ Item {
             }
         }
 
-        Rectangle {
+        Bevel {
             anchors.fill: parent
             radius: 3
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(0, 0, 0, 0.7)
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: 2
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.3 + 0.25 * card.hoverT)
+            outerColor: Qt.rgba(0, 0, 0, 0.7)
+            innerColor: Qt.rgba(1, 1, 1, 0.3 + 0.25 * card.hoverT)
         }
 
         Rectangle {

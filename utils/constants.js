@@ -46,3 +46,4 @@ const NO_WORKSPACE = -99999;
 
 // the clock's time format (taskbar, lock screen, notification times)
 const TIME_FORMAT = "h:mm AP";
+const TIME_FORMAT_SECONDS = "h:mm:ss AP";

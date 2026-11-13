@@ -56,36 +56,30 @@ Item {
         vh = Qt.binding(() => win.geo.h);
     }
 
+    // the geometry follows layout changes with this
+    component Glide: NumberAnimation {
+        duration: 300
+        easing.type: Easing.OutCubic
+    }
+
     Behavior on vx {
         enabled: win.animate
-        NumberAnimation {
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on vy {
         enabled: win.animate
-        NumberAnimation {
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on vw {
         enabled: win.animate
-        NumberAnimation {
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on vh {
         enabled: win.animate
-        NumberAnimation {
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     x: vx
@@ -166,12 +160,7 @@ Item {
             gradient: SplitGradient {
                 split: 0.45
                 splitEnd: 0.451
-                colors: [
-                    Qt.rgba(0.82, 0.92, 1.0, win.focused ? 0.85 : 0.7),
-                    Qt.rgba(0.58, 0.76, 0.93, win.focused ? 0.75 : 0.6),
-                    Qt.rgba(0.38, 0.58, 0.8, win.focused ? 0.75 : 0.6),
-                    Qt.rgba(0.48, 0.68, 0.88, win.focused ? 0.8 : 0.65)
-                ]
+                colors: [Qt.rgba(0.82, 0.92, 1.0, win.focused ? 0.85 : 0.7), Qt.rgba(0.58, 0.76, 0.93, win.focused ? 0.75 : 0.6), Qt.rgba(0.38, 0.58, 0.8, win.focused ? 0.75 : 0.6), Qt.rgba(0.48, 0.68, 0.88, win.focused ? 0.8 : 0.65)]
             }
         }
 
@@ -220,21 +209,11 @@ Item {
             }
         }
 
-        Rectangle {
+        Bevel {
             anchors.fill: parent
             radius: 3
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(0, 0, 0, 0.65)
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: 2
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.45)
+            outerColor: Qt.rgba(0, 0, 0, 0.65)
+            innerColor: Qt.rgba(1, 1, 1, 0.45)
         }
 
         Win7Hover {

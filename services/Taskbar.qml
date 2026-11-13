@@ -44,10 +44,20 @@ Singleton {
         return String(v ?? "").toLowerCase().replace(/^0x/, "").replace(/^0+/, "");
     }
 
+    // a desktop entry by id, or the closest match (bindings look again when the entries reload)
+    function entryById(id) {
+        DesktopEntries.applications.values;
+        return lookupEntry(id);
+    }
+
+    function lookupEntry(id) {
+        return id ? (DesktopEntries.byId(id) ?? DesktopEntries.heuristicLookup(id)) : null;
+    }
+
     function entryFor(app) {
-        DesktopEntries.applications.values; // look again when desktop entries reload
+        DesktopEntries.applications.values;
         for (const id of idsOf(app)) {
-            const e = DesktopEntries.byId(id) ?? DesktopEntries.heuristicLookup(id);
+            const e = lookupEntry(id);
             if (e) {
                 return e;
             }

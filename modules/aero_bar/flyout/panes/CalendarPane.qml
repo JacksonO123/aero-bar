@@ -1,14 +1,15 @@
 import QtQuick
 import Quickshell
+import ".."
 import "../../components"
 import "../../../../services"
+import "../../../../utils/constants.js" as Constants
 
 // Windows 7 clock flyout: long date, month calendar and a glass analog clock. The expand button
 // (or clicking the month title) zooms out to the whole year; clicking a month zooms back in.
-Item {
+FlyoutPane {
     id: root
 
-    property bool shown: false
     property bool expanded: false
     property int viewYear: 2000
     property int viewMonth: 0
@@ -30,13 +31,12 @@ Item {
 
     function resetView() {
         expanded = false;
-        slideDirection = 0;
         viewYear = todayYear;
         viewMonth = todayMonth;
     }
 
-    onShownChanged: {
-        if (shown) {
+    onActiveChanged: {
+        if (root.active) {
             resetView();
         }
     }
@@ -104,7 +104,7 @@ Item {
     SystemClock {
         id: secondsClock
         precision: SystemClock.Seconds
-        enabled: root.shown
+        enabled: root.active
     }
 
     // ---- building blocks ------------------------------------------------------------------
@@ -584,7 +584,7 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatTime(secondsClock.date, "h:mm:ss AP")
+                text: Qt.formatTime(secondsClock.date, Constants.TIME_FORMAT_SECONDS)
                 color: "#1e2f40"
                 font.pixelSize: 15
             }
