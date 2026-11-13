@@ -10,6 +10,7 @@ Item {
     property alias font: label.font
     property alias color: label.color
     property real glow: 0.7
+    property alias elide: label.elide
 
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
@@ -17,8 +18,10 @@ Item {
     Text {
         x: label.x
         y: label.y
+        width: label.width
         text: label.text
         font: label.font
+        elide: label.elide
         color: "black"
         opacity: root.glow
 
@@ -32,6 +35,7 @@ Item {
 
     Text {
         id: label
+        width: root.width
         color: "white"
         font.pixelSize: 12
     }

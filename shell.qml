@@ -9,6 +9,7 @@ import "modules/aero_bar/osd"
 import "modules/aero_bar/notifications"
 import "modules/aero_bar/lock"
 import "modules/aero_bar/polkit"
+import "modules/aero_bar/peek"
 
 ShellRoot {
     Bar {}
@@ -18,4 +19,5 @@ ShellRoot {
     NotificationPopups {}
     LockScreen {}
     AuthPrompt {}
+    PeekOverlay {}
 }

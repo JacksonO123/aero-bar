@@ -74,6 +74,7 @@ Variants {
 
                     AppIcons {
                         apps: Apps.apps
+                        flyoutEl: flyout
                     }
                 }
             }
@@ -139,6 +140,16 @@ Variants {
 
             anchors.bottom: bar.top
             anchors.bottomMargin: 10
+
+            FlyoutPane {
+                id: appFlyoutPane
+                accepts: item => item?.isAppButton === true
+                glass: !flyout.pinned
+
+                AppPane {
+                    flyoutEl: flyout
+                }
+            }
 
             FlyoutPane {
                 id: mediaFlyoutPane

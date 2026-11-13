@@ -21,3 +21,6 @@ const NETWORK_SETTINGS_CMD = ["nm-connection-editor"];
 const BLUETOOTH_SETTINGS_CMD = ["blueman-manager"];
 // PAM service (a file in /etc/pam.d) the lock screen checks passwords with
 const LOCK_PAM_CONFIG = "login";
+// taskbar thumbnails: hover time before they first appear, and before Aero Peek kicks in (ms)
+const THUMBNAIL_DELAY = 400;
+const PEEK_DELAY = 500;

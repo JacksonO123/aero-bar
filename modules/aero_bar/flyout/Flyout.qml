@@ -18,7 +18,7 @@ Item {
     function paneFromOwner(owner) {
         for (let i = 0; i < holder.children.length; i++) {
             const child = holder.children[i];
-            if (child.owner === owner) {
+            if (owner !== null && (child.owner === owner || (child.accepts && child.accepts(owner)))) {
                 return child;
             }
         }
@@ -125,6 +125,7 @@ Item {
 
         anchors.bottom: parent.bottom
         frameOpacity: root.current === null ? 0 : 1
+        showContentFrame: !(root.pane?.glass ?? false)
         width: root.targetWidth
         height: root.targetHeight
         x: Math.max(root.edgeMargin, Math.min(root.windowWidth - frame.width - root.edgeMargin, (root.last === null ? root.centerX : root.animatedCenterX) - (frame.width / 2) - (frame.width / 2) * (1 - frame.scale)))

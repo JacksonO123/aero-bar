@@ -9,3 +9,5 @@ singleton Notifications Notifications.qml
 singleton NetState NetState.qml
 singleton LockState LockState.qml
 singleton AuthAgent AuthAgent.qml
+singleton Taskbar Taskbar.qml
+singleton Peek Peek.qml
