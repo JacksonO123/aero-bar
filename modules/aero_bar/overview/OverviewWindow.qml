@@ -298,7 +298,7 @@ Item {
         }
 
         // Win7 thumbnail close button
-        Rectangle {
+        SmallClose {
             id: closeButton
             anchors.top: parent.top
             anchors.right: parent.right
@@ -306,56 +306,10 @@ Item {
             anchors.rightMargin: win.borderW
             width: 20
             height: Math.max(10, Math.min(13, win.captionH))
-            radius: 2
-            visible: win.vw >= 44 && win.vh >= 30 && (win.hoverT > 0.05 || closeMouse.containsMouse)
-            opacity: Math.max(win.hoverT, closeMouse.containsMouse ? 1 : 0)
-            border.width: 1
-            border.color: Qt.rgba(0.35, 0.05, 0.02, 0.9)
-
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: closeMouse.containsMouse ? "#f8b4a4" : "#eba090"
-                }
-                GradientStop {
-                    position: 0.48
-                    color: closeMouse.containsMouse ? "#ec6a4f" : "#d9604a"
-                }
-                GradientStop {
-                    position: 0.49
-                    color: closeMouse.containsMouse ? "#d63b1c" : "#bd3a22"
-                }
-                GradientStop {
-                    position: 1.0
-                    color: closeMouse.containsMouse ? "#f08463" : "#d26b52"
-                }
-            }
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 9
-                height: 1.6
-                rotation: 45
-                color: "white"
-                antialiasing: true
-            }
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 9
-                height: 1.6
-                rotation: -45
-                color: "white"
-                antialiasing: true
-            }
-
-            MouseArea {
-                id: closeMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: win.overview.closeWindow(win.address)
-            }
+            visible: win.vw >= 44 && win.vh >= 30 && (win.hoverT > 0.05 || hovered)
+            opacity: Math.max(win.hoverT, hovered ? 1 : 0)
+            lit: true
+            onClicked: win.overview.closeWindow(win.address)
         }
     }
 

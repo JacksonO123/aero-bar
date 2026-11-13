@@ -130,6 +130,8 @@ Singleton {
         return out !== "" ? "/org/freedesktop/login1/session/" + out : "";
     }
 
+    property double logindStartedAt: 0
+
     Process {
         id: logind
         running: true
@@ -141,7 +143,14 @@ Singleton {
                 }
             }
         }
-        onExited: restart.start()
+        onStarted: root.logindStartedAt = Date.now()
+        onExited: {
+            // it ran fine for a while: this is a one-off exit, not a failure loop
+            if (Date.now() - root.logindStartedAt > 60000) {
+                restart.interval = 5000;
+            }
+            restart.start();
+        }
     }
 
     // if dbus-monitor keeps failing, retry less and less often (5 s, 10 s, ... up to a minute)

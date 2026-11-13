@@ -31,7 +31,6 @@ Variants {
         onWantedChanged: {
             if (wanted) {
                 dialog.forceActiveFocus();
-                dialog.syncMix();
             }
         }
 
@@ -45,6 +44,14 @@ Variants {
                     hsvSaturation: 0,
                     hsvValue: 0
                 })
+
+            Connections {
+                target: Theme
+
+                function onOpened() {
+                    dialog.syncMix();
+                }
+            }
 
             function syncMix() {
                 const t = Theme.tint;

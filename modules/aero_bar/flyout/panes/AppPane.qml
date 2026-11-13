@@ -32,8 +32,36 @@ Item {
     height: jump ? jumpList.height : windows.length > 0 ? thumbs.height + 10 : 30
 
     onShownChanged: {
-        if (!shown) {
+        if (shown) {
+            // fresh window positions for a peek in a moment (no retain: Peek holds one itself)
+            if (windows.length > 0) {
+                HyprState.refresh();
+            }
+        } else {
             Peek.hide();
+        }
+    }
+
+    // where this flyout is, in layout coordinates, for Peek to keep it uncovered
+    function flyoutRect() {
+        const frame = flyoutEl.aeroframe;
+        const p = frame.mapToItem(null, 0, 0);
+        return Qt.rect(windowOrigin.x + p.x, windowOrigin.y + p.y, frame.width, frame.height);
+    }
+
+    // follow the flyout if it changes size or moves during a peek (a window opened or closed)
+    Connections {
+        target: root.flyoutEl.aeroframe
+        enabled: root.shown && Peek.toplevel !== null
+
+        function onXChanged() {
+            Peek.clearRect = root.flyoutRect();
+        }
+        function onWidthChanged() {
+            Peek.clearRect = root.flyoutRect();
+        }
+        function onHeightChanged() {
+            Peek.clearRect = root.flyoutRect();
         }
     }
 
@@ -58,7 +86,10 @@ Item {
         visible: !root.jump && root.windows.length > 0
 
         Repeater {
-            model: root.jump ? [] : root.windows
+            // keeps thumbnails (and their live captures) when other windows come and go
+            model: ScriptModel {
+                values: root.jump ? [] : root.windows
+            }
 
             Win7Frame {
                 id: thumb
@@ -95,11 +126,7 @@ Item {
                 Timer {
                     id: peekTimer
                     interval: Constants.PEEK_DELAY
-                    onTriggered: {
-                        const frame = root.flyoutEl.aeroframe;
-                        const p = frame.mapToItem(null, 0, 0);
-                        Peek.show(thumb.toplevel, Qt.rect(root.windowOrigin.x + p.x, root.windowOrigin.y + p.y, frame.width, frame.height));
-                    }
+                    onTriggered: Peek.show(thumb.toplevel, root.flyoutRect())
                 }
 
                 Win7Hover {

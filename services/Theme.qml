@@ -122,6 +122,8 @@ Singleton {
     // ---- picker --------------------------------------------------------------------------------
 
     property bool dialogOpen: false
+    // every openDialog(), also when it was already open (the preview was reset)
+    signal opened
     property string dialogScreen: ""
 
     function openDialog(screenName) {
@@ -132,6 +134,7 @@ Singleton {
         // stay on this screen, even if focus moves to another one while it is open
         dialogScreen = screenName || Screens.focused;
         dialogOpen = true;
+        opened();
     }
 
     function pick(name) {

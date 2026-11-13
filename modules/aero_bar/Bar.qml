@@ -67,7 +67,7 @@ Variants {
                     spacing: 12
 
                     ArchIcon {
-                        active: StartMenuState.open && StartMenuState.screenName === here.modelData.name
+                        active: StartMenuState.open && Screens.resolve(StartMenuState.screenName) === here.modelData.name
                         onClicked: StartMenuState.toggle(here.modelData.name)
                     }
 

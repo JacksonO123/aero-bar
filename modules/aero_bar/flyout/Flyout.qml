@@ -27,11 +27,19 @@ Item {
     }
 
     readonly property Item pane: paneFromOwner(current)
-    // the pane last shown: stays while the flyout fades out after `current` goes null
-    property Item shownPane: null
+    // whether the frame is glass only (no content well, no clip pass). Taken from the pane while
+    // one shows and kept while the flyout fades out, so it can't flip mid-fade (the app pane's
+    // `glass` follows `pinned`, which close() clears).
+    readonly property bool paneGlass: pane?.glass ?? false
+    property bool glass: false
     onPaneChanged: {
         if (pane) {
-            shownPane = pane;
+            glass = paneGlass;
+        }
+    }
+    onPaneGlassChanged: {
+        if (pane) {
+            glass = paneGlass;
         }
     }
     property real targetWidth: pane ? pane.width + frame.frameWidth * 2 : 0
@@ -93,10 +101,11 @@ Item {
     }
 
     function close() {
-        pinned = false;
-        closeTimer.stop();
+        // current first: the panes' state (e.g. glass) must not change on the way out
         current = null;
         last = null;
+        pinned = false;
+        closeTimer.stop();
     }
 
     // interactions in progress (e.g. a slider being dragged; panes count them with an
@@ -128,9 +137,9 @@ Item {
 
         anchors.bottom: parent.bottom
         frameOpacity: root.current === null ? 0 : 1
-        showContentFrame: !(root.shownPane?.glass ?? false)
+        showContentFrame: !root.glass
         // glass-only panes keep clear of the corners, so skip the rounding mask pass
-        clipContent: !(root.shownPane?.glass ?? false)
+        clipContent: !root.glass
         width: root.targetWidth
         height: root.targetHeight
         x: Math.max(root.edgeMargin, Math.min(root.windowWidth - frame.width - root.edgeMargin, (root.last === null ? root.centerX : root.animatedCenterX) - (frame.width / 2) - (frame.width / 2) * (1 - frame.scale)))

@@ -9,6 +9,7 @@ WlSessionLock {
 
     // (not a Binding child: children here become the per-screen surface)
     onSecureChanged: LockState.secure = secure
+    Component.onCompleted: LockState.secure = secure
 
     WlSessionLockSurface {
         color: "black"

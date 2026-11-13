@@ -238,7 +238,10 @@ Item {
                 spacing: 1
 
                 Repeater {
-                    model: NetState.wifiNetworks
+                    // keeps rows (and the key being typed) when scans re-sort the list
+                    model: ScriptModel {
+                        values: NetState.wifiNetworks
+                    }
 
                     Item {
                         id: net
@@ -344,14 +347,11 @@ Item {
                                     }
                                     onAccepted: root.submitKey()
 
-                                    // when it appears, and when its row was rebuilt mid-typing
-                                    function focusIfShown() {
+                                    onVisibleChanged: {
                                         if (visible) {
                                             focusInput();
                                         }
                                     }
-                                    onVisibleChanged: focusIfShown()
-                                    Component.onCompleted: focusIfShown()
                                 }
                             }
 

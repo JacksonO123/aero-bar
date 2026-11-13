@@ -383,10 +383,10 @@ Singleton {
 
         onExited: {
             root.epoch += 1;
-            // nobody reads a snapshot unless something holds a retain(); the dispatch's own
-            // events restart the same debounce, so this gives one snapshot, not two
+            // nobody reads a snapshot unless something holds a retain(). Not via the event
+            // debounce: a busy stream of events could keep postponing it.
             if (root.live) {
-                eventDebounce.restart();
+                root.refresh();
             }
             Qt.callLater(root.pump);
         }
