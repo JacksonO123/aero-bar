@@ -8,6 +8,7 @@ import "modules/aero_bar/theme"
 import "modules/aero_bar/osd"
 import "modules/aero_bar/notifications"
 import "modules/aero_bar/lock"
+import "modules/aero_bar/polkit"
 
 ShellRoot {
     Bar {}
@@ -16,4 +17,5 @@ ShellRoot {
     VolumeOsd {}
     NotificationPopups {}
     LockScreen {}
+    AuthPrompt {}
 }
