@@ -96,6 +96,12 @@ Variants {
                     flyoutEl: flyout
                 }
 
+                ActionCenterInline {
+                    id: actionCenter
+                    flyoutEl: flyout
+                    active: flyout.pinned && flyout.current === actionCenter
+                }
+
                 VolumeInline {
                     id: volumeInline
                     flyoutEl: flyout
@@ -135,6 +141,15 @@ Variants {
 
                 CalendarPane {
                     shown: calendarFlyoutPane.active
+                }
+            }
+
+            FlyoutPane {
+                id: notificationsFlyoutPane
+                owner: actionCenter
+
+                NotificationsPane {
+                    shown: notificationsFlyoutPane.active
                 }
             }
 
