@@ -10,6 +10,7 @@ import "modules/aero_bar/notifications"
 import "modules/aero_bar/lock"
 import "modules/aero_bar/polkit"
 import "modules/aero_bar/peek"
+import "modules/aero_bar/switcher"
 
 ShellRoot {
     Bar {}
@@ -20,4 +21,5 @@ ShellRoot {
     LockScreen {}
     AuthPrompt {}
     PeekOverlay {}
+    SwitcherOverlay {}
 }

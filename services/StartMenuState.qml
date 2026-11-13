@@ -128,7 +128,12 @@ Singleton {
     GlobalShortcut {
         name: "startmenu"
         description: "Toggle the Aero start menu"
-        onPressed: root.toggle("")
+        // letting go of Super after Flip 3D (Super+Tab) must not open the menu
+        onPressed: {
+            if (!Switcher.active && Date.now() - Switcher.closedAt > 400) {
+                root.toggle("");
+            }
+        }
     }
 
     IpcHandler {
