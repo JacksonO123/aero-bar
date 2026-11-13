@@ -26,7 +26,7 @@ Singleton {
     property int centersOpen: 0
     readonly property bool centerOpen: centersOpen > 0
 
-    readonly property bool doNotDisturb: settings.doNotDisturb
+    readonly property bool doNotDisturb: settings?.doNotDisturb ?? false
 
     // arrival time per notification id (the server doesn't keep one)
     property var times: ({})

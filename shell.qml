@@ -7,6 +7,7 @@ import "modules/aero_bar/startmenu"
 import "modules/aero_bar/theme"
 import "modules/aero_bar/osd"
 import "modules/aero_bar/notifications"
+import "modules/aero_bar/lock"
 
 ShellRoot {
     Bar {}
@@ -14,4 +15,5 @@ ShellRoot {
     ThemeDialog {}
     VolumeOsd {}
     NotificationPopups {}
+    LockScreen {}
 }

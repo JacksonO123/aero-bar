@@ -93,10 +93,10 @@ Singleton {
     property real previewIntensity: 0.42
     property bool previewTransparency: true
 
-    readonly property string colorName: previewing ? previewName : saved.name
-    readonly property color tint: previewing ? previewTint : saved.tint
-    readonly property real intensity: previewing ? previewIntensity : saved.intensity
-    readonly property bool transparency: previewing ? previewTransparency : saved.transparency
+    readonly property string colorName: previewing ? previewName : saved?.name ?? "Graphite"
+    readonly property color tint: previewing ? previewTint : saved?.tint ?? "#333333"
+    readonly property real intensity: previewing ? previewIntensity : saved?.intensity ?? 0.42
+    readonly property bool transparency: previewing ? previewTransparency : saved?.transparency ?? true
 
     // the frame glass. Without transparency it becomes a solid mix of the colour and pale grey,
     // like Win7 with transparency turned off.

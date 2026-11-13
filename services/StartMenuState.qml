@@ -81,7 +81,7 @@ Singleton {
     property var powerActions: [
         {
             label: "Lock",
-            command: ["loginctl", "lock-session"]
+            command: () => LockState.lock()
         },
         {
             label: "Log off",
@@ -90,7 +90,11 @@ Singleton {
         },
         {
             label: "Sleep",
-            command: ["systemctl", "suspend"]
+            // like Win7, ask for the password when it wakes up
+            command: () => {
+                LockState.lock();
+                Quickshell.execDetached(["systemctl", "suspend"]);
+            }
         },
         {
             label: "Restart",

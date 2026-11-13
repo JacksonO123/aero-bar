@@ -19,3 +19,5 @@ const MAX_NOTIFICATION_POPUPS = 3;
 // opened by the links at the bottom of the network and Bluetooth flyouts
 const NETWORK_SETTINGS_CMD = ["nm-connection-editor"];
 const BLUETOOTH_SETTINGS_CMD = ["blueman-manager"];
+// PAM service (a file in /etc/pam.d) the lock screen checks passwords with
+const LOCK_PAM_CONFIG = "login";

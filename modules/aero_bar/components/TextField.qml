@@ -62,7 +62,8 @@ Item {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            visible: input.text === "" && !input.activeFocus
+            // like Win7's cue banners, the hint stays until you type
+            visible: input.text === ""
             text: root.placeholder
             color: "#8a8a8a"
             font.pixelSize: root.fontSize
