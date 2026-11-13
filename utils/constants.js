@@ -16,3 +16,6 @@ const OSD_TIMEOUT = 1600;
 // notification balloons: how long one stays when the app doesn't say (ms), and how many stack
 const NOTIFICATION_TIMEOUT = 6000;
 const MAX_NOTIFICATION_POPUPS = 3;
+// opened by the links at the bottom of the network and Bluetooth flyouts
+const NETWORK_SETTINGS_CMD = ["nm-connection-editor"];
+const BLUETOOTH_SETTINGS_CMD = ["blueman-manager"];

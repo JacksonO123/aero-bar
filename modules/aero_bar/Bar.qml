@@ -20,6 +20,8 @@ Variants {
         required property var modelData
         screen: modelData
         WlrLayershell.namespace: "aero-bar"
+        // the network flyout has a text box for Wi-Fi keys
+        WlrLayershell.keyboardFocus: flyout.pinned && flyout.current === networkButton ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
         anchors {
             bottom: true
@@ -102,6 +104,18 @@ Variants {
                     active: flyout.pinned && flyout.current === actionCenter
                 }
 
+                NetworkInline {
+                    id: networkButton
+                    flyoutEl: flyout
+                    active: flyout.pinned && flyout.current === networkButton
+                }
+
+                BluetoothInline {
+                    id: bluetoothButton
+                    flyoutEl: flyout
+                    active: flyout.pinned && flyout.current === bluetoothButton
+                }
+
                 VolumeInline {
                     id: volumeInline
                     flyoutEl: flyout
@@ -150,6 +164,24 @@ Variants {
 
                 NotificationsPane {
                     shown: notificationsFlyoutPane.active
+                }
+            }
+
+            FlyoutPane {
+                id: networkFlyoutPane
+                owner: networkButton
+
+                NetworkPane {
+                    shown: networkFlyoutPane.active
+                }
+            }
+
+            FlyoutPane {
+                id: bluetoothFlyoutPane
+                owner: bluetoothButton
+
+                BluetoothPane {
+                    shown: bluetoothFlyoutPane.active
                 }
             }
 
