@@ -15,7 +15,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        readonly property bool wanted: StartMenuState.open && (StartMenuState.screenName === modelData.name || (StartMenuState.screenName === "" && Quickshell.screens[0] === modelData))
+        readonly property bool wanted: StartMenuState.open && Screens.resolve(StartMenuState.screenName) === modelData.name
 
         // stay mapped until the close animation has finished
         visible: wanted || menu.opacity > 0.01

@@ -1,6 +1,6 @@
 import QtQuick
 
-// A Windows 7 check box with its label.
+// A Windows 7 check box with its label. Controlled: bind `checked`, handle `toggled`.
 Item {
     id: root
 
@@ -62,9 +62,8 @@ Item {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
-        onClicked: {
-            root.checked = !root.checked;
-            root.toggled(root.checked);
-        }
+        // doesn't set `checked` itself: callers bind it to their state and update that state
+        // from `toggled`, so the box keeps following changes made elsewhere
+        onClicked: root.toggled(!root.checked)
     }
 }

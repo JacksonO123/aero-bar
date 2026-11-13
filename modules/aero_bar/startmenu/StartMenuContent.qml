@@ -518,7 +518,7 @@ Item {
             // centred on the search box, like Win7
             y: root.frameH - root.pad - root.searchH + (root.searchH - height) / 2
             menuOpen: root.powerMenuOpen
-            onClicked: StartMenuState.run(StartMenuState.shutdownCommand)
+            onClicked: StartMenuState.run(StartMenuState.shutDown)
             onArrowClicked: root.powerMenuOpen = !root.powerMenuOpen
         }
 

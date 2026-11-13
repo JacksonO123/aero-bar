@@ -18,7 +18,7 @@ Item {
     function paneFromOwner(owner) {
         for (let i = 0; i < holder.children.length; i++) {
             const child = holder.children[i];
-            if (owner !== null && (child.owner === owner || (child.accepts && child.accepts(owner)))) {
+            if (owner !== null && child.owner === owner) {
                 return child;
             }
         }
@@ -27,6 +27,13 @@ Item {
     }
 
     readonly property Item pane: paneFromOwner(current)
+    // the pane last shown: stays while the flyout fades out after `current` goes null
+    property Item shownPane: null
+    onPaneChanged: {
+        if (pane) {
+            shownPane = pane;
+        }
+    }
     property real targetWidth: pane ? pane.width + frame.frameWidth * 2 : 0
     property real targetHeight: pane ? pane.height + frame.frameWidth + frame.topFrameWidth : 0
 
@@ -92,18 +99,14 @@ Item {
         last = null;
     }
 
-    // panes call hold()/release() around interactions (e.g. dragging a slider) so the flyout
-    // doesn't close if the pointer wanders outside it mid-drag
+    // interactions in progress (e.g. a slider being dragged; panes count them with an
+    // OpenCounter): the flyout doesn't close if the pointer wanders outside it mid-drag
     property int holdCount: 0
 
-    function hold() {
-        holdCount += 1;
-        closeTimer.stop();
-    }
-
-    function release() {
-        holdCount = Math.max(0, holdCount - 1);
-        if (holdCount === 0 && !frame.hovered) {
+    onHoldCountChanged: {
+        if (holdCount > 0) {
+            closeTimer.stop();
+        } else if (!frame.hovered) {
             closeTimer.restart();
         }
     }
@@ -125,7 +128,9 @@ Item {
 
         anchors.bottom: parent.bottom
         frameOpacity: root.current === null ? 0 : 1
-        showContentFrame: !(root.pane?.glass ?? false)
+        showContentFrame: !(root.shownPane?.glass ?? false)
+        // glass-only panes keep clear of the corners, so skip the rounding mask pass
+        clipContent: !(root.shownPane?.glass ?? false)
         width: root.targetWidth
         height: root.targetHeight
         x: Math.max(root.edgeMargin, Math.min(root.windowWidth - frame.width - root.edgeMargin, (root.last === null ? root.centerX : root.animatedCenterX) - (frame.width / 2) - (frame.width / 2) * (1 - frame.scale)))

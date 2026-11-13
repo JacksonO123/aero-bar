@@ -8,7 +8,6 @@ Item {
     id: win
 
     required property var overview
-    required property int index
     required property string address
     required property string cls
     required property string title

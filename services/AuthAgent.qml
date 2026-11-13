@@ -1,7 +1,6 @@
 pragma Singleton
 
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Services.Polkit
 import QtQuick
 
@@ -15,7 +14,6 @@ Singleton {
     readonly property alias agent: agent
     readonly property var flow: agent.flow
     readonly property bool active: agent.isActive && flow !== null
-    readonly property bool registered: agent.isRegistered
     // the prompt shows on the screen that was focused when the request came in
     property string screenName: ""
     // the last attempt failed; cleared when the user types again
@@ -36,7 +34,7 @@ Singleton {
         id: agent
 
         onAuthenticationRequestStarted: {
-            root.screenName = Hyprland.focusedMonitor?.name ?? "";
+            root.screenName = Screens.focused;
             root.wrongPassword = false;
         }
     }

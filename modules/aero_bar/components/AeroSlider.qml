@@ -12,8 +12,6 @@ Item {
     property real wheelStep: 0.02
 
     signal moved(real value)
-    signal interactionStarted
-    signal interactionEnded
 
     property bool dragging: false
     property real dragValue: 0
@@ -154,7 +152,6 @@ Item {
 
             root.dragValue = root.valueAt(mouse.x - grabOffset);
             root.dragging = true;
-            root.interactionStarted();
             root.moved(root.dragValue);
         }
 
@@ -166,19 +163,13 @@ Item {
             root.moved(root.dragValue);
         }
 
-        onReleased: {
-            root.dragging = false;
-            root.interactionEnded();
-        }
-
-        onCanceled: {
-            root.dragging = false;
-            root.interactionEnded();
-        }
+        onReleased: root.dragging = false
+        onCanceled: root.dragging = false
 
         onWheel: wheel => {
             const steps = wheel.angleDelta.y / 120;
-            root.moved(Math.max(0, Math.min(root.maximum, root.value + steps * root.wheelStep)));
+            // a value already above `maximum` (set elsewhere) can still be scrolled down, not cut
+            root.moved(Math.max(0, Math.min(Math.max(root.maximum, root.value), root.value + steps * root.wheelStep)));
         }
     }
 

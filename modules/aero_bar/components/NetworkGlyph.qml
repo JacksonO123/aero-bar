@@ -14,7 +14,9 @@ Canvas {
     implicitHeight: 18
 
     onKindChanged: requestPaint()
-    onStrengthChanged: requestPaint()
+    // five bars: only repaint when the number lit changes, not on every 1% of signal
+    readonly property int lit: badge === "error" ? 0 : Math.max(1, Math.ceil(strength * 5 - 0.001))
+    onLitChanged: requestPaint()
     onBadgeChanged: requestPaint()
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()
@@ -29,7 +31,6 @@ Canvas {
 
         if (kind === "wifi") {
             const n = 5, gap = w * 0.05, bw = (w * 0.86 - gap * (n - 1)) / n;
-            const lit = badge === "error" ? 0 : Math.max(1, Math.ceil(strength * n - 0.001));
             for (let i = 0; i < n; i++) {
                 const bh = h * (0.28 + 0.16 * i);
                 const x = i * (bw + gap), y = h - bh;

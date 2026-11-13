@@ -20,8 +20,7 @@ Variants {
         required property var modelData
         screen: modelData
         WlrLayershell.namespace: "aero-bar"
-        // the network flyout has a text box for Wi-Fi keys
-        WlrLayershell.keyboardFocus: flyout.pinned && flyout.current === networkButton ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: flyout.pinned && (flyout.pane?.wantsKeyboard ?? false) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
         anchors {
             bottom: true
@@ -102,19 +101,16 @@ Variants {
                 ActionCenterInline {
                     id: actionCenter
                     flyoutEl: flyout
-                    active: flyout.pinned && flyout.current === actionCenter
                 }
 
                 NetworkInline {
                     id: networkButton
                     flyoutEl: flyout
-                    active: flyout.pinned && flyout.current === networkButton
                 }
 
                 BluetoothInline {
                     id: bluetoothButton
                     flyoutEl: flyout
-                    active: flyout.pinned && flyout.current === bluetoothButton
                 }
 
                 VolumeInline {
@@ -143,11 +139,15 @@ Variants {
 
             FlyoutPane {
                 id: appFlyoutPane
-                accepts: item => item?.isAppButton === true
+                // one pane for every taskbar app: it follows whichever is hovered
+                owner: flyout.current?.isAppButton ? flyout.current : null
                 glass: !flyout.pinned
 
                 AppPane {
                     flyoutEl: flyout
+                    button: appFlyoutPane.owner
+                    // the bar window sits at the bottom of its screen
+                    windowOrigin: Qt.point(here.modelData.x, here.modelData.y + here.modelData.height - here.height)
                 }
             }
 
@@ -181,6 +181,8 @@ Variants {
             FlyoutPane {
                 id: networkFlyoutPane
                 owner: networkButton
+                // the Wi-Fi key box
+                wantsKeyboard: true
 
                 NetworkPane {
                     shown: networkFlyoutPane.active

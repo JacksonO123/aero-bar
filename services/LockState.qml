@@ -17,12 +17,13 @@ Singleton {
     id: root
 
     property bool locked: false
+    // the compositor has confirmed every screen is covered (set by the lock surfaces)
+    property bool secure: false
     // the password box, shared by the lock surfaces on every screen
     property string typed: ""
     property string error: ""
     readonly property bool busy: pam.active && !pam.responseRequired || pending !== ""
     property string pending: ""
-    property int failures: 0
 
     function lock() {
         if (!locked) {
@@ -30,6 +31,41 @@ Singleton {
             error = "";
             locked = true;
         }
+    }
+
+    // lock, and run `action` only once the lock is really up (e.g. suspend). If the compositor
+    // never confirms, it still runs after a few seconds rather than not at all.
+    property var afterLock: null
+
+    function lockThen(action) {
+        lock();
+        if (secure) {
+            action();
+            return;
+        }
+        afterLock = action;
+        afterLockTimeout.restart();
+    }
+
+    function runAfterLock() {
+        const action = afterLock;
+        afterLock = null;
+        afterLockTimeout.stop();
+        if (action) {
+            action();
+        }
+    }
+
+    onSecureChanged: {
+        if (secure) {
+            runAfterLock();
+        }
+    }
+
+    Timer {
+        id: afterLockTimeout
+        interval: 3000
+        onTriggered: root.runAfterLock()
     }
 
     function submit() {
@@ -41,8 +77,10 @@ Singleton {
         typed = "";
         if (pam.responseRequired) {
             respond();
-        } else if (!pam.active) {
-            pam.start();
+        } else if (!pam.active && !pam.start()) {
+            // no completed() will follow, so don't wait for one
+            pending = "";
+            error = "Couldn't start the password check.";
         }
     }
 
@@ -68,14 +106,11 @@ Singleton {
         onCompleted: result => {
             root.pending = "";
             if (result === PamResult.Success) {
-                root.failures = 0;
                 root.error = "";
                 root.locked = false;
             } else if (result === PamResult.MaxTries) {
-                root.failures += 1;
                 root.error = "Too many attempts. Wait a moment and try again.";
             } else if (result === PamResult.Failed) {
-                root.failures += 1;
                 root.error = "The password is incorrect. Try again.";
             } else {
                 root.error = "Couldn't check the password.";
@@ -109,10 +144,14 @@ Singleton {
         onExited: restart.start()
     }
 
+    // if dbus-monitor keeps failing, retry less and less often (5 s, 10 s, ... up to a minute)
     Timer {
         id: restart
         interval: 5000
-        onTriggered: logind.running = true
+        onTriggered: {
+            logind.running = true;
+            interval = Math.min(60000, interval * 2);
+        }
     }
 
     IpcHandler {

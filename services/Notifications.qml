@@ -108,10 +108,12 @@ Singleton {
         persistenceSupported: true
 
         onNotification: n => {
+            // in place, before tracking it creates its rows (which read it once); nothing on
+            // screen needs to update when an entry goes
+            const id = n.id;
+            root.times[id] = new Date();
+            n.closed.connect(() => delete root.times[id]);
             n.tracked = true;
-            const t = Object.assign({}, root.times);
-            t[n.id] = new Date();
-            root.times = t;
 
             if (n.lastGeneration) {
                 return;

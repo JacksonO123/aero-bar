@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import "../components"
-import "../flyout/panes"
 import "../../../services"
 
 // The Windows 7 UAC dialog, asking for a password on polkit's behalf.
@@ -12,27 +11,22 @@ AeroWindow {
     readonly property var identities: flow?.identities ?? []
     readonly property bool busy: flow !== null && !flow.isResponseRequired && !flow.isCompleted
     readonly property string me: Quickshell.env("USER") ?? ""
-    property bool details: false
 
     function sameIdentity(a, b) {
         return a && b && a.id === b.id && a.isGroup === b.isGroup;
     }
 
+    // the password box of the selected identity's tile
+    property Item passwordField: null
+
     function focusPassword() {
-        const field = passwordField();
-        if (field) {
-            field.focusInput();
-        }
+        passwordField?.focusInput();
     }
 
-    // the field lives in the selected identity's tile
-    property var passwordField: () => null
-
     function submit() {
-        const field = passwordField();
-        if (field && !busy) {
-            AuthAgent.submit(field.text);
-            field.text = "";
+        if (passwordField && !busy) {
+            AuthAgent.submit(passwordField.text);
+            passwordField.text = "";
         }
     }
 
@@ -124,7 +118,7 @@ AeroWindow {
             }
 
             Grid {
-                visible: root.details
+                visible: detailsToggle.open
                 columns: 2
                 columnSpacing: 14
                 rowSpacing: 4
@@ -192,18 +186,15 @@ AeroWindow {
                     border.width: selected || tileMouse.containsMouse ? 1 : 0
                     border.color: selected ? "#a9c8ea" : "#cfe2f5"
 
-                    onSelectedChanged: {
+                    function claimPassword() {
                         if (selected) {
-                            root.passwordField = () => field;
+                            root.passwordField = field;
                             Qt.callLater(root.focusPassword);
                         }
                     }
-                    Component.onCompleted: {
-                        if (selected) {
-                            root.passwordField = () => field;
-                            Qt.callLater(root.focusPassword);
-                        }
-                    }
+
+                    onSelectedChanged: claimPassword()
+                    Component.onCompleted: claimPassword()
 
                     MouseArea {
                         id: tileMouse
@@ -265,84 +256,26 @@ AeroWindow {
             font.pixelSize: 12
         }
 
-        Rectangle {
+        DialogFooter {
             id: footer
             y: message.y + message.height + 16
             width: parent.width
-            height: 46
-            color: "#f0f0f0"
 
-            Rectangle {
-                width: parent.width
-                height: 1
-                color: "#dfdfdf"
+            leading: DisclosureToggle {
+                id: detailsToggle
+                openText: "Hide details"
+                closedText: "Show details"
             }
 
-            Row {
-                x: 18
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 7
-
-                Rectangle {
-                    width: 18
-                    height: 18
-                    radius: 9
-                    border.width: 1
-                    border.color: detailsMouse.containsMouse ? "#3c7fb1" : "#9a9a9a"
-                    gradient: Gradient {
-                        GradientStop {
-                            position: 0
-                            color: "#ffffff"
-                        }
-                        GradientStop {
-                            position: 1
-                            color: detailsMouse.containsMouse ? "#cfe6f8" : "#d8d8d8"
-                        }
-                    }
-
-                    MediaGlyph {
-                        anchors.centerIn: parent
-                        width: 6
-                        height: 8
-                        kind: "play"
-                        color: "#4a4a4a"
-                        shadow: false
-                        rotation: root.details ? -90 : 90
-                    }
-
-                    MouseArea {
-                        id: detailsMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.details = !root.details
-                    }
-                }
-
-                LinkText {
-                    id: detailsLink
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.details ? "Hide details" : "Show details"
-                    onClicked: root.details = !root.details
-                }
+            PushButton {
+                text: "Yes"
+                isDefault: true
+                enabled: !root.busy
+                onClicked: root.submit()
             }
-
-            Row {
-                anchors.right: parent.right
-                anchors.rightMargin: 14
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 8
-
-                PushButton {
-                    text: "Yes"
-                    isDefault: true
-                    enabled: !root.busy
-                    onClicked: root.submit()
-                }
-                PushButton {
-                    text: "No"
-                    onClicked: AuthAgent.cancel()
-                }
+            PushButton {
+                text: "No"
+                onClicked: AuthAgent.cancel()
             }
         }
     }

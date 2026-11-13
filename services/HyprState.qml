@@ -110,8 +110,7 @@ Singleton {
         workspaces = rawWorkspaces.filter(w => w.id !== -1 && !isSpecial(w.name)).map(w => ({
                     id: w.id,
                     name: String(w.name),
-                    monitorId: w.monitorID ?? -1,
-                    windows: w.windows ?? 0
+                    monitorId: w.monitorID ?? -1
                 })).sort((a, b) => a.id - b.id);
 
         clients = rawClients.filter(c => c.mapped !== false && !c.hidden && c.workspace && c.workspace.id !== -1 && !isSpecial(c.workspace.name) && Array.isArray(c.at) && Array.isArray(c.size)).map(c => ({
@@ -179,6 +178,8 @@ Singleton {
             return `workspace ${op.workspace}`;
         case "close":
             return `closewindow address:${op.address}`;
+        case "exit":
+            return "exit";
         case "swapWith":
             return `swapwindow address:${op.address}`;
         }
@@ -202,6 +203,8 @@ Singleton {
             return `hl.dsp.focus({ workspace = ${luaString(op.workspace)} })`;
         case "close":
             return `hl.dsp.window.close({ window = ${win} })`;
+        case "exit":
+            return "hl.dsp.exit()";
         case "swapWith":
             return `hl.dsp.window.swap({ target = ${win} })`;
         }
@@ -219,7 +222,8 @@ Singleton {
 
         const batch = list.map(op => `dispatch ${renderClassic(op)}`).join(" ; ");
         if (restoreCursor) {
-            return enqueue(["sh", "-c", `pos=$(hyprctl cursorpos | tr -d ','); hyprctl --batch "${batch} ; dispatch movecursor $pos"`]);
+            // the batch goes in as $1, so the shell never interprets workspace names etc.
+            return enqueue(["sh", "-c", 'pos=$(hyprctl cursorpos | tr -d ","); hyprctl --batch "$1 ; dispatch movecursor $pos"', "sh", batch]);
         }
         return enqueue(["hyprctl", "--batch", batch]);
     }
@@ -379,7 +383,11 @@ Singleton {
 
         onExited: {
             root.epoch += 1;
-            root.refresh();
+            // nobody reads a snapshot unless something holds a retain(); the dispatch's own
+            // events restart the same debounce, so this gives one snapshot, not two
+            if (root.live) {
+                eventDebounce.restart();
+            }
             Qt.callLater(root.pump);
         }
     }

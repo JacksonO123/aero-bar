@@ -13,8 +13,12 @@ Item {
     id: root
 
     required property var flyoutEl
+    // the hovered taskbar button (the pane's owner), or null
+    property Item button: null
+    // the bar window's top-left corner in layout coordinates, so Aero Peek can keep this flyout
+    // uncovered
+    property point windowOrigin: Qt.point(0, 0)
 
-    readonly property Item button: flyoutEl.current?.isAppButton ? flyoutEl.current : null
     readonly property var app: button?.app ?? null
     readonly property var windows: button?.windows ?? []
     readonly property bool jump: flyoutEl.pinned
@@ -28,10 +32,7 @@ Item {
     height: jump ? jumpList.height : windows.length > 0 ? thumbs.height + 10 : 30
 
     onShownChanged: {
-        if (shown) {
-            HyprState.retain();
-        } else {
-            HyprState.release();
+        if (!shown) {
             Peek.hide();
         }
     }
@@ -64,6 +65,7 @@ Item {
 
                 required property var modelData
                 readonly property var toplevel: modelData
+                readonly property string address: Taskbar.hyprAddress(toplevel)
 
                 width: root.thumbW
                 height: root.thumbH + 28
@@ -74,7 +76,7 @@ Item {
                         peekTimer.restart();
                     } else {
                         peekTimer.stop();
-                        if (Peek.address === Taskbar.hyprAddress(toplevel)) {
+                        if (Peek.toplevel === toplevel) {
                             Peek.hide();
                         }
                     }
@@ -82,18 +84,22 @@ Item {
 
                 onClicked: mouse => {
                     if (mouse.button === Qt.MiddleButton) {
-                        HyprState.closeWindow(Taskbar.hyprAddress(toplevel));
+                        HyprState.closeWindow(address);
                         return;
                     }
                     Peek.hide();
-                    HyprState.focusWindow(Taskbar.hyprAddress(toplevel));
+                    HyprState.focusWindow(address);
                     root.flyoutEl.close();
                 }
 
                 Timer {
                     id: peekTimer
                     interval: Constants.PEEK_DELAY
-                    onTriggered: Peek.show(Taskbar.hyprAddress(thumb.toplevel))
+                    onTriggered: {
+                        const frame = root.flyoutEl.aeroframe;
+                        const p = frame.mapToItem(null, 0, 0);
+                        Peek.show(thumb.toplevel, Qt.rect(root.windowOrigin.x + p.x, root.windowOrigin.y + p.y, frame.width, frame.height));
+                    }
                 }
 
                 Win7Hover {
@@ -142,48 +148,13 @@ Item {
                     }
                 }
 
-                Item {
-                    x: parent.width - 21
+                // above the thumbnail's click area, or the click would focus the window instead
+                overlay: SmallClose {
+                    x: thumb.width - 21
                     y: 5
-                    width: 16
-                    height: 15
                     visible: thumb.hoverT > 0.5
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: 3
-                        border.width: 1
-                        border.color: Qt.rgba(0.35, 0, 0, 0.75)
-                        gradient: Gradient {
-                            GradientStop {
-                                position: 0
-                                color: closeMouse.containsMouse ? "#f7b4a2" : "#e9a99a"
-                            }
-                            GradientStop {
-                                position: 0.5
-                                color: closeMouse.containsMouse ? "#ea4a26" : "#c8462a"
-                            }
-                            GradientStop {
-                                position: 1
-                                color: closeMouse.containsMouse ? "#f08060" : "#d7704f"
-                            }
-                        }
-                    }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "✕"
-                        color: "white"
-                        font.pixelSize: 9
-                        font.bold: true
-                    }
-
-                    MouseArea {
-                        id: closeMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: HyprState.closeWindow(Taskbar.hyprAddress(thumb.toplevel))
-                    }
+                    lit: true
+                    onClicked: HyprState.closeWindow(thumb.address)
                 }
             }
         }

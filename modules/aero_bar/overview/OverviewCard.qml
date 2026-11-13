@@ -7,10 +7,8 @@ Item {
     id: card
 
     required property var overview
-    required property int index
     required property int wsId
     required property string name
-    required property int monitorId
 
     readonly property var entry: overview.layout.byId[wsId] ?? null
     readonly property real headerH: overview.headerH

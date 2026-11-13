@@ -78,34 +78,50 @@ Singleton {
     ]
 
     property var shutdownCommand: ["systemctl", "poweroff"]
+
+    // session actions, shared by the power menu and the lock screen
+    function lock() {
+        LockState.lock();
+    }
+    function logOff() {
+        HyprState.dispatch({
+            op: "exit"
+        });
+    }
+    function sleep() {
+        // like Win7, ask for the password when it wakes up: suspend once the lock is up
+        LockState.lockThen(() => Quickshell.execDetached(["systemctl", "suspend"]));
+    }
+    function restart() {
+        Quickshell.execDetached(["systemctl", "reboot"]);
+    }
+    function shutDown() {
+        Quickshell.execDetached(shutdownCommand);
+    }
+
     property var powerActions: [
         {
             label: "Lock",
-            command: () => LockState.lock()
+            command: root.lock
         },
         {
             label: "Log off",
-            // the Lua config takes Lua dispatchers over IPC
-            command: Hyprland.usingLua ? ["hyprctl", "dispatch", "hl.dsp.exit()"] : ["hyprctl", "dispatch", "exit"]
+            command: root.logOff
         },
         {
             label: "Sleep",
-            // like Win7, ask for the password when it wakes up
-            command: () => {
-                LockState.lock();
-                Quickshell.execDetached(["systemctl", "suspend"]);
-            }
+            command: root.sleep
         },
         {
             label: "Restart",
-            command: ["systemctl", "reboot"]
+            command: root.restart
         }
     ]
 
     // ---- open / close --------------------------------------------------------------------------
 
     function show(screen) {
-        screenName = screen || (Hyprland.focusedMonitor?.name ?? "");
+        screenName = screen || Screens.focused;
         open = true;
     }
 

@@ -1,35 +1,10 @@
 import QtQuick
-import "../flyout"
 import "../../../services"
 
 // The Action Center flag. Click for the notification list; right-click toggles do not disturb.
 // A red glass badge counts notifications that arrived since it was last opened.
-Win7Frame {
-    id: root
-
-    required property Flyout flyoutEl
-    property bool active: false
-
-    implicitWidth: 30
-    anchors.top: parent.top
-    anchors.bottom: parent.bottom
-    anchors.topMargin: 4
-    anchors.bottomMargin: 4
-    frameOpacity: Math.max(hoverT, active ? 1 : 0)
-
-    onClicked: mouse => {
-        if (mouse.button === Qt.RightButton) {
-            Notifications.setDoNotDisturb(!Notifications.doNotDisturb);
-        } else {
-            flyoutEl.toggle(root);
-        }
-    }
-
-    Win7Hover {
-        radius: root.radius
-        opacity: Math.max(root.hoverT, root.active ? 0.8 : 0)
-        pressedT: root.pressedT
-    }
+FlyoutButton {
+    onRightClicked: Notifications.setDoNotDisturb(!Notifications.doNotDisturb)
 
     FlagGlyph {
         anchors.centerIn: parent

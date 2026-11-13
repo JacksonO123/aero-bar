@@ -28,16 +28,16 @@ Item {
     height: content.height + padding * 2 - 2
 
     onShownChanged: {
-        Audio.flyoutsOpen += shown ? 1 : -1;
         if (!shown) {
             devicesOpen = false;
         }
     }
 
-    Component.onDestruction: {
-        if (shown) {
-            Audio.flyoutsOpen -= 1;
-        }
+    // keeps the volume pop-up away while this is open
+    OpenCounter {
+        target: Audio
+        counter: "flyoutsOpen"
+        when: root.shown
     }
 
     // stream volumes/properties are only valid while bound; only bother while visible
@@ -49,14 +49,6 @@ Item {
         id: peaks
         node: Audio.sink
         enabled: root.shown && Audio.sink !== null
-    }
-
-    function hold() {
-        root.flyoutEl?.hold();
-    }
-
-    function release() {
-        root.flyoutEl?.release();
     }
 
     // light-blue Win7 hot-track highlight
@@ -89,8 +81,7 @@ Item {
         id: row
 
         property var node: null
-        signal dragStarted
-        signal dragEnded
+        readonly property bool dragging: slider.dragging
 
         readonly property var props: node?.properties ?? ({})
         readonly property string appName: props["application.name"] || node?.description || node?.name || "Unknown"
@@ -143,6 +134,7 @@ Item {
         }
 
         AeroSlider {
+            id: slider
             x: 134
             width: row.width - x - 34
             anchors.verticalCenter: parent.verticalCenter
@@ -158,8 +150,6 @@ Item {
                     row.node.audio.volume = value;
                 }
             }
-            onInteractionStarted: row.dragStarted()
-            onInteractionEnded: row.dragEnded()
         }
 
         LightButton {
@@ -384,8 +374,13 @@ Item {
                     maximum: Audio.maxVolume
                     muted: Audio.muted
                     onMoved: value => Audio.setVolume(value)
-                    onInteractionStarted: root.hold()
-                    onInteractionEnded: root.release()
+
+                    // keep the flyout open while dragging, even off its edge
+                    OpenCounter {
+                        target: root.flyoutEl
+                        counter: "holdCount"
+                        when: master.dragging
+                    }
                 }
 
                 PeakMeter {
@@ -409,11 +404,17 @@ Item {
             model: root.streams
 
             StreamRow {
+                id: streamRow
                 required property var modelData
                 width: content.width
                 node: modelData
-                onDragStarted: root.hold()
-                onDragEnded: root.release()
+
+                // (also gives the hold back if the row is rebuilt mid-drag)
+                OpenCounter {
+                    target: root.flyoutEl
+                    counter: "holdCount"
+                    when: streamRow.dragging
+                }
             }
         }
 
@@ -421,21 +422,13 @@ Item {
             width: parent.width
             height: 16
 
-            Text {
+            LinkText {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Mixer"
-                color: mixerMouse.containsMouse ? "#3399ff" : "#0066cc"
+                restColor: "#0066cc"
                 font.pixelSize: 11
-                font.underline: mixerMouse.containsMouse
-
-                MouseArea {
-                    id: mixerMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Quickshell.execDetached(Constants.VOLUME_MIXER_CMD)
-                }
+                onClicked: Quickshell.execDetached(Constants.VOLUME_MIXER_CMD)
             }
         }
     }

@@ -24,7 +24,8 @@ Singleton {
             return;
         }
 
-        const next = Math.max(0, Math.min(maxVolume, value));
+        // never above maxVolume, unless it already is (set elsewhere): then don't cut it down
+        const next = Math.max(0, Math.min(Math.max(maxVolume, volume), value));
 
         // like Windows: dragging the slider while muted unmutes
         if (sink.audio.muted && next > 0) {

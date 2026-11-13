@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "../utils/colors.js" as ColorUtils
 
 // The glass colour every frame, flyout, menu and the taskbar share, like Windows 7's "Window
 // Color and Appearance". The choice is saved to Quickshell.statePath("theme.json").
@@ -85,29 +86,34 @@ Singleton {
         }
     ]
 
-    // ---- current look (the picker previews by writing the `preview*` values) -------------------
+    // ---- current look (while the picker is open it previews the `preview*` values) -------------
 
-    property bool previewing: false
-    property string previewName: ""
-    property color previewTint: "#333333"
-    property real previewIntensity: 0.42
-    property bool previewTransparency: true
+    // the shell's original look, used until something is saved
+    readonly property var defaults: ({
+            name: "Graphite",
+            tint: "#333333",
+            intensity: 0.42,
+            transparency: true
+        })
 
-    readonly property string colorName: previewing ? previewName : saved?.name ?? "Graphite"
-    readonly property color tint: previewing ? previewTint : saved?.tint ?? "#333333"
-    readonly property real intensity: previewing ? previewIntensity : saved?.intensity ?? 0.42
-    readonly property bool transparency: previewing ? previewTransparency : saved?.transparency ?? true
+    // set by openDialog() before they're read
+    property string previewName
+    property color previewTint
+    property real previewIntensity
+    property bool previewTransparency
+
+    // `saved` can be gone while the shell is being torn down
+    readonly property string colorName: dialogOpen ? previewName : saved?.name ?? defaults.name
+    readonly property color tint: dialogOpen ? previewTint : saved?.tint ?? defaults.tint
+    readonly property real intensity: dialogOpen ? previewIntensity : saved?.intensity ?? defaults.intensity
+    readonly property bool transparency: dialogOpen ? previewTransparency : saved?.transparency ?? defaults.transparency
 
     // the frame glass. Without transparency it becomes a solid mix of the colour and pale grey,
     // like Win7 with transparency turned off.
-    readonly property color glassColor: transparency ? Qt.rgba(tint.r, tint.g, tint.b, intensity) : mix(Qt.rgba(0.78, 0.81, 0.85, 1), tint, Math.min(1, 0.25 + intensity))
+    readonly property color glassColor: transparency ? Qt.rgba(tint.r, tint.g, tint.b, intensity) : ColorUtils.interpolateColors(Qt.rgba(0.78, 0.81, 0.85, 1), tint, 0.25 + intensity)
 
     // laid over the taskbar's grey glass
     readonly property color barTint: colorName === "Graphite" ? "transparent" : Qt.rgba(tint.r, tint.g, tint.b, Math.min(0.85, intensity * (transparency ? 0.7 : 1.1)))
-
-    function mix(a, b, t) {
-        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t);
-    }
 
     function swatch(name) {
         return swatches.find(s => s.name === name) ?? null;
@@ -123,8 +129,8 @@ Singleton {
         previewTint = saved.tint;
         previewIntensity = saved.intensity;
         previewTransparency = saved.transparency;
-        previewing = true;
-        dialogScreen = screenName ?? "";
+        // stay on this screen, even if focus moves to another one while it is open
+        dialogScreen = screenName || Screens.focused;
         dialogOpen = true;
     }
 
@@ -149,12 +155,10 @@ Singleton {
         saved.tint = previewTint.toString();
         saved.intensity = previewIntensity;
         saved.transparency = previewTransparency;
-        previewing = false;
         dialogOpen = false;
     }
 
     function cancel() {
-        previewing = false;
         dialogOpen = false;
     }
 
@@ -165,10 +169,10 @@ Singleton {
         adapter: JsonAdapter {
             id: saved
 
-            property string name: "Graphite"
-            property string tint: "#333333"
-            property real intensity: 0.42
-            property bool transparency: true
+            property string name: root.defaults.name
+            property string tint: root.defaults.tint
+            property real intensity: root.defaults.intensity
+            property bool transparency: root.defaults.transparency
         }
     }
 

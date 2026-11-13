@@ -11,3 +11,4 @@ singleton LockState LockState.qml
 singleton AuthAgent AuthAgent.qml
 singleton Taskbar Taskbar.qml
 singleton Peek Peek.qml
+singleton Screens Screens.qml

@@ -1,6 +1,5 @@
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import QtQuick
 import "../components"
 import "../../../services"
@@ -14,17 +13,18 @@ Scope {
 
     property bool shown: false
     property var lastSink: null
-    property bool ready: false
+
+    Component.onCompleted: lastSink = Audio.sink
 
     function poke() {
-        if (!root.ready || !Audio.available) {
+        // at startup, and right after switching output device, the "changes" are just the new
+        // device's values arriving
+        if (Audio.sink !== lastSink) {
+            lastSink = Audio.sink;
+            settle.restart();
             return;
         }
-        if (Audio.sink !== root.lastSink) {
-            root.lastSink = Audio.sink;
-            return;
-        }
-        if (Audio.flyoutsOpen > 0) {
+        if (settle.running || !Audio.available || Audio.flyoutsOpen > 0) {
             return;
         }
         root.shown = true;
@@ -42,10 +42,6 @@ Scope {
             root.poke();
         }
 
-        function onSinkChanged() {
-            root.lastSink = Audio.sink;
-        }
-
         function onFlyoutsOpenChanged() {
             if (Audio.flyoutsOpen > 0) {
                 root.shown = false;
@@ -53,14 +49,11 @@ Scope {
         }
     }
 
-    // the first values pipewire reports at startup are not changes
+    // quiet period at startup and after the output device changes
     Timer {
+        id: settle
         running: true
         interval: 1500
-        onTriggered: {
-            root.lastSink = Audio.sink;
-            root.ready = true;
-        }
     }
 
     Timer {
@@ -78,7 +71,7 @@ Scope {
             required property var modelData
             screen: modelData
 
-            readonly property bool wanted: root.shown && (Hyprland.focusedMonitor?.name ?? Quickshell.screens[0].name) === modelData.name
+            readonly property bool wanted: root.shown && Screens.focused === modelData.name
 
             visible: wanted || panel.opacity > 0.01
             anchors.bottom: true

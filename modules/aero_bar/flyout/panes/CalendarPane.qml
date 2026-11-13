@@ -24,7 +24,6 @@ Item {
     readonly property real padding: 12
     readonly property real cellW: 30
     readonly property real cellH: 24
-    readonly property color linkColor: "#1c5ea8"
 
     width: Math.max(header.implicitWidth, expanded ? yearView.width : monthView.width) + padding * 2
     height: padding + header.height + 10 + (expanded ? yearView.height : monthView.height) + padding
@@ -370,22 +369,14 @@ Item {
         implicitWidth: longDate.implicitWidth + weekLabel.implicitWidth + 24
         height: 30
 
-        Text {
+        LinkText {
             id: longDate
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: -2
             text: root.today.toLocaleDateString(Qt.locale(), Locale.LongFormat)
-            color: longDateMouse.containsMouse ? "#3399ff" : root.linkColor
             font.pixelSize: 15
-            font.underline: longDateMouse.containsMouse && !root.viewingToday
-
-            MouseArea {
-                id: longDateMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.resetView()
-            }
+            underlineOnHover: !root.viewingToday
+            onClicked: root.resetView()
         }
 
         Text {
@@ -563,21 +554,12 @@ Item {
                 width: 7 * root.cellW
                 height: 16
 
-                Text {
+                LinkText {
                     anchors.horizontalCenter: parent.horizontalCenter
                     visible: !root.viewingToday
                     text: "Go to today"
-                    color: todayMouse.containsMouse ? "#3399ff" : root.linkColor
                     font.pixelSize: 11
-                    font.underline: todayMouse.containsMouse
-
-                    MouseArea {
-                        id: todayMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.resetView()
-                    }
+                    onClicked: root.resetView()
                 }
             }
         }

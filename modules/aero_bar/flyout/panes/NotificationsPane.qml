@@ -35,12 +35,10 @@ Item {
     width: 352
     height: content.height + padding * 2
 
-    onShownChanged: Notifications.centersOpen += shown ? 1 : -1
-
-    Component.onDestruction: {
-        if (shown) {
-            Notifications.centersOpen -= 1;
-        }
+    OpenCounter {
+        target: Notifications
+        counter: "centersOpen"
+        when: root.shown
     }
 
     function timeText(n) {
@@ -178,10 +176,15 @@ Item {
                                 Rectangle {
                                     anchors.fill: parent
                                     radius: 3
-                                    visible: rowMouse.containsMouse || rowClose.hovered
+                                    visible: rowHover.hovered
                                     color: "#e5f3fb"
                                     border.width: 1
                                     border.color: "#70c0e7"
+                                }
+
+                                // stays hovered over the row's close button and links
+                                HoverHandler {
+                                    id: rowHover
                                 }
 
                                 MouseArea {
@@ -224,17 +227,16 @@ Item {
                                         Text {
                                             id: time
                                             anchors.right: parent.right
-                                            anchors.rightMargin: rowMouse.containsMouse || rowClose.hovered ? 20 : 0
+                                            anchors.rightMargin: rowHover.hovered ? 20 : 0
                                             text: root.timeText(row.n)
                                             color: "#6b7785"
                                             font.pixelSize: 11
                                         }
 
                                         SmallClose {
-                                            id: rowClose
                                             anchors.right: parent.right
                                             anchors.verticalCenter: summary.verticalCenter
-                                            visible: rowMouse.containsMouse || hovered
+                                            visible: rowHover.hovered
                                             onClicked: Notifications.dismiss(row.n)
                                         }
                                     }
@@ -262,20 +264,10 @@ Item {
                                             id: actions
                                             model: (row.n.actions ?? []).filter(a => a.identifier !== "default")
 
-                                            Text {
+                                            LinkText {
                                                 required property var modelData
                                                 text: modelData.text
-                                                color: actionMouse.containsMouse ? "#3399ff" : root.linkColor
-                                                font.pixelSize: 12
-                                                font.underline: actionMouse.containsMouse
-
-                                                MouseArea {
-                                                    id: actionMouse
-                                                    anchors.fill: parent
-                                                    hoverEnabled: true
-                                                    cursorShape: Qt.PointingHandCursor
-                                                    onClicked: parent.modelData.invoke()
-                                                }
+                                                onClicked: modelData.invoke()
                                             }
                                         }
                                     }
@@ -304,22 +296,12 @@ Item {
                 onToggled: checked => Notifications.setDoNotDisturb(checked)
             }
 
-            Text {
+            LinkText {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 visible: Notifications.count > 0
                 text: "Clear all"
-                color: clearMouse.containsMouse ? "#3399ff" : root.linkColor
-                font.pixelSize: 12
-                font.underline: clearMouse.containsMouse
-
-                MouseArea {
-                    id: clearMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Notifications.clearAll()
-                }
+                onClicked: Notifications.clearAll()
             }
         }
     }

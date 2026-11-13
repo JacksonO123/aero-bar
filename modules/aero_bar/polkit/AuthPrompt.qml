@@ -14,7 +14,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        readonly property bool primary: AuthAgent.screenName === modelData.name || (!Quickshell.screens.some(s => s.name === AuthAgent.screenName) && Quickshell.screens[0] === modelData)
+        readonly property bool primary: Screens.resolve(AuthAgent.screenName) === modelData.name
 
         visible: AuthAgent.active || dim.opacity > 0.01
         anchors {

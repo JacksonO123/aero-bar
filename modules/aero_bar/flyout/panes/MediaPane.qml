@@ -77,22 +77,14 @@ Item {
                         elide: Text.ElideRight
                     }
 
-                    Text {
+                    LinkText {
                         id: switchLink
                         anchors.right: parent.right
                         visible: Media.players.length > 1
                         text: "Switch player"
-                        color: switchMouse.containsMouse ? "#3399ff" : "#0066cc"
+                        restColor: "#0066cc"
                         font.pixelSize: 10
-                        font.underline: switchMouse.containsMouse
-
-                        MouseArea {
-                            id: switchMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: Media.cycle()
-                        }
+                        onClicked: Media.cycle()
                     }
                 }
 

@@ -52,6 +52,9 @@ Item {
 
         signal pairRequested(var device)
 
+        // a HoverHandler stays hovered over the row's link and button
+        readonly property bool hovered: rowHover.hovered
+
         height: 38
 
         function statusOf(d) {
@@ -73,16 +76,14 @@ Item {
         Rectangle {
             anchors.fill: parent
             radius: 3
-            visible: rowMouse.containsMouse
+            visible: row.hovered
             color: "#e5f3fb"
             border.width: 1
             border.color: "#b8d6fb"
         }
 
-        MouseArea {
-            id: rowMouse
-            anchors.fill: parent
-            hoverEnabled: true
+        HoverHandler {
+            id: rowHover
         }
 
         ImageIcon {
@@ -120,7 +121,7 @@ Item {
 
             LinkText {
                 anchors.verticalCenter: parent.verticalCenter
-                visible: !row.pairRow && rowMouse.containsMouse
+                visible: !row.pairRow && row.hovered
                 text: "Remove"
                 onClicked: row.d.forget()
             }

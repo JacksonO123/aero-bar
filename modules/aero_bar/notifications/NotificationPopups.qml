@@ -1,6 +1,5 @@
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import QtQuick
 import "../../../services"
 
@@ -14,7 +13,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        readonly property bool wanted: Notifications.popups.count > 0 && (Hyprland.focusedMonitor?.name ?? Quickshell.screens[0].name) === modelData.name
+        readonly property bool wanted: Notifications.popups.count > 0 && Screens.focused === modelData.name
 
         visible: wanted
         anchors.bottom: true

@@ -18,7 +18,6 @@ Win7Frame {
     anchors.bottomMargin: 4
     frameOpacity: hoverT
 
-    // a HoverHandler in the content would sit under Win7Frame's MouseArea and never fire
     onHoveredChanged: hovered ? flyoutEl.hover(root) : flyoutEl.unhover()
 
     onClicked: mouse => {

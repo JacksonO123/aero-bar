@@ -13,6 +13,9 @@ Item {
     property bool shown: false
     property var selected: null
     property bool askKey: false
+    // the key being typed. Kept here, not in the row: scans re-sort the network list, which
+    // rebuilds every row
+    property string key: ""
     property string error: ""
 
     readonly property real padding: 12
@@ -21,22 +24,31 @@ Item {
     height: content.height + padding * 2
 
     onShownChanged: {
-        NetState.panesOpen += shown ? 1 : -1;
         if (!shown) {
             select(null);
         }
     }
 
-    Component.onDestruction: {
-        if (shown) {
-            NetState.panesOpen -= 1;
-        }
+    // Wi-Fi scanning runs only while a network pane is open
+    OpenCounter {
+        target: NetState
+        counter: "panesOpen"
+        when: root.shown
     }
 
     function select(n) {
         selected = n;
         askKey = false;
+        key = "";
         error = "";
+    }
+
+    // connecting re-sorts the list (and can rebuild the rows), so clear the state first
+    function submitKey() {
+        const network = selected, psk = key;
+        key = "";
+        askKey = false;
+        network?.connectWithPsk(psk);
     }
 
     function needsKey(n) {
@@ -324,19 +336,22 @@ Item {
                                     width: 180
                                     placeholder: "Security key"
                                     echoMode: TextInput.Password
-                                    // the list re-sorts once connected, which can rebuild this row,
-                                    // so finish with it before connecting
-                                    onAccepted: {
-                                        const network = net.n, key = text;
-                                        text = "";
-                                        root.askKey = false;
-                                        network.connectWithPsk(key);
+                                    text: net.isSelected ? root.key : ""
+                                    onTextChanged: {
+                                        if (net.isSelected) {
+                                            root.key = text;
+                                        }
                                     }
-                                    onVisibleChanged: {
+                                    onAccepted: root.submitKey()
+
+                                    // when it appears, and when its row was rebuilt mid-typing
+                                    function focusIfShown() {
                                         if (visible) {
                                             focusInput();
                                         }
                                     }
+                                    onVisibleChanged: focusIfShown()
+                                    Component.onCompleted: focusIfShown()
                                 }
                             }
 
@@ -370,7 +385,7 @@ Item {
                                         if (net.n.connected) {
                                             net.n.disconnect();
                                         } else if (root.askKey) {
-                                            keyField.accepted();
+                                            root.submitKey();
                                         } else {
                                             root.connectTo(net.n);
                                         }

@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Effects
 import "../components"
 
 // The Windows 7 "Shut down ▸" split button: one dark glass shell split into a label half and an
@@ -182,31 +181,14 @@ Item {
 
     // ---- content -------------------------------------------------------------------------------
 
-    // Win7 caption glow: a blurred dark copy behind the (unlayered, crisp) white label
-    Text {
-        x: labelText.x
-        y: labelText.y
-        text: root.label
-        color: "black"
-        opacity: 0.75
-        font: labelText.font
-
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            blurEnabled: true
-            blur: 0.5
-            blurMax: 6
-        }
-    }
-
-    Text {
+    // white label with Win7's soft dark caption glow
+    CaptionText {
         id: labelText
         x: (root.mainWidth - width) / 2
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: mainMouse.pressed ? 1 : 0
         text: root.label
-        color: "white"
-        font.pixelSize: 12
+        glow: 0.75
     }
 
     MediaGlyph {

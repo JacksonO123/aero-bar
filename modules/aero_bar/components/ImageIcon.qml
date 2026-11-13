@@ -14,8 +14,11 @@ IconImage {
     asynchronous: true
 
     readonly property var entry: {
-        DesktopEntries.applications.values;
-        return wmClass.length > 0 ? DesktopEntries.heuristicLookup(wmClass) : null;
+        if (wmClass.length === 0) {
+            return null;
+        }
+        DesktopEntries.applications.values; // look again when the entry list changes
+        return DesktopEntries.heuristicLookup(wmClass);
     }
 
     source: {

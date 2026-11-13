@@ -13,9 +13,11 @@ Singleton {
     readonly property var wifiDevice: devices.find(d => d.type === DeviceType.Wifi) ?? null
 
     readonly property var wiredUp: wiredDevices.find(d => d.connected) ?? null
-    // connected first, then strongest
-    readonly property var wifiNetworks: wifiDevice ? wifiDevice.networks.values.slice().sort((a, b) => (b.connected - a.connected) || (b.signalStrength - a.signalStrength)) : []
-    readonly property var wifiConnected: wifiNetworks.find(n => n.connected) ?? null
+    readonly property var wifiAll: wifiDevice ? wifiDevice.networks.values : []
+    readonly property var wifiConnected: wifiAll.find(n => n.connected) ?? null
+    // for the flyout: connected first, then strongest. Signal levels change all the time, so
+    // only sort while a network pane is open to show it.
+    readonly property var wifiNetworks: panesOpen > 0 ? wifiAll.slice().sort((a, b) => (b.connected - a.connected) || (b.signalStrength - a.signalStrength)) : []
 
     readonly property bool connected: wiredUp !== null || wifiConnected !== null
     readonly property string kind: wiredUp || !wifiDevice ? "wired" : "wifi"

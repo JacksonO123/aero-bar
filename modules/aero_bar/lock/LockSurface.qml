@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import "../components"
 import "../../../services"
 
@@ -209,15 +208,15 @@ Item {
                 model: [
                     {
                         label: "Sleep",
-                        command: ["systemctl", "suspend"]
+                        command: StartMenuState.sleep
                     },
                     {
                         label: "Restart",
-                        command: ["systemctl", "reboot"]
+                        command: StartMenuState.restart
                     },
                     {
                         label: "Shut down",
-                        command: StartMenuState.shutdownCommand
+                        command: StartMenuState.shutDown
                     }
                 ]
 
@@ -258,7 +257,7 @@ Item {
                         hoverEnabled: true
                         onClicked: {
                             powerMenu.visible = false;
-                            Quickshell.execDetached(parent.modelData.command);
+                            parent.modelData.command();
                         }
                     }
                 }

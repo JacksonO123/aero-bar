@@ -5,9 +5,12 @@ Item {
     property int radius: 4
     signal clicked(var mouse)
     default property alias content: contentArea.data
+    // drawn above the frame's own click area, for controls that need their own clicks
+    property alias overlay: overlayArea.data
 
-    readonly property bool hovered: mouse.containsMouse
-    property real hoverT: mouse.containsMouse ? 1 : 0
+    // from a HoverHandler, so the frame stays hovered over controls inside it (e.g. the overlay)
+    readonly property bool hovered: hoverHandler.hovered
+    property real hoverT: hovered ? 1 : 0
     property real pressedT: mouse.pressed ? 1 : 0
 
     property real frameOpacity
@@ -65,5 +68,14 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: mouse => root.clicked(mouse)
+    }
+
+    Item {
+        id: overlayArea
+        anchors.fill: parent
+    }
+
+    HoverHandler {
+        id: hoverHandler
     }
 }

@@ -1,7 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import QtQuick
+import QtQuick.Effects
 import "../../../services"
 
 // Aero Peek: on the peeked window's monitor, everything but that window turns into frosted glass
@@ -24,7 +24,12 @@ Variants {
         // reserved space on the left / top
         readonly property real originX: (monitor?.x ?? 0) + (monitor?.reserved?.[0] ?? 0)
         readonly property real originY: (monitor?.y ?? 0) + (monitor?.reserved?.[1] ?? 0)
-        readonly property var toplevel: client ? Hyprland.toplevels.values.find(t => Taskbar.sameAddress(t.address, client.address)) ?? null : null
+        readonly property var toplevel: Peek.toplevel
+
+        // the thumbnail flyout, cut out of the veil while it shows (a flyout on another screen
+        // simply lands outside this window)
+        readonly property bool hasHole: Peek.clearRect.width > 0 && veil.opacity > 0
+        readonly property rect hole: Qt.rect(Peek.clearRect.x - originX, Peek.clearRect.y - originY, Peek.clearRect.width, Peek.clearRect.height)
 
         visible: wanted || veil.opacity > 0.01
         anchors {
@@ -45,6 +50,16 @@ Variants {
             id: veil
             anchors.fill: parent
             opacity: window.wanted ? 1 : 0
+
+            // cut the flyout's shape out, so the thumbnails stay in front
+            layer.enabled: window.hasHole
+            layer.effect: MultiEffect {
+                maskEnabled: true
+                maskInverted: true
+                maskSource: holeMask
+                maskThresholdMin: 0.5
+                maskSpreadAtMin: 1
+            }
 
             Behavior on opacity {
                 NumberAnimation {
@@ -124,6 +139,21 @@ Variants {
                     captureSource: window.wanted ? window.toplevel?.wayland ?? null : null
                     live: true
                 }
+            }
+        }
+
+        Item {
+            id: holeMask
+            anchors.fill: parent
+            visible: false
+            layer.enabled: window.hasHole
+
+            Rectangle {
+                x: window.hole.x
+                y: window.hole.y
+                width: window.hole.width
+                height: window.hole.height
+                radius: 7
             }
         }
     }
