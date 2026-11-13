@@ -16,6 +16,8 @@ Singleton {
     readonly property bool active: agent.isActive && flow !== null
     // the prompt shows on the screen that was focused when the request came in
     property string screenName: ""
+    // where it actually shows (screenName, or the focused screen if that one is gone)
+    readonly property string screen: Screens.resolve(screenName)
     // the last attempt failed; cleared when the user types again
     property bool wrongPassword: false
 

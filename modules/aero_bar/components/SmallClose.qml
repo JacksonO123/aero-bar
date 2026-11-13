@@ -38,19 +38,23 @@ Item {
     }
 
     // the x: two plain rotated bars (cheap enough for every overview window)
-    Repeater {
-        model: [45, -45]
+    component Bar: Rectangle {
+        width: 9
+        height: 1.6
+        radius: 0.8
+        antialiasing: true
+    }
 
-        Rectangle {
-            required property real modelData
-            anchors.centerIn: parent
-            width: 9
-            height: 1.6
-            radius: 0.8
-            rotation: modelData
-            antialiasing: true
-            color: root.lit || mouse.containsMouse ? "white" : "#5b6470"
-        }
+    Bar {
+        anchors.centerIn: parent
+        rotation: 45
+        color: root.lit || mouse.containsMouse ? "white" : "#5b6470"
+    }
+
+    Bar {
+        anchors.centerIn: parent
+        rotation: -45
+        color: root.lit || mouse.containsMouse ? "white" : "#5b6470"
     }
 
     MouseArea {

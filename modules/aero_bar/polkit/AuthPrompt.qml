@@ -14,7 +14,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        readonly property bool primary: Screens.resolve(AuthAgent.screenName) === modelData.name
+        readonly property bool primary: AuthAgent.screen === modelData.name
 
         visible: AuthAgent.active || dim.opacity > 0.01
         anchors {

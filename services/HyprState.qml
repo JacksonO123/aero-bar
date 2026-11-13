@@ -36,16 +36,35 @@ Singleton {
 
     signal updated
 
-    function retain() {
+    // retains that also show window titles (the overview, with `titles`). Title-only events are
+    // skipped while there are none: Peek only needs geometry, and a terminal or player can
+    // retitle many times a second.
+    property int titleWatchers: 0
+
+    function retain(titles) {
         watchers += 1;
+        if (titles) {
+            titleWatchers += 1;
+        }
         refresh();
     }
 
-    function release() {
+    function release(titles) {
         watchers = Math.max(0, watchers - 1);
+        if (titles) {
+            titleWatchers = Math.max(0, titleWatchers - 1);
+        }
+        if (watchers === 0) {
+            eventDebounce.stop();
+            maxWait.stop();
+        }
     }
 
     function refresh() {
+        // covers any batched refresh still pending
+        eventDebounce.stop();
+        maxWait.stop();
+
         if (snapshot.running || awaitingParse) {
             refreshQueued = true;
             return;
@@ -401,22 +420,16 @@ Singleton {
         }
     }
 
-    function flushRefresh() {
-        eventDebounce.stop();
-        maxWait.stop();
-        refresh();
-    }
-
     Timer {
         id: eventDebounce
         interval: 50
-        onTriggered: root.flushRefresh()
+        onTriggered: root.refresh()
     }
 
     Timer {
         id: maxWait
         interval: 200
-        onTriggered: root.flushRefresh()
+        onTriggered: root.refresh()
     }
 
     Connections {
@@ -424,6 +437,9 @@ Singleton {
         enabled: root.live
 
         function onRawEvent(event) {
+            if (root.titleWatchers === 0 && (event.name === "windowtitle" || event.name === "windowtitlev2")) {
+                return;
+            }
             root.scheduleRefresh();
         }
     }

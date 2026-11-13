@@ -100,16 +100,16 @@ Item {
 
     onOpenChanged: {
         if (open) {
-            HyprState.retain();
+            HyprState.retain(true);
         } else {
-            HyprState.release();
+            HyprState.release(true);
             hoveredWorkspaceId = -99999;
         }
     }
 
     Component.onDestruction: {
         if (open) {
-            HyprState.release();
+            HyprState.release(true);
         }
     }
 

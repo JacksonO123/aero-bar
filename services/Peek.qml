@@ -13,33 +13,46 @@ Singleton {
     // hyprctl-style address, to find its geometry in HyprState
     readonly property string address: Taskbar.hyprAddress(toplevel)
 
-    // the thumbnail flyout that started the peek, in layout coordinates (like window positions;
-    // the flyout keeps it current). The overlay leaves it uncovered: both are on the Top layer
-    // and the overlay maps later. Kept after hide() so the hole stays while the veil fades out.
-    property rect clearRect: Qt.rect(0, 0, 0, 0)
+    // the thumbnail flyout's frame that started the peek, and the top-left corner of its window
+    // in layout coordinates (like window positions). The overlay leaves the flyout uncovered:
+    // both are on the Top layer and the overlay maps later. Kept until the veil has faded out.
+    property Item clearItem: null
+    property point clearOrigin: Qt.point(0, 0)
+    readonly property rect clearRect: {
+        const f = clearItem;
+        if (!f) {
+            return Qt.rect(0, 0, 0, 0);
+        }
+        f.x, f.y, f.width, f.height; // follow the flyout as it resizes (mapToItem isn't tracked)
+        const p = f.mapToItem(null, 0, 0);
+        return Qt.rect(clearOrigin.x + p.x, clearOrigin.y + p.y, f.width, f.height);
+    }
 
     // window positions come from HyprState, which only stays fresh while retained
     property bool holding: false
 
-    // a thumbnail is hovered: start fetching window positions now, a peek may follow. Lets go
-    // again (after the grace period) if none does.
-    function prepare() {
+    function hold() {
         if (!holding) {
             HyprState.retain();
             holding = true;
         }
+    }
+
+    // a thumbnail is hovered: start fetching window positions now, a peek may follow. Lets go
+    // again (after the grace period) if none does.
+    function prepare() {
+        hold();
         if (!toplevel) {
             releaseTimer.restart();
         }
     }
 
-    function show(t) {
+    function show(t, flyoutFrame, windowOrigin) {
         releaseTimer.stop();
-        if (!holding) {
-            HyprState.retain();
-            holding = true;
-        }
+        hold();
         toplevel = t;
+        clearItem = flyoutFrame;
+        clearOrigin = windowOrigin;
     }
 
     function hide() {
@@ -49,13 +62,15 @@ Singleton {
         }
     }
 
-    // stay fresh a little longer, so sweeping across thumbnails takes one snapshot, not one each
+    // let go a little later, so sweeping across thumbnails takes one snapshot, not one each
+    // (and the veil has faded out by then)
     Timer {
         id: releaseTimer
         interval: 1500
         onTriggered: {
             HyprState.release();
             root.holding = false;
+            root.clearItem = null;
         }
     }
 }

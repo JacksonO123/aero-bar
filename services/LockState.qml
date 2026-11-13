@@ -145,22 +145,24 @@ Singleton {
         }
         onStarted: root.logindStartedAt = Date.now()
         onExited: {
-            // it ran fine for a while: this is a one-off exit, not a failure loop
+            // it ran fine for a while: a one-off exit (e.g. the bus restarted), so come straight
+            // back. If it keeps failing quickly, retry less and less often (5 s, 10 s, ... 1 min).
             if (Date.now() - root.logindStartedAt > 60000) {
-                restart.interval = 5000;
+                root.retryDelay = 5000;
+                restart.interval = 250;
+            } else {
+                restart.interval = root.retryDelay;
+                root.retryDelay = Math.min(60000, root.retryDelay * 2);
             }
             restart.start();
         }
     }
 
-    // if dbus-monitor keeps failing, retry less and less often (5 s, 10 s, ... up to a minute)
+    property int retryDelay: 5000
+
     Timer {
         id: restart
-        interval: 5000
-        onTriggered: {
-            logind.running = true;
-            interval = Math.min(60000, interval * 2);
-        }
+        onTriggered: logind.running = true
     }
 
     IpcHandler {

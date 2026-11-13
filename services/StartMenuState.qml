@@ -70,7 +70,7 @@ Singleton {
             label: "Personalization",
             icon: "preferences-desktop-color",
             // a function runs in the shell instead of launching a program
-            command: () => Theme.openDialog(root.screenName)
+            command: () => Theme.openDialog(root.screen)
         },
         {
             label: "Terminal",
@@ -122,8 +122,8 @@ Singleton {
 
     // ---- open / close --------------------------------------------------------------------------
 
-    function show(screen) {
-        screenName = screen || Screens.focused;
+    function show(name) {
+        screenName = name || Screens.focused;
         open = true;
     }
 
@@ -134,12 +134,12 @@ Singleton {
         }
     }
 
-    function toggle(screen) {
+    function toggle(name) {
         if (open) {
             close();
         } else if (Date.now() - closedAt > 300) {
             // a click on the orb that just dismissed the menu (outside click) must not reopen it
-            show(screen);
+            show(name);
         }
     }
 

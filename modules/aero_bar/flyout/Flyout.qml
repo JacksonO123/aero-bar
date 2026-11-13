@@ -34,7 +34,9 @@ Item {
 
     Binding on glass {
         when: root.pane !== null
-        value: root.pane?.glass ?? false
+        // with no pane, the current value: whichever of `when`/`value` updates first, nothing
+        // changes on the way out
+        value: root.pane ? root.pane.glass : root.glass
         restoreMode: Binding.RestoreNone
     }
 

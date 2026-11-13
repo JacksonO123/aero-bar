@@ -122,9 +122,9 @@ Singleton {
     // ---- picker --------------------------------------------------------------------------------
 
     property bool dialogOpen: false
-    // every openDialog(), also when it was already open (the preview was reset)
-    signal opened
     property string dialogScreen: ""
+    // where the dialog actually shows (dialogScreen, or the focused screen if that one is gone)
+    readonly property string screen: Screens.resolve(dialogScreen)
 
     function openDialog(screenName) {
         previewName = saved.name;
@@ -134,7 +134,7 @@ Singleton {
         // stay on this screen, even if focus moves to another one while it is open
         dialogScreen = screenName || Screens.focused;
         dialogOpen = true;
-        opened();
+        syncMix();
     }
 
     function pick(name) {
@@ -146,6 +146,31 @@ Singleton {
         previewName = name;
         previewTint = Qt.rgba(c.r, c.g, c.b, 1);
         previewIntensity = c.a;
+        syncMix();
+    }
+
+    // the colour mixer's hue / saturation / brightness. Kept here rather than read back from the
+    // tint: a grey has no hue, which would lose it. Shared by the dialog on every screen.
+    property var mix: ({
+            hsvHue: 0,
+            hsvSaturation: 0,
+            hsvValue: 0
+        })
+
+    function syncMix() {
+        const t = previewTint;
+        mix = {
+            hsvHue: t.hsvHue >= 0 ? t.hsvHue : mix.hsvHue,
+            hsvSaturation: t.hsvSaturation,
+            hsvValue: t.hsvValue
+        };
+    }
+
+    function setMix(key, value) {
+        const m = Object.assign({}, mix);
+        m[key] = Math.min(0.999, value);
+        mix = m;
+        setCustom(Qt.hsva(m.hsvHue, m.hsvSaturation, m.hsvValue, 1));
     }
 
     function setCustom(color) {

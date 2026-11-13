@@ -13,6 +13,9 @@ Item {
     property bool shown: false
     property var selected: null
     property bool askKey: false
+    // the key being typed. Kept here, not in the row: a network that drops out of one scan and
+    // comes back gets a new row
+    property string key: ""
     property string error: ""
 
     readonly property real padding: 12
@@ -36,10 +39,13 @@ Item {
     function select(n) {
         selected = n;
         askKey = false;
+        key = "";
         error = "";
     }
 
-    function submitKey(psk) {
+    function submitKey() {
+        const psk = key;
+        key = "";
         askKey = false;
         selected?.connectWithPsk(psk);
     }
@@ -332,16 +338,22 @@ Item {
                                     width: 180
                                     placeholder: "Security key"
                                     echoMode: TextInput.Password
-                                    onAccepted: root.submitKey(text)
-
-                                    // empty and focused each time it is asked for
-                                    onVisibleChanged: {
-                                        if (visible) {
-                                            focusInput();
-                                        } else {
-                                            text = "";
+                                    text: net.isSelected ? root.key : ""
+                                    onTextChanged: {
+                                        if (net.isSelected) {
+                                            root.key = text;
                                         }
                                     }
+                                    onAccepted: root.submitKey()
+
+                                    // when it appears, and when its row was recreated mid-typing
+                                    function focusIfShown() {
+                                        if (visible) {
+                                            focusInput();
+                                        }
+                                    }
+                                    onVisibleChanged: focusIfShown()
+                                    Component.onCompleted: focusIfShown()
                                 }
                             }
 
@@ -375,7 +387,7 @@ Item {
                                         if (net.n.connected) {
                                             net.n.disconnect();
                                         } else if (root.askKey) {
-                                            root.submitKey(keyField.text);
+                                            root.submitKey();
                                         } else {
                                             root.connectTo(net.n);
                                         }

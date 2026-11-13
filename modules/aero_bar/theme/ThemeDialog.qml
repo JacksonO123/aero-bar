@@ -15,7 +15,7 @@ Variants {
         required property var modelData
         screen: modelData
 
-        readonly property bool wanted: Theme.dialogOpen && Screens.resolve(Theme.dialogScreen) === modelData.name
+        readonly property bool wanted: Theme.dialogOpen && Theme.screen === modelData.name
         readonly property real shadowMargin: 24
 
         visible: wanted || dialog.opacity > 0.01
@@ -36,31 +36,6 @@ Variants {
 
         AeroWindow {
             id: dialog
-
-            // the mixer keeps its own hue / saturation / brightness: a grey has no hue, so
-            // reading them back from the tint would lose it
-            property var mix: ({
-                    hsvHue: 0,
-                    hsvSaturation: 0,
-                    hsvValue: 0
-                })
-
-            Connections {
-                target: Theme
-
-                function onOpened() {
-                    dialog.syncMix();
-                }
-            }
-
-            function syncMix() {
-                const t = Theme.tint;
-                mix = {
-                    hsvHue: t.hsvHue >= 0 ? t.hsvHue : mix.hsvHue,
-                    hsvSaturation: t.hsvSaturation,
-                    hsvValue: t.hsvValue
-                };
-            }
 
             x: window.shadowMargin
             y: window.shadowMargin + (window.wanted ? 0 : 10)
@@ -115,10 +90,7 @@ Variants {
                             required property var modelData
                             color: modelData.color
                             selected: Theme.colorName === modelData.name
-                            onClicked: {
-                                Theme.pick(modelData.name);
-                                dialog.syncMix();
-                            }
+                            onClicked: Theme.pick(modelData.name)
                         }
                     }
                 }
@@ -213,13 +185,8 @@ Variants {
                                 width: 300
                                 knobSize: 26
                                 trackHeight: 6
-                                value: dialog.mix[modelData.key]
-                                onMoved: value => {
-                                    const m = Object.assign({}, dialog.mix);
-                                    m[modelData.key] = Math.min(0.999, value);
-                                    dialog.mix = m;
-                                    Theme.setCustom(Qt.hsva(m.hsvHue, m.hsvSaturation, m.hsvValue, 1));
-                                }
+                                value: Theme.mix[modelData.key]
+                                onMoved: value => Theme.setMix(modelData.key, value)
                             }
                         }
                     }

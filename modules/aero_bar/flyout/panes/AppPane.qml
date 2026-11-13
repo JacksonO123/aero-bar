@@ -37,24 +37,10 @@ Item {
         }
     }
 
-    // where this flyout is, in layout coordinates, for Peek to keep it uncovered
-    function flyoutRect() {
-        const frame = flyoutEl.aeroframe;
-        const p = frame.mapToItem(null, 0, 0);
-        return Qt.rect(windowOrigin.x + p.x, windowOrigin.y + p.y, frame.width, frame.height);
-    }
-
-    // while peeking, keep Peek's cut-out on the flyout, also if it resizes (a window opened or
-    // closed). Left in place afterwards so the hole lasts through the veil's fade-out.
-    Binding {
-        target: Peek
-        property: "clearRect"
-        when: root.shown && Peek.toplevel !== null
-        restoreMode: Binding.RestoreNone
-        value: {
-            const f = root.flyoutEl.aeroframe;
-            f.x, f.y, f.width, f.height; // follow these: mapToItem() itself isn't tracked
-            return root.flyoutRect();
+    // e.g. its screen was unplugged mid-peek: don't leave the peek (and its retain) behind
+    Component.onDestruction: {
+        if (shown) {
+            Peek.hide();
         }
     }
 
@@ -120,7 +106,7 @@ Item {
                 Timer {
                     id: peekTimer
                     interval: Constants.PEEK_DELAY
-                    onTriggered: Peek.show(thumb.toplevel)
+                    onTriggered: Peek.show(thumb.toplevel, root.flyoutEl.aeroframe, root.windowOrigin)
                 }
 
                 Win7Hover {
