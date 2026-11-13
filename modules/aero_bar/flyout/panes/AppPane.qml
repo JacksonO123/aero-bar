@@ -32,12 +32,7 @@ Item {
     height: jump ? jumpList.height : windows.length > 0 ? thumbs.height + 10 : 30
 
     onShownChanged: {
-        if (shown) {
-            // fresh window positions for a peek in a moment (no retain: Peek holds one itself)
-            if (windows.length > 0) {
-                HyprState.refresh();
-            }
-        } else {
+        if (!shown) {
             Peek.hide();
         }
     }
@@ -49,19 +44,17 @@ Item {
         return Qt.rect(windowOrigin.x + p.x, windowOrigin.y + p.y, frame.width, frame.height);
     }
 
-    // follow the flyout if it changes size or moves during a peek (a window opened or closed)
-    Connections {
-        target: root.flyoutEl.aeroframe
-        enabled: root.shown && Peek.toplevel !== null
-
-        function onXChanged() {
-            Peek.clearRect = root.flyoutRect();
-        }
-        function onWidthChanged() {
-            Peek.clearRect = root.flyoutRect();
-        }
-        function onHeightChanged() {
-            Peek.clearRect = root.flyoutRect();
+    // while peeking, keep Peek's cut-out on the flyout, also if it resizes (a window opened or
+    // closed). Left in place afterwards so the hole lasts through the veil's fade-out.
+    Binding {
+        target: Peek
+        property: "clearRect"
+        when: root.shown && Peek.toplevel !== null
+        restoreMode: Binding.RestoreNone
+        value: {
+            const f = root.flyoutEl.aeroframe;
+            f.x, f.y, f.width, f.height; // follow these: mapToItem() itself isn't tracked
+            return root.flyoutRect();
         }
     }
 
@@ -104,6 +97,7 @@ Item {
 
                 onHoveredChanged: {
                     if (hovered) {
+                        Peek.prepare();
                         peekTimer.restart();
                     } else {
                         peekTimer.stop();
@@ -126,7 +120,7 @@ Item {
                 Timer {
                     id: peekTimer
                     interval: Constants.PEEK_DELAY
-                    onTriggered: Peek.show(thumb.toplevel, root.flyoutRect())
+                    onTriggered: Peek.show(thumb.toplevel)
                 }
 
                 Win7Hover {

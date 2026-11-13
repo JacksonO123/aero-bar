@@ -306,6 +306,7 @@ Item {
             anchors.rightMargin: win.borderW
             width: 20
             height: Math.max(10, Math.min(13, win.captionH))
+            radius: 2
             visible: win.vw >= 44 && win.vh >= 30 && (win.hoverT > 0.05 || hovered)
             opacity: Math.max(win.hoverT, hovered ? 1 : 0)
             lit: true

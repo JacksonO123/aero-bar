@@ -13,22 +13,33 @@ Singleton {
     // hyprctl-style address, to find its geometry in HyprState
     readonly property string address: Taskbar.hyprAddress(toplevel)
 
-    // the thumbnail flyout that started the peek, in layout coordinates (like window positions).
-    // The overlay leaves it uncovered: both are on the Top layer and the overlay maps later.
-    // Kept after hide() so the hole stays while the veil fades out.
+    // the thumbnail flyout that started the peek, in layout coordinates (like window positions;
+    // the flyout keeps it current). The overlay leaves it uncovered: both are on the Top layer
+    // and the overlay maps later. Kept after hide() so the hole stays while the veil fades out.
     property rect clearRect: Qt.rect(0, 0, 0, 0)
 
     // window positions come from HyprState, which only stays fresh while retained
     property bool holding: false
 
-    function show(t, rect) {
+    // a thumbnail is hovered: start fetching window positions now, a peek may follow. Lets go
+    // again (after the grace period) if none does.
+    function prepare() {
+        if (!holding) {
+            HyprState.retain();
+            holding = true;
+        }
+        if (!toplevel) {
+            releaseTimer.restart();
+        }
+    }
+
+    function show(t) {
         releaseTimer.stop();
         if (!holding) {
             HyprState.retain();
             holding = true;
         }
         toplevel = t;
-        clearRect = rect;
     }
 
     function hide() {

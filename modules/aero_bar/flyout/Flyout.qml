@@ -30,18 +30,14 @@ Item {
     // whether the frame is glass only (no content well, no clip pass). Taken from the pane while
     // one shows and kept while the flyout fades out, so it can't flip mid-fade (the app pane's
     // `glass` follows `pinned`, which close() clears).
-    readonly property bool paneGlass: pane?.glass ?? false
     property bool glass: false
-    onPaneChanged: {
-        if (pane) {
-            glass = paneGlass;
-        }
+
+    Binding on glass {
+        when: root.pane !== null
+        value: root.pane?.glass ?? false
+        restoreMode: Binding.RestoreNone
     }
-    onPaneGlassChanged: {
-        if (pane) {
-            glass = paneGlass;
-        }
-    }
+
     property real targetWidth: pane ? pane.width + frame.frameWidth * 2 : 0
     property real targetHeight: pane ? pane.height + frame.frameWidth + frame.topFrameWidth : 0
 

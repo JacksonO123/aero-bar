@@ -14,7 +14,7 @@ Item {
 
     property bool shown: false
     // the flyout is held open while a slider is being dragged
-    property var flyoutEl: null
+    required property var flyoutEl
     property bool devicesOpen: false
 
     readonly property real padding: 12

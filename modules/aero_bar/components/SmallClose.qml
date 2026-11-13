@@ -6,6 +6,7 @@ Item {
     id: root
 
     property bool lit: false
+    property real radius: 3
 
     signal clicked
 
@@ -16,7 +17,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 3
+        radius: root.radius
         visible: root.lit || mouse.containsMouse
         border.width: 1
         border.color: Qt.rgba(0.35, 0, 0, 0.7)
@@ -36,24 +37,19 @@ Item {
         }
     }
 
-    Canvas {
-        anchors.centerIn: parent
-        width: 8
-        height: 8
-        property bool white: root.lit || mouse.containsMouse
-        onWhiteChanged: requestPaint()
-        onPaint: {
-            const ctx = getContext("2d");
-            ctx.reset();
-            ctx.beginPath();
-            ctx.moveTo(1, 1);
-            ctx.lineTo(7, 7);
-            ctx.moveTo(7, 1);
-            ctx.lineTo(1, 7);
-            ctx.lineWidth = 1.6;
-            ctx.lineCap = "round";
-            ctx.strokeStyle = white ? "white" : "#5b6470";
-            ctx.stroke();
+    // the x: two plain rotated bars (cheap enough for every overview window)
+    Repeater {
+        model: [45, -45]
+
+        Rectangle {
+            required property real modelData
+            anchors.centerIn: parent
+            width: 9
+            height: 1.6
+            radius: 0.8
+            rotation: modelData
+            antialiasing: true
+            color: root.lit || mouse.containsMouse ? "white" : "#5b6470"
         }
     }
 

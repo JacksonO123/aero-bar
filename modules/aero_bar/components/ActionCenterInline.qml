@@ -4,8 +4,7 @@ import "../../../services"
 // The Action Center flag. Click for the notification list; right-click toggles do not disturb.
 // A red glass badge counts notifications that arrived since it was last opened.
 FlyoutButton {
-    ownRightClick: true
-    onRightClicked: Notifications.setDoNotDisturb(!Notifications.doNotDisturb)
+    rightClick: () => Notifications.setDoNotDisturb(!Notifications.doNotDisturb)
 
     FlagGlyph {
         anchors.centerIn: parent

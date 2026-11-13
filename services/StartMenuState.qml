@@ -18,6 +18,8 @@ Singleton {
 
     property bool open: false
     property string screenName: ""
+    // the screen it actually shows on (screenName, or the focused one if that one is gone)
+    readonly property string screen: Screens.resolve(screenName)
     property double closedAt: 0
 
     // ---- editable lists ------------------------------------------------------------------------

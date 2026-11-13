@@ -13,9 +13,6 @@ Item {
     property bool shown: false
     property var selected: null
     property bool askKey: false
-    // the key being typed. Kept here, not in the row: scans re-sort the network list, which
-    // rebuilds every row
-    property string key: ""
     property string error: ""
 
     readonly property real padding: 12
@@ -39,16 +36,12 @@ Item {
     function select(n) {
         selected = n;
         askKey = false;
-        key = "";
         error = "";
     }
 
-    // connecting re-sorts the list (and can rebuild the rows), so clear the state first
-    function submitKey() {
-        const network = selected, psk = key;
-        key = "";
+    function submitKey(psk) {
         askKey = false;
-        network?.connectWithPsk(psk);
+        selected?.connectWithPsk(psk);
     }
 
     function needsKey(n) {
@@ -238,7 +231,7 @@ Item {
                 spacing: 1
 
                 Repeater {
-                    // keeps rows (and the key being typed) when scans re-sort the list
+                    // keeps rows (and a key being typed) when scans re-sort the list
                     model: ScriptModel {
                         values: NetState.wifiNetworks
                     }
@@ -339,17 +332,14 @@ Item {
                                     width: 180
                                     placeholder: "Security key"
                                     echoMode: TextInput.Password
-                                    text: net.isSelected ? root.key : ""
-                                    onTextChanged: {
-                                        if (net.isSelected) {
-                                            root.key = text;
-                                        }
-                                    }
-                                    onAccepted: root.submitKey()
+                                    onAccepted: root.submitKey(text)
 
+                                    // empty and focused each time it is asked for
                                     onVisibleChanged: {
                                         if (visible) {
                                             focusInput();
+                                        } else {
+                                            text = "";
                                         }
                                     }
                                 }
@@ -385,7 +375,7 @@ Item {
                                         if (net.n.connected) {
                                             net.n.disconnect();
                                         } else if (root.askKey) {
-                                            root.submitKey();
+                                            root.submitKey(keyField.text);
                                         } else {
                                             root.connectTo(net.n);
                                         }

@@ -383,19 +383,40 @@ Singleton {
 
         onExited: {
             root.epoch += 1;
-            // nobody reads a snapshot unless something holds a retain(). Not via the event
-            // debounce: a busy stream of events could keep postponing it.
+            // nobody reads a snapshot unless something holds a retain()
             if (root.live) {
-                root.refresh();
+                root.scheduleRefresh();
             }
             Qt.callLater(root.pump);
         }
     }
 
+    // One snapshot per burst of changes (events, finished dispatches): 50 ms after the last
+    // one, but never more than 200 ms after the first, so a steady stream of events (a
+    // terminal updating its title) can't postpone it indefinitely.
+    function scheduleRefresh() {
+        eventDebounce.restart();
+        if (!maxWait.running) {
+            maxWait.start();
+        }
+    }
+
+    function flushRefresh() {
+        eventDebounce.stop();
+        maxWait.stop();
+        refresh();
+    }
+
     Timer {
         id: eventDebounce
         interval: 50
-        onTriggered: root.refresh()
+        onTriggered: root.flushRefresh()
+    }
+
+    Timer {
+        id: maxWait
+        interval: 200
+        onTriggered: root.flushRefresh()
     }
 
     Connections {
@@ -403,7 +424,7 @@ Singleton {
         enabled: root.live
 
         function onRawEvent(event) {
-            eventDebounce.restart();
+            root.scheduleRefresh();
         }
     }
 }

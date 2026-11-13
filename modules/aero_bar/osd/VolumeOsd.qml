@@ -42,10 +42,9 @@ Scope {
             root.poke();
         }
 
-        // also when the new device has the same volume and mute (no change to poke() for)
+        // also when the new device has the same volume and mute (nothing else would poke)
         function onSinkChanged() {
-            root.lastSink = Audio.sink;
-            settle.restart();
+            root.poke();
         }
 
         function onFlyoutsOpenChanged() {

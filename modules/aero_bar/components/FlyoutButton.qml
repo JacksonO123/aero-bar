@@ -2,16 +2,14 @@ import QtQuick
 import "../flyout"
 
 // A 30px taskbar button that pins its flyout pane open on click (Action Center, network,
-// Bluetooth) and stays lit while that pane is showing. With `ownRightClick`, right-click emits
-// `rightClicked` instead of toggling.
+// Bluetooth) and stays lit while that pane is showing. Right-click toggles too, unless the
+// button gives its own `rightClick` function.
 Win7Frame {
     id: root
 
     required property Flyout flyoutEl
     readonly property bool active: flyoutEl.pinned && flyoutEl.current === root
-    property bool ownRightClick: false
-
-    signal rightClicked
+    property var rightClick: null
 
     implicitWidth: 30
     anchors.top: parent.top
@@ -20,7 +18,7 @@ Win7Frame {
     anchors.bottomMargin: 4
     frameOpacity: Math.max(hoverT, active ? 1 : 0)
 
-    onClicked: mouse => mouse.button === Qt.RightButton && ownRightClick ? root.rightClicked() : flyoutEl.toggle(root)
+    onClicked: mouse => mouse.button === Qt.RightButton && rightClick ? rightClick() : flyoutEl.toggle(root)
 
     Win7Hover {
         radius: root.radius

@@ -6,24 +6,23 @@ import QtQuick
 QtObject {
     id: root
 
-    property QtObject target: null
+    required property QtObject target
     required property string counter
     property bool when: false
 
     property bool counted: false
 
     function sync() {
-        if (target && when !== counted) {
+        if (when !== counted) {
             target[counter] += when ? 1 : -1;
             counted = when;
         }
     }
 
     onWhenChanged: sync()
-    onTargetChanged: sync()
     Component.onCompleted: sync()
     Component.onDestruction: {
-        if (counted && target) {
+        if (counted) {
             target[counter] -= 1;
         }
     }
