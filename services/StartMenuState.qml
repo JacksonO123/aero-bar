@@ -20,7 +20,9 @@ Singleton {
     property string screenName: ""
     // the screen it actually shows on (screenName, or the focused one if that one is gone)
     readonly property string screen: Screens.resolve(screenName)
+    // when it last closed, so the orb click that closed it doesn't reopen it (see toggle())
     property double closedAt: 0
+    readonly property int reopenGuard: 300 // ms
 
     // ---- editable lists ------------------------------------------------------------------------
 
@@ -64,7 +66,7 @@ Singleton {
         {
             label: "Control Panel",
             icon: "preferences-system",
-            command: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
+            command: root.controlPanelCommand
         },
         {
             label: "Personalization",
@@ -79,24 +81,32 @@ Singleton {
         }
     ]
 
+    // the user tile opens Control Panel; the user's name (top of the places) opens their home
+    property var controlPanelCommand: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
+    property var homeCommand: ["sh", "-c", "xdg-open \"$HOME\""]
     property var shutdownCommand: ["systemctl", "poweroff"]
 
-    // session actions, shared by the power menu and the lock screen
+    // ---- session actions (shared by the power menu and the lock screen) --------------------
+
     function lock() {
         LockState.lock();
     }
+
     function logOff() {
         HyprState.dispatch({
             op: "exit"
         });
     }
+
     function sleep() {
         // like Win7, ask for the password when it wakes up: suspend once the lock is up
         LockState.lockThen(() => Quickshell.execDetached(["systemctl", "suspend"]));
     }
+
     function restart() {
         Quickshell.execDetached(["systemctl", "reboot"]);
     }
+
     function shutDown() {
         Quickshell.execDetached(shutdownCommand);
     }
@@ -137,7 +147,7 @@ Singleton {
     function toggle(name) {
         if (open) {
             close();
-        } else if (Date.now() - closedAt > 300) {
+        } else if (Date.now() - closedAt > reopenGuard) {
             // a click on the orb that just dismissed the menu (outside click) must not reopen it
             show(name);
         }

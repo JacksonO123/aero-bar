@@ -61,7 +61,6 @@ Item {
             }
 
             Column {
-                id: details
                 width: content.width - root.artSize - 12
                 spacing: 1
 

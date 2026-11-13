@@ -78,6 +78,8 @@ Item {
         opacity: root.hoverT
         visible: opacity > 0
 
+        readonly property color glowColor: root.glowColor
+        onGlowColorChanged: requestPaint()
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
 
@@ -90,7 +92,7 @@ Item {
             }
 
             const g = ctx.createRadialGradient(w / 2, h * 0.92, 0, w / 2, h * 0.92, h * 0.8);
-            g.addColorStop(0.0, root.glowColor);
+            g.addColorStop(0.0, glowColor);
             g.addColorStop(1.0, Qt.rgba(0.6, 0.9, 1.0, 0));
             ctx.beginPath();
             ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2);

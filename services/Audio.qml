@@ -4,6 +4,8 @@ import Quickshell
 import Quickshell.Services.Pipewire
 import QtQuick
 
+// The default output's volume and mute, plus the helpers the volume flyout uses for any node
+// (app streams too).
 Singleton {
     id: root
 
@@ -11,28 +13,41 @@ Singleton {
     readonly property bool available: sink !== null && sink.audio !== null
     readonly property real volume: available ? sink.audio.volume : 0
     readonly property bool muted: available ? sink.audio.muted : false
-    readonly property string deviceName: sink ? (sink.description || sink.nickname || sink.name) : "No audio device"
+    readonly property string deviceName: sink ? nameOf(sink) : "No audio device"
 
     // the slider tops out here; volume set above it elsewhere still displays correctly
     property real maxVolume: 1.0
 
     // volume flyouts currently open; the on-screen volume pop-up stays away while one is
-    property int flyoutsOpen: 0
+    property int panesOpen: 0
 
-    function setVolume(value) {
-        if (!available) {
+    // a device's display name
+    function nameOf(node) {
+        return node.description || node.nickname || node.name;
+    }
+
+    // any node (the output, or an app's stream). Like Windows, raising it while muted unmutes.
+    function setNodeVolume(node, value) {
+        if (!node?.audio) {
             return;
         }
-
-        // never above maxVolume, unless it already is (set elsewhere): then don't cut it down
-        const next = Math.max(0, Math.min(Math.max(maxVolume, volume), value));
-
-        // like Windows: dragging the slider while muted unmutes
-        if (sink.audio.muted && next > 0) {
-            sink.audio.muted = false;
+        if (node.audio.muted && value > 0) {
+            node.audio.muted = false;
         }
+        node.audio.volume = value;
+    }
 
-        sink.audio.volume = next;
+    function toggleNodeMute(node) {
+        if (node?.audio) {
+            node.audio.muted = !node.audio.muted;
+        }
+    }
+
+    function setVolume(value) {
+        if (available) {
+            // never above maxVolume, unless it already is (set elsewhere): then don't cut it down
+            setNodeVolume(sink, Math.max(0, Math.min(Math.max(maxVolume, volume), value)));
+        }
     }
 
     function adjust(delta) {
@@ -40,9 +55,7 @@ Singleton {
     }
 
     function toggleMute() {
-        if (available) {
-            sink.audio.muted = !sink.audio.muted;
-        }
+        toggleNodeMute(sink);
     }
 
     // pipewire node properties (volume/muted) are only valid while the node is bound

@@ -5,8 +5,8 @@ import Quickshell.Services.Mpris
 import QtQuick
 
 // Picks the "current" MPRIS player and exposes its track in a null-safe way.
-// Preference order: a player the user cycled to (while it is not losing to a playing one),
-// whatever is playing, whatever played last, anything with a title, anything at all.
+// Preference order: a player the user switched to (until another one starts playing), whatever
+// is playing, whatever played last, anything with a title, anything at all.
 Singleton {
     id: root
 
@@ -15,11 +15,21 @@ Singleton {
     property MprisPlayer pinned: null
     property MprisPlayer lastActive: null
 
+    // a player that starts playing takes over from the pinned one
+    readonly property var playing: players.filter(p => p.isPlaying)
+    property var wasPlaying: []
+
+    onPlayingChanged: {
+        if (pinned && playing.some(p => p !== pinned && !wasPlaying.includes(p))) {
+            pinned = null;
+        }
+        wasPlaying = playing;
+    }
+
     readonly property MprisPlayer player: {
         const list = players;
-        const anyPlaying = list.some(p => p.isPlaying);
 
-        if (pinned && list.includes(pinned) && (pinned.isPlaying || !anyPlaying)) {
+        if (pinned && list.includes(pinned)) {
             return pinned;
         }
 

@@ -12,13 +12,13 @@ Item {
     property real arrowWidth: 20
     property real radius: 3
 
+    readonly property real mainWidth: width - arrowWidth
+
     signal clicked
     signal arrowClicked
 
     implicitWidth: labelText.implicitWidth + 30 + arrowWidth
     implicitHeight: 23
-
-    readonly property real mainWidth: width - arrowWidth
 
     // one half's hover / pressed glow, drawn in the full button shape and clipped to the half
     component SegmentGlow: Canvas {
@@ -28,11 +28,23 @@ Item {
         property real offsetX: 0
         property real radius: 3
         property bool pressed: false
+        property bool lit: false
+
+        opacity: lit ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 160
+                easing.type: Easing.OutQuad
+            }
+        }
 
         onPressedChanged: requestPaint()
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
         onFullWidthChanged: requestPaint()
+        onOffsetXChanged: requestPaint()
+        onRadiusChanged: requestPaint()
 
         onPaint: {
             const ctx = getContext("2d");
@@ -82,42 +94,25 @@ Item {
         border.width: 1
         border.color: Qt.rgba(0, 0, 0, 0.7)
 
-        gradient: Gradient {
-            GradientStop {
-                position: 0.0
-                color: Qt.rgba(1, 1, 1, 0.24)
-            }
-            GradientStop {
-                position: 0.46
-                color: Qt.rgba(1, 1, 1, 0.1)
-            }
-            GradientStop {
-                position: 0.47
-                color: Qt.rgba(0, 0, 0, 0.14)
-            }
-            GradientStop {
-                position: 1.0
-                color: Qt.rgba(1, 1, 1, 0.08)
-            }
+        gradient: SplitGradient {
+            split: 0.46
+            splitEnd: 0.47
+            colors: [
+                Qt.rgba(1, 1, 1, 0.24),
+                Qt.rgba(1, 1, 1, 0.1),
+                Qt.rgba(0, 0, 0, 0.14),
+                Qt.rgba(1, 1, 1, 0.08)
+            ]
         }
     }
 
     SegmentGlow {
-        x: 0
         width: root.mainWidth
         height: root.height
         fullWidth: root.width
-        offsetX: 0
         radius: root.radius
         pressed: mainMouse.pressed
-        opacity: mainMouse.containsMouse || mainMouse.pressed ? 1 : 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 160
-                easing.type: Easing.OutQuad
-            }
-        }
+        lit: mainMouse.containsMouse || mainMouse.pressed
     }
 
     SegmentGlow {
@@ -128,14 +123,7 @@ Item {
         offsetX: root.mainWidth
         radius: root.radius
         pressed: arrowMouse.pressed || root.menuOpen
-        opacity: arrowMouse.containsMouse || arrowMouse.pressed || root.menuOpen ? 1 : 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 160
-                easing.type: Easing.OutQuad
-            }
-        }
+        lit: arrowMouse.containsMouse || pressed
     }
 
     // inner highlight: bright along the top, faint elsewhere

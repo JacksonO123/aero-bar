@@ -10,13 +10,20 @@ Item {
     property real size: 32
 
     readonly property string image: notification?.image ?? ""
+
+    // the app icon is either a picture (a path or URL) or the name of a themed icon
     readonly property string appIcon: notification?.appIcon ?? ""
     readonly property bool appIconIsUrl: appIcon.startsWith("file:") || appIcon.startsWith("image:") || appIcon.startsWith("/")
+    readonly property string appIconUrl: !appIconIsUrl ? "" : appIcon.startsWith("/") ? "file://" + appIcon : appIcon
+
+    // the desktop entry's icon, tracking newly installed apps
     readonly property string entryIcon: {
         DesktopEntries.applications.values;
         const id = notification?.desktopEntry ?? "";
         return id !== "" ? (DesktopEntries.byId(id)?.icon ?? DesktopEntries.heuristicLookup(id)?.icon ?? "") : "";
     }
+
+    readonly property string iconName: !appIconIsUrl && appIcon !== "" ? appIcon : entryIcon || "dialog-information"
 
     implicitWidth: size
     implicitHeight: size
@@ -25,7 +32,7 @@ Item {
         id: picture
         anchors.fill: parent
         visible: status === Image.Ready
-        source: root.image !== "" ? root.image : root.appIconIsUrl ? (root.appIcon.startsWith("/") ? "file://" + root.appIcon : root.appIcon) : ""
+        source: root.image || root.appIconUrl
         fillMode: Image.PreserveAspectCrop
         sourceSize: Qt.size(root.size * 2, root.size * 2)
         asynchronous: true
@@ -36,7 +43,7 @@ Item {
         anchors.fill: parent
         visible: !picture.visible
         size: root.size
-        desktopIcon: !root.appIconIsUrl && root.appIcon !== "" ? root.appIcon : root.entryIcon !== "" ? root.entryIcon : "dialog-information"
+        desktopIcon: root.iconName
         backupSource: Quickshell.iconPath("dialog-information", true)
     }
 }

@@ -52,7 +52,6 @@ Item {
     }
 
     function shiftYear(delta) {
-        slideDirection = delta;
         viewYear += delta;
         yearSlide.restart();
     }
@@ -77,6 +76,10 @@ Item {
         }
         return cells;
     }
+
+    // weekday headings, in the locale's week order (cached: twelve mini months share them)
+    readonly property var dayAbbreviations: dayNames(2)
+    readonly property var dayLetters: dayNames(1)
 
     function dayNames(length) {
         const names = [];
@@ -234,10 +237,14 @@ Item {
             }
         }
 
-        GlassOrb {
+        // built only for today's cell (every other day would carry a hidden orb)
+        Loader {
             anchors.centerIn: parent
-            visible: cell.isToday
-            size: Math.min(cell.width, cell.height) + 1
+            active: cell.isToday
+
+            sourceComponent: GlassOrb {
+                size: Math.min(cell.width, cell.height) + 1
+            }
         }
 
         Text {
@@ -333,10 +340,13 @@ Item {
                     width: 20
                     height: 14
 
-                    GlassOrb {
+                    Loader {
                         anchors.centerIn: parent
-                        visible: miniDay.modelData.isToday
-                        size: 15
+                        active: miniDay.modelData.isToday
+
+                        sourceComponent: GlassOrb {
+                            size: 15
+                        }
                     }
 
                     Text {
@@ -456,7 +466,6 @@ Item {
                 }
 
                 Text {
-                    id: monthTitle
                     anchors.centerIn: parent
                     anchors.horizontalCenterOffset: -12
                     text: `${root.monthName(root.viewMonth)} ${root.viewYear}`
@@ -493,7 +502,7 @@ Item {
 
             Row {
                 Repeater {
-                    model: root.dayNames(2)
+                    model: root.dayAbbreviations
 
                     Text {
                         required property var modelData
@@ -662,21 +671,20 @@ Item {
                     required property int index
                     title: root.monthName(index)
                     cells: root.monthCells(root.viewYear, index)
-                    letters: root.dayNames(1)
+                    letters: root.dayLetters
                     current: root.viewYear === root.todayYear && index === root.todayMonth
                     onPicked: root.openMonth(index)
                 }
             }
 
-            ParallelAnimation {
+            // the year grid fades in again when the year changes
+            NumberAnimation {
                 id: yearSlide
-                NumberAnimation {
-                    target: yearGrid
-                    property: "opacity"
-                    from: 0.2
-                    to: 1
-                    duration: 240
-                }
+                target: yearGrid
+                property: "opacity"
+                from: 0.2
+                to: 1
+                duration: 240
             }
         }
     }

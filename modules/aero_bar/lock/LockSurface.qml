@@ -1,6 +1,7 @@
 import QtQuick
 import "../components"
 import "../../../services"
+import "../../../utils/constants.js" as Constants
 
 // What every screen shows while locked: the Win7 logon screen with the user tile, a password
 // box and its round arrow button, the time, and a power button.
@@ -9,10 +10,7 @@ Item {
 
     anchors.fill: parent
     opacity: 0
-    Component.onCompleted: {
-        opacity = 1;
-        field.focusInput();
-    }
+    Component.onCompleted: opacity = 1
 
     Behavior on opacity {
         NumberAnimation {
@@ -67,6 +65,8 @@ Item {
 
                 TextField {
                     id: field
+                    // also when it comes back after "Checking…"
+                    autoFocus: true
                     width: 236
                     height: 28
                     anchors.verticalCenter: parent.verticalCenter
@@ -124,7 +124,6 @@ Item {
             visible: LockState.error !== ""
             text: LockState.error
             font.pixelSize: 14
-            onVisibleChanged: field.focusInput()
         }
     }
 
@@ -136,7 +135,7 @@ Item {
         spacing: 2
 
         CaptionText {
-            text: Qt.formatTime(Clock.date, "h:mm AP")
+            text: Qt.formatTime(Clock.date, Constants.TIME_FORMAT)
             font.pixelSize: 60
             font.weight: Font.Light
         }

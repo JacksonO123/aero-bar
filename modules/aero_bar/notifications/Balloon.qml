@@ -1,9 +1,7 @@
 import QtQuick
-import Quickshell
 import Quickshell.Services.Notifications
 import "../components"
 import "../../../services"
-import "../../../utils/constants.js" as Constants
 
 // A Windows 7 balloon tip for one notification. The newest one points its tail down at the
 // Action Center flag. Hovering keeps it up; clicking runs the notification's default action.
@@ -16,33 +14,25 @@ Item {
     readonly property real tailHeight: tail ? 10 : 0
     readonly property bool urgent: notification?.urgency === NotificationUrgency.Critical
 
-    signal timedOut
-
     width: 330
     height: Math.max(icon.height, textColumn.height) + 24 + tailHeight
-
-    // wait while hovered; critical notifications stay until dismissed
-    Timer {
-        running: root.notification !== null && !root.hovered && !root.urgent
-        interval: (root.notification?.expireTimeout ?? 0) > 0 ? root.notification.expireTimeout * 1000 : Constants.NOTIFICATION_TIMEOUT
-        onTriggered: root.timedOut()
-    }
 
     Canvas {
         id: shape
 
+        // room around the balloon for its drop shadow
         readonly property real pad: 10
+        readonly property bool urgent: root.urgent
+        readonly property real tailH: root.tailHeight
 
         x: -pad
         y: -pad
         width: root.width + pad * 2
         height: root.height + pad * 2
+
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
-
-        property bool urgent: root.urgent
         onUrgentChanged: requestPaint()
-        property real tailH: root.tailHeight
         onTailHChanged: requestPaint()
 
         onPaint: {
@@ -155,7 +145,7 @@ Item {
 
             Repeater {
                 id: actionRepeater
-                model: (root.notification?.actions ?? []).filter(a => a.identifier !== "default")
+                model: Notifications.extraActions(root.notification)
 
                 PushButton {
                     required property var modelData

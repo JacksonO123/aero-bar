@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Widgets
 import "../components"
+import "../../../utils/constants.js" as Constants
 
 // One workspace: a label and a miniature Aero desktop (sky gradient, aurora ribbons, taskbar).
 Item {
@@ -281,7 +282,7 @@ Item {
             if (hovered) {
                 card.overview.hoveredWorkspaceId = card.wsId;
             } else if (card.overview.hoveredWorkspaceId === card.wsId) {
-                card.overview.hoveredWorkspaceId = -99999;
+                card.overview.hoveredWorkspaceId = Constants.NO_WORKSPACE;
             }
         }
     }

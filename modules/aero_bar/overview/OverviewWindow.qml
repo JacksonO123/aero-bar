@@ -20,6 +20,8 @@ Item {
     required property bool fullscreen
     required property int focusHistoryId
 
+    // where the window sits in the overview. windowRect() is null while its workspace isn't laid
+    // out (e.g. mid-update), so hold the last good spot rather than jumping to 0,0.
     readonly property var target: overview.windowRect(wsId, gx, gy, gw, gh)
     property var lastTarget: ({
             x: 0,
@@ -93,7 +95,7 @@ Item {
     visible: target !== null || held
     z: dragging ? 1000 : floating ? 300 - Math.min(focusHistoryId, 200) : 10
 
-    property real hoverT: mouse.containsMouse && !overview.interacting ? 1 : 0
+    property real hoverT: mouseArea.containsMouse && !overview.interacting ? 1 : 0
     property real swapT: swapTarget ? 1 : 0
     property bool spawned: false
     Component.onCompleted: spawned = true
@@ -161,23 +163,15 @@ Item {
             anchors.fill: parent
             radius: 3
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: Qt.rgba(0.82, 0.92, 1.0, win.focused ? 0.85 : 0.7)
-                }
-                GradientStop {
-                    position: 0.45
-                    color: Qt.rgba(0.58, 0.76, 0.93, win.focused ? 0.75 : 0.6)
-                }
-                GradientStop {
-                    position: 0.451
-                    color: Qt.rgba(0.38, 0.58, 0.8, win.focused ? 0.75 : 0.6)
-                }
-                GradientStop {
-                    position: 1.0
-                    color: Qt.rgba(0.48, 0.68, 0.88, win.focused ? 0.8 : 0.65)
-                }
+            gradient: SplitGradient {
+                split: 0.45
+                splitEnd: 0.451
+                colors: [
+                    Qt.rgba(0.82, 0.92, 1.0, win.focused ? 0.85 : 0.7),
+                    Qt.rgba(0.58, 0.76, 0.93, win.focused ? 0.75 : 0.6),
+                    Qt.rgba(0.38, 0.58, 0.8, win.focused ? 0.75 : 0.6),
+                    Qt.rgba(0.48, 0.68, 0.88, win.focused ? 0.8 : 0.65)
+                ]
             }
         }
 
@@ -246,7 +240,7 @@ Item {
         Win7Hover {
             radius: 3
             opacity: win.hoverT * 0.9
-            pressedT: mouse.pressed ? 1 : 0
+            pressedT: mouseArea.pressed ? 1 : 0
         }
 
         // "drop here to swap" highlight
@@ -258,6 +252,7 @@ Item {
             border.width: 2
             border.color: "#a8ecff"
             opacity: win.swapT
+            visible: opacity > 0
 
             GlassOrb {
                 anchors.centerIn: parent
@@ -315,7 +310,7 @@ Item {
     }
 
     MouseArea {
-        id: mouse
+        id: mouseArea
         anchors.fill: parent
         anchors.margins: -2
         hoverEnabled: true

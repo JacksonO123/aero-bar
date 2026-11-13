@@ -22,6 +22,13 @@ Item {
     // because its row moves from "Available" to "Devices" when pairing finishes.
     property var pairing: null
 
+    function adapterStatus() {
+        if (!adapter) {
+            return "Plug in a Bluetooth adapter to use devices.";
+        }
+        return powered ? (adapter.name || "Adapter") + " is on" : "Turned off";
+    }
+
     Connections {
         target: root.pairing
         ignoreUnknownSignals: true
@@ -173,7 +180,7 @@ Item {
                     font.bold: true
                 }
                 Text {
-                    text: !root.adapter ? "Plug in a Bluetooth adapter to use devices." : root.powered ? (root.adapter.name || "Adapter") + " is on" : "Turned off"
+                    text: root.adapterStatus()
                     color: "#6b7785"
                     font.pixelSize: 11
                 }
@@ -208,7 +215,9 @@ Item {
             spacing: 1
 
             Repeater {
-                model: root.paired
+                model: ScriptModel {
+                    values: root.paired
+                }
 
                 DeviceRow {
                     width: content.width
@@ -262,7 +271,9 @@ Item {
             }
 
             Repeater {
-                model: root.found
+                model: ScriptModel {
+                    values: root.found
+                }
 
                 DeviceRow {
                     width: content.width
@@ -276,10 +287,8 @@ Item {
             }
         }
 
-        Rectangle {
+        FlyoutRule {
             width: parent.width
-            height: 1
-            color: Qt.rgba(0.6, 0.72, 0.85, 0.7)
         }
 
         LinkText {

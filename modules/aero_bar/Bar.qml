@@ -32,11 +32,14 @@ Variants {
         exclusiveZone: Constants.BAR_HEIGHT
         color: "transparent"
 
+        // input only where something is drawn: the bar, an open flyout, the overview
         mask: Region {
             item: bar
+
             Region {
                 item: flyout.aeroframe
             }
+
             Region {
                 item: overview.maskItem
             }
@@ -209,6 +212,15 @@ Variants {
             }
         }
 
+        WorkspaceOverview {
+            id: overview
+            anchorItem: workspaceButtons
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: bar.top
+            anchors.bottomMargin: 10
+        }
+
         // a click anywhere outside the bar closes a pinned (click-opened) flyout like the calendar
         HyprlandFocusGrab {
             windows: [here]
@@ -216,6 +228,7 @@ Variants {
             onCleared: flyout.close()
         }
 
+        // the start menu opening closes any flyout
         Connections {
             target: StartMenuState
 
@@ -224,15 +237,6 @@ Variants {
                     flyout.close();
                 }
             }
-        }
-
-        WorkspaceOverview {
-            id: overview
-            anchorItem: workspaceButtons
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: bar.top
-            anchors.bottomMargin: 10
         }
     }
 }

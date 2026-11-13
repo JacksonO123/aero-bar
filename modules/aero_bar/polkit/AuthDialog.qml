@@ -189,7 +189,6 @@ AeroWindow {
                     function claimPassword() {
                         if (selected) {
                             root.passwordField = field;
-                            Qt.callLater(root.focusPassword);
                         }
                     }
 
@@ -225,6 +224,8 @@ AeroWindow {
 
                     TextField {
                         id: field
+                        // shows (and takes the keyboard) on the selected identity's tile
+                        autoFocus: true
                         x: 80
                         y: 38
                         width: 210

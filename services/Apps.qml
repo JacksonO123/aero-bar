@@ -4,8 +4,9 @@ import Quickshell
 import QtQuick
 import "../utils/path.js" as PathUtils
 
-// Pinned taskbar apps. `appIds` are the window classes (`hyprctl clients`) that belong to the
-// app: those windows show as thumbnails when hovering it, and mark it as running.
+// Pinned taskbar apps. `appIds` are the window classes (`hyprctl clients`, matched
+// case-insensitively) that belong to the app: those windows show as thumbnails when hovering it,
+// and mark it as running.
 Singleton {
     id: root
 
@@ -36,7 +37,7 @@ Singleton {
         {
             cmd: ["spotify-launcher"],
             name: "Spotify",
-            appIds: ["spotify", "Spotify"],
+            appIds: ["spotify"],
             img: Qt.resolvedUrl("../assets/music-icon-reflect.png"),
             offset: 10,
             size: 22
@@ -44,7 +45,7 @@ Singleton {
         {
             cmd: ["google-chrome-stable"],
             name: "Google Chrome",
-            appIds: ["google-chrome", "Google-chrome", "google-chrome-stable"],
+            appIds: ["google-chrome", "google-chrome-stable"],
             img: Qt.resolvedUrl("../assets/browser-icon-reflect.png"),
             offset: 10,
             size: 26

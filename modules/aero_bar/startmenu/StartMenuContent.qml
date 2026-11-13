@@ -59,23 +59,40 @@ Item {
         }
     }
 
+    // the search text as a shell command (the "Run" row)
+    function runQuery() {
+        StartMenuState.run(["sh", "-c", query]);
+    }
+
+    // (search mode always has a query: an empty one goes back home)
     function activateSelected() {
         if (mode === "search") {
             if (selected < results.length) {
                 StartMenuState.launch(results[selected]);
-            } else if (query.trim() !== "") {
-                StartMenuState.run(["sh", "-c", query]);
+            } else {
+                runQuery();
             }
-        } else if (mode === "home") {
+        } else if (mode === "home" && keyboardNav) {
+            // only a row the arrow keys highlighted
             StartMenuState.launch(StartMenuState.frequentApps[selected]);
         }
     }
 
     function selectableCount() {
         if (mode === "search") {
-            return results.length + (query.trim() !== "" ? 1 : 0);
+            return results.length + 1; // + the Run row
         }
         return mode === "home" ? StartMenuState.frequentApps.length : 0;
+    }
+
+    // a place shows its icon on the user tile while hovered. Moving straight to the next place
+    // reports the new hover before the old one ends, so only clear our own icon.
+    function showPlaceIcon(icon, hovered) {
+        if (hovered) {
+            hoveredIcon = icon;
+        } else if (hoveredIcon === icon) {
+            hoveredIcon = "";
+        }
     }
 
     Keys.onPressed: event => {
@@ -93,7 +110,10 @@ Item {
         } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
             const count = selectableCount();
             if (count > 0) {
-                selected = keyboardNav || mode === "search" ? (selected + (event.key === Qt.Key_Down ? 1 : -1) + count) % count : 0;
+                const step = event.key === Qt.Key_Down ? 1 : -1;
+                // on the home list the first arrow press only reveals the selection
+                const revealOnly = !keyboardNav && mode !== "search";
+                selected = revealOnly ? 0 : (selected + step + count) % count;
                 keyboardNav = true;
             }
             event.accepted = true;
@@ -114,6 +134,7 @@ Item {
 
         height: 28
         frameOpacity: hoverT
+        onClicked: StartMenuState.run(place.command)
 
         Win7Hover {
             radius: place.radius
@@ -273,7 +294,6 @@ Item {
                                     MenuItem {
                                         width: folder.width
                                         label: folder.modelData.name
-                                        sublabel: ""
                                         iconName: folder.expanded ? "folder-open" : "folder"
                                         iconSize: 20
                                         showArrow: true
@@ -379,7 +399,7 @@ Item {
                         iconName: "utilities-terminal"
                         iconSize: 20
                         selected: root.selected === root.results.length
-                        onActivated: StartMenuState.run(["sh", "-c", root.query])
+                        onActivated: root.runQuery()
                     }
                 }
             }
@@ -464,9 +484,8 @@ Item {
                 label: StartMenuState.displayName
                 icon: "user-home"
                 emphasised: true
-                command: ["sh", "-c", "xdg-open \"$HOME\""]
-                onHoveredChanged: root.hoveredIcon = hovered ? icon : ""
-                onClicked: StartMenuState.run(command)
+                command: StartMenuState.homeCommand
+                onHoveredChanged: root.showPlaceIcon(icon, hovered)
             }
 
             Repeater {
@@ -478,8 +497,7 @@ Item {
                     label: modelData.label
                     icon: modelData.icon
                     command: modelData.command
-                    onHoveredChanged: root.hoveredIcon = hovered ? icon : ""
-                    onClicked: StartMenuState.run(command)
+                    onHoveredChanged: root.showPlaceIcon(icon, hovered)
                 }
             }
 
@@ -504,8 +522,7 @@ Item {
                     label: modelData.label
                     icon: modelData.icon
                     command: modelData.command
-                    onHoveredChanged: root.hoveredIcon = hovered ? icon : ""
-                    onClicked: StartMenuState.run(command)
+                    onHoveredChanged: root.showPlaceIcon(icon, hovered)
                 }
             }
         }
@@ -513,7 +530,7 @@ Item {
         // ---- Shut down split button ------------------------------------------------------------
 
         ShutdownButton {
-            id: powerRow
+            id: shutdownButton
             x: root.rightX + 8
             // centred on the search box, like Win7
             y: root.frameH - root.pad - root.searchH + (root.searchH - height) / 2
@@ -525,8 +542,8 @@ Item {
         // power options (Win7 context menu)
         Item {
             id: powerMenu
-            x: powerRow.x + powerRow.width - width
-            y: powerRow.y - height - 4
+            x: shutdownButton.x + shutdownButton.width - width
+            y: shutdownButton.y - height - 4
             width: 138
             height: powerColumn.height + 6
             opacity: root.powerMenuOpen ? 1 : 0
@@ -594,7 +611,7 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: StartMenuState.run(StartMenuState.systemLinks.find(l => l.label === "Control Panel")?.command ?? ["sh", "-c", "xdg-open \"$HOME\""])
+            onClicked: StartMenuState.run(StartMenuState.controlPanelCommand)
         }
     }
 }

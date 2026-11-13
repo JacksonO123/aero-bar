@@ -45,7 +45,8 @@ Variants {
             }
         }
 
-        // clicking anywhere else closes it
+        // clicking anywhere else closes it. Only once the window is mapped: a grab on an unmapped
+        // window is cleared straight away.
         HyprlandFocusGrab {
             windows: [window]
             active: window.wanted && window.visible

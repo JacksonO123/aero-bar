@@ -19,11 +19,17 @@ Singleton {
     property bool locked: false
     // the compositor has confirmed every screen is covered (set by the lock surfaces)
     property bool secure: false
+
     // the password box, shared by the lock surfaces on every screen
     property string typed: ""
     property string error: ""
-    readonly property bool busy: pam.active && !pam.responseRequired || pending !== ""
+    // a submitted password, held until PAM asks for it
     property string pending: ""
+    // a password was handed to PAM, which hasn't answered yet (respond() leaves
+    // responseRequired set until PAM's next message)
+    property bool checking: false
+    // a check is under way: PAM is working, or a password is waiting to be handed over
+    readonly property bool busy: (pam.active && !pam.responseRequired) || checking || pending !== ""
 
     function lock() {
         if (!locked) {
@@ -62,6 +68,15 @@ Singleton {
         }
     }
 
+    // the compositor refused the lock (e.g. another locker holds it) or ended it (LockScreen
+    // notices). Drop our side too, or every later lock() would be ignored.
+    function lockLost() {
+        console.warn("LockState: the compositor refused or ended the session lock");
+        locked = false;
+        // e.g. still suspend: if another locker holds the lock, the session is locked
+        runAfterLock();
+    }
+
     Timer {
         id: afterLockTimeout
         interval: 3000
@@ -87,6 +102,7 @@ Singleton {
     function respond() {
         const answer = pending;
         pending = "";
+        checking = true;
         pam.respond(answer);
     }
 
@@ -96,6 +112,7 @@ Singleton {
         config: Constants.LOCK_PAM_CONFIG
 
         onPamMessage: {
+            root.checking = false;
             if (responseRequired && root.pending !== "") {
                 root.respond();
             } else if (messageIsError) {
@@ -105,6 +122,7 @@ Singleton {
 
         onCompleted: result => {
             root.pending = "";
+            root.checking = false;
             if (result === PamResult.Success) {
                 root.error = "";
                 root.locked = false;
@@ -118,7 +136,9 @@ Singleton {
         }
     }
 
-    // logind's Lock signal for this session (`loginctl lock-session`, hypridle, ...)
+    // ---- logind's Lock signal for this session (`loginctl lock-session`, hypridle, ...) -----
+
+    // this session's D-Bus object path (sd-bus escapes characters that can't appear in one)
     readonly property string sessionPath: {
         const id = Quickshell.env("XDG_SESSION_ID") ?? "";
         let out = "";
@@ -130,12 +150,16 @@ Singleton {
         return out !== "" ? "/org/freedesktop/login1/session/" + out : "";
     }
 
+    // when the watcher last started, and the back-off for the next quick failure
     property double logindStartedAt: 0
+    property int retryDelay: 5000
 
     Process {
         id: logind
+
         running: true
         command: ["dbus-monitor", "--system", "type='signal',interface='org.freedesktop.login1.Session',member='Lock'" + (root.sessionPath !== "" ? ",path='" + root.sessionPath + "'" : "")]
+
         stdout: SplitParser {
             onRead: line => {
                 if (line.includes("member=Lock")) {
@@ -143,25 +167,25 @@ Singleton {
                 }
             }
         }
+
         onStarted: root.logindStartedAt = Date.now()
+
         onExited: {
             // it ran fine for a while: a one-off exit (e.g. the bus restarted), so come straight
             // back. If it keeps failing quickly, retry less and less often (5 s, 10 s, ... 1 min).
             if (Date.now() - root.logindStartedAt > 60000) {
                 root.retryDelay = 5000;
-                restart.interval = 250;
+                logindRetry.interval = 250;
             } else {
-                restart.interval = root.retryDelay;
+                logindRetry.interval = root.retryDelay;
                 root.retryDelay = Math.min(60000, root.retryDelay * 2);
             }
-            restart.start();
+            logindRetry.start();
         }
     }
 
-    property int retryDelay: 5000
-
     Timer {
-        id: restart
+        id: logindRetry
         onTriggered: logind.running = true
     }
 

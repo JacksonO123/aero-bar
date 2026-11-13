@@ -45,41 +45,30 @@ Item {
     }
 
     component Face: Rectangle {
-        property var stops: []
+        id: face
+
+        property var colors: []
 
         anchors.fill: parent
         radius: 3
-        gradient: Gradient {
-            GradientStop {
-                position: 0
-                color: stops[0]
-            }
-            GradientStop {
-                position: 0.48
-                color: stops[1]
-            }
-            GradientStop {
-                position: 0.5
-                color: stops[2]
-            }
-            GradientStop {
-                position: 1
-                color: stops[3]
-            }
+        gradient: SplitGradient {
+            split: 0.48
+            splitEnd: 0.5
+            colors: face.colors
         }
     }
 
     Face {
-        stops: ["#f2f2f2", "#ebebeb", "#dddddd", "#cfcfcf"]
+        colors: ["#f2f2f2", "#ebebeb", "#dddddd", "#cfcfcf"]
     }
 
     Face {
-        stops: ["#eaf6fd", "#d9f0fc", "#bee6fd", "#a7d9f5"]
+        colors: ["#eaf6fd", "#d9f0fc", "#bee6fd", "#a7d9f5"]
         opacity: Math.max(root.hoverT, root.isDefault ? root.pulse * 0.75 : 0)
     }
 
     Face {
-        stops: ["#e5f4fc", "#c4e5f6", "#98d1ef", "#68b3db"]
+        colors: ["#e5f4fc", "#c4e5f6", "#98d1ef", "#68b3db"]
         opacity: root.pressed ? 1 : 0
     }
 

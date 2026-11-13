@@ -14,8 +14,9 @@ Singleton {
     readonly property string address: Taskbar.hyprAddress(toplevel)
 
     // the thumbnail flyout's frame that started the peek, and the top-left corner of its window
-    // in layout coordinates (like window positions). The overlay leaves the flyout uncovered:
-    // both are on the Top layer and the overlay maps later. Kept until the veil has faded out.
+    // in layout coordinates (like window positions). The overlay cuts a hole there: it is on the
+    // same (Top) layer and maps later, so it would otherwise cover the flyout. Kept until the
+    // veil has faded out.
     property Item clearItem: null
     property point clearOrigin: Qt.point(0, 0)
     readonly property rect clearRect: {

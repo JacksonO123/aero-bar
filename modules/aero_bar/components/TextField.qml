@@ -8,6 +8,8 @@ Item {
     property alias echoMode: input.echoMode
     property string placeholder: ""
     property real fontSize: 12
+    // take the keyboard whenever it appears (or is created already showing)
+    property bool autoFocus: false
     readonly property bool focused: input.activeFocus
 
     signal accepted
@@ -16,6 +18,15 @@ Item {
         input.forceActiveFocus();
     }
 
+    function focusIfAuto() {
+        if (autoFocus && visible) {
+            focusInput();
+        }
+    }
+
+    onVisibleChanged: focusIfAuto()
+    Component.onCompleted: focusIfAuto()
+
     implicitWidth: 180
     implicitHeight: 24
 
@@ -23,7 +34,7 @@ Item {
         anchors.fill: parent
         radius: 2
         border.width: 1
-        border.color: root.focused ? "#3d7bad" : mouse.containsMouse ? "#5794bf" : "#abadb3"
+        border.color: root.focused ? "#3d7bad" : mouseArea.containsMouse ? "#5794bf" : "#abadb3"
         gradient: Gradient {
             GradientStop {
                 position: 0
@@ -37,7 +48,7 @@ Item {
     }
 
     MouseArea {
-        id: mouse
+        id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.IBeamCursor

@@ -45,6 +45,8 @@ Row {
             }
 
             onClicked: mouse => {
+                // a click within the hover delay: no thumbnails popping up after it
+                showTimer.stop();
                 if (mouse.button === Qt.RightButton) {
                     root.flyoutEl.toggle(entry);
                     return;
@@ -95,7 +97,6 @@ Row {
             }
 
             Image {
-                id: appImage
                 property int size: entry.modelData.size
 
                 anchors.centerIn: parent

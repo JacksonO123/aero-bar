@@ -168,6 +168,7 @@ Singleton {
 
     function setMix(key, value) {
         const m = Object.assign({}, mix);
+        // 1.0 would wrap the hue round to red (0) again
         m[key] = Math.min(0.999, value);
         mix = m;
         setCustom(Qt.hsva(m.hsvHue, m.hsvSaturation, m.hsvValue, 1));

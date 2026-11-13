@@ -56,6 +56,8 @@ Item {
             model: root.segments
 
             Rectangle {
+                id: segment
+
                 required property int index
                 readonly property bool on: index < root.lit || index === root.held - 1
                 readonly property bool hot: index >= root.segments * 0.86
@@ -66,23 +68,9 @@ Item {
                 border.width: 1
                 border.color: on ? (hot ? "#a8640f" : "#2d8a1f") : "#b9c3cd"
 
-                gradient: Gradient {
-                    GradientStop {
-                        position: 0
-                        color: !on ? "#eef1f4" : root.dimmed ? "#d9dee3" : hot ? "#ffe7a6" : "#c9f7bd"
-                    }
-                    GradientStop {
-                        position: 0.5
-                        color: !on ? "#dde2e7" : root.dimmed ? "#b3bac1" : hot ? "#f7b73a" : "#5fd34e"
-                    }
-                    GradientStop {
-                        position: 0.51
-                        color: !on ? "#d3d9df" : root.dimmed ? "#9da5ad" : hot ? "#e0901a" : "#2fb51f"
-                    }
-                    GradientStop {
-                        position: 1
-                        color: !on ? "#e6eaee" : root.dimmed ? "#b8bfc6" : hot ? "#f2ad33" : "#4fcd40"
-                    }
+                // unlit / dimmed (muted) / hot (top of the scale) / lit
+                gradient: SplitGradient {
+                    colors: !segment.on ? ["#eef1f4", "#dde2e7", "#d3d9df", "#e6eaee"] : root.dimmed ? ["#d9dee3", "#b3bac1", "#9da5ad", "#b8bfc6"] : segment.hot ? ["#ffe7a6", "#f7b73a", "#e0901a", "#f2ad33"] : ["#c9f7bd", "#5fd34e", "#2fb51f", "#4fcd40"]
                 }
             }
         }

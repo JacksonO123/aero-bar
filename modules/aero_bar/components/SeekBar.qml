@@ -64,23 +64,15 @@ Item {
             height: parent.height
             radius: 2
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: "#c9f5c0"
-                }
-                GradientStop {
-                    position: 0.45
-                    color: "#6fd85d"
-                }
-                GradientStop {
-                    position: 0.46
-                    color: "#30b420"
-                }
-                GradientStop {
-                    position: 1.0
-                    color: "#56d046"
-                }
+            gradient: SplitGradient {
+                split: 0.45
+                splitEnd: 0.46
+                colors: [
+                    "#c9f5c0",
+                    "#6fd85d",
+                    "#30b420",
+                    "#56d046"
+                ]
             }
         }
 

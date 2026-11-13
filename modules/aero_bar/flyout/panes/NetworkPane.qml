@@ -17,6 +17,9 @@ Item {
     // comes back gets a new row
     property string key: ""
     property string error: ""
+    // the network last asked to connect. Its failure can arrive after it was deselected (or the
+    // flyout closed), and then selects it again to show why.
+    property var attempt: null
 
     readonly property real padding: 12
 
@@ -47,6 +50,7 @@ Item {
         const psk = key;
         key = "";
         askKey = false;
+        attempt = selected;
         selected?.connectWithPsk(psk);
     }
 
@@ -67,6 +71,7 @@ Item {
                 error = "This network needs a sign-in; use Network settings.";
             }
         } else {
+            attempt = n;
             n.connect();
         }
     }
@@ -75,11 +80,33 @@ Item {
         return mbps >= 1000 ? (mbps / 1000) + " Gbps" : mbps + " Mbps";
     }
 
+    function wiredStatus(device) {
+        if (!device.hasLink) {
+            return "Network cable unplugged";
+        }
+        const state = device.connected ? "Connected" : "Cable plugged in, not in use";
+        return device.linkSpeed > 0 ? state + " · " + speedText(device.linkSpeed) : state;
+    }
+
+    function wifiStatus(n) {
+        if (n.connected) {
+            return "Connected";
+        }
+        if (n.stateChanging) {
+            return "Connecting…";
+        }
+        if (n.known) {
+            return "Saved network";
+        }
+        return n.security === WifiSecurityType.Open ? "Open network" : "Secured network";
+    }
+
     Connections {
-        target: root.selected
+        target: root.attempt
         ignoreUnknownSignals: true
 
         function onConnectionFailed(reason) {
+            root.select(root.attempt);
             if (reason === ConnectionFailReason.NoSecrets) {
                 root.askKey = root.keyAllowed(root.selected);
                 root.error = "Enter the network security key";
@@ -171,7 +198,7 @@ Item {
                         font.pixelSize: 12
                     }
                     Text {
-                        text: !wired.device.hasLink ? "Network cable unplugged" : (wired.device.connected ? "Connected" : "Cable plugged in, not in use") + (wired.device.linkSpeed > 0 ? " · " + root.speedText(wired.device.linkSpeed) : "")
+                        text: root.wiredStatus(wired.device)
                         color: "#6b7785"
                         font.pixelSize: 11
                     }
@@ -324,20 +351,21 @@ Item {
                             visible: net.isSelected
 
                             Text {
-                                text: net.n.connected ? "Connected" : net.n.stateChanging ? "Connecting…" : net.n.known ? "Saved network" : net.n.security === WifiSecurityType.Open ? "Open network" : "Secured network"
+                                text: root.wifiStatus(net.n)
                                 color: "#6b7785"
                                 font.pixelSize: 11
                             }
 
                             Row {
-                                visible: root.askKey && net.isSelected
+                                visible: root.askKey
                                 spacing: 6
 
                                 TextField {
-                                    id: keyField
                                     width: 180
                                     placeholder: "Security key"
                                     echoMode: TextInput.Password
+                                    // focus when shown, also when a rescan recreated the row mid-typing
+                                    autoFocus: true
                                     text: net.isSelected ? root.key : ""
                                     onTextChanged: {
                                         if (net.isSelected) {
@@ -345,15 +373,6 @@ Item {
                                         }
                                     }
                                     onAccepted: root.submitKey()
-
-                                    // when it appears, and when its row was recreated mid-typing
-                                    function focusIfShown() {
-                                        if (visible) {
-                                            focusInput();
-                                        }
-                                    }
-                                    onVisibleChanged: focusIfShown()
-                                    Component.onCompleted: focusIfShown()
                                 }
                             }
 
@@ -400,10 +419,8 @@ Item {
             }
         }
 
-        Rectangle {
+        FlyoutRule {
             width: parent.width
-            height: 1
-            color: Qt.rgba(0.6, 0.72, 0.85, 0.7)
         }
 
         LinkText {

@@ -20,11 +20,12 @@ Singleton {
     readonly property var list: server.trackedNotifications.values.filter(n => n !== null)
     readonly property int count: list.length
 
-    // arrived while the Action Center was closed
-    property int unread: 0
+    // ids that arrived while the Action Center was closed and are still around
+    property var unreadIds: []
+    readonly property int unread: unreadIds.length
     // Action Center panes currently open (one per screen at most)
-    property int centersOpen: 0
-    readonly property bool centerOpen: centersOpen > 0
+    property int panesOpen: 0
+    readonly property bool centerOpen: panesOpen > 0
 
     readonly property bool doNotDisturb: settings?.doNotDisturb ?? false
 
@@ -34,10 +35,16 @@ Singleton {
     // ids of the balloons on screen, oldest first
     readonly property alias popups: popupModel
 
+    // when each balloon times out (ms since the epoch), by notification id; a hovered or critical
+    // one has none. Kept here rather than in the balloons: every screen has a copy of each, and
+    // the countdown must carry on when focus moves to another screen. Changed in place (nothing
+    // binds to it).
+    property var deadlines: ({})
+
     onCenterOpenChanged: {
         if (centerOpen) {
-            unread = 0;
-            popupModel.clear();
+            unreadIds = [];
+            clearPopups();
         }
     }
 
@@ -52,7 +59,7 @@ Singleton {
     function setDoNotDisturb(on) {
         settings.doNotDisturb = on;
         if (on) {
-            popupModel.clear();
+            clearPopups();
         }
     }
 
@@ -64,11 +71,16 @@ Singleton {
     }
 
     function clearAll() {
-        popupModel.clear();
+        clearPopups();
         for (const n of list.slice()) {
             n.dismiss();
         }
-        unread = 0;
+        unreadIds = [];
+    }
+
+    // the buttons to show: every action but the default one (that's clicking the notification)
+    function extraActions(n) {
+        return (n?.actions ?? []).filter(a => a.identifier !== "default");
     }
 
     function defaultAction(n) {
@@ -85,7 +97,10 @@ Singleton {
         }
     }
 
+    // ---- balloons ------------------------------------------------------------------------------
+
     function dropPopup(id) {
+        delete deadlines[id];
         for (let i = popupModel.count - 1; i >= 0; i--) {
             if (popupModel.get(i).nid === id) {
                 popupModel.remove(i);
@@ -93,8 +108,118 @@ Singleton {
         }
     }
 
+    function clearPopups() {
+        deadlines = {};
+        popupModel.clear();
+    }
+
+    // (re)start a balloon's countdown: when it pops up, and when the pointer leaves it. Takes the
+    // notification itself: a new one isn't in `list` until its `notification` handler is done.
+    function countDown(n) {
+        if (n && n.urgency !== NotificationUrgency.Critical) {
+            // the app's timeout comes through as sent, in ms (the docs' "seconds" is wrong)
+            deadlines[n.id] = Date.now() + (n.expireTimeout > 0 ? n.expireTimeout : Constants.NOTIFICATION_TIMEOUT);
+        }
+    }
+
+    // a hovered balloon waits
+    function holdPopup(id) {
+        delete deadlines[id];
+    }
+
+    function expirePopups() {
+        const now = Date.now();
+        for (const key of Object.keys(deadlines)) {
+            if (deadlines[key] > now) {
+                continue;
+            }
+            const id = Number(key);
+            const n = find(id);
+            if (n?.transient) {
+                n.expire();
+            }
+            dropPopup(id);
+        }
+    }
+
+    // Keep it (in the server's list) and note when it arrived. `times` is changed in place: the
+    // time must exist before `tracked` creates the rows that read it, and nothing on screen
+    // reacts to an entry going away.
+    function track(n) {
+        const id = n.id;
+        times[id] = new Date();
+        n.closed.connect(() => {
+            delete root.times[id];
+            root.unreadIds = root.unreadIds.filter(u => u !== id);
+            root.dropPopup(id);
+        });
+        // sent again with its id (`replaces_id`): the server updates it in place, with no new
+        // `notification` signal
+        n.summaryChanged.connect(() => root.replaced(n));
+        n.bodyChanged.connect(() => root.replaced(n));
+        n.tracked = true;
+    }
+
+    function receive(n) {
+        track(n);
+
+        // carried over from before a shell reload (keepOnReload): kept, but not announced again
+        if (!n.lastGeneration) {
+            announce(n);
+        }
+    }
+
+    // a replacement can change the summary and the body: announce it once, after both
+    property var replacing: []
+
+    function replaced(n) {
+        if (replacing.includes(n)) {
+            return;
+        }
+        replacing.push(n);
+        Qt.callLater(() => {
+            root.replacing = root.replacing.filter(r => r !== n);
+            if (root.list.includes(n)) {
+                root.announce(n);
+            }
+        });
+    }
+
+    // count it as unread and pop up its balloon (in its old one's place, if it's a replacement).
+    // Nothing pops up over an open Action Center, which shows it straight away.
+    function announce(n) {
+        if (centerOpen) {
+            return;
+        }
+
+        if (!unreadIds.includes(n.id)) {
+            unreadIds = unreadIds.concat([n.id]);
+        }
+
+        const urgent = n.urgency === NotificationUrgency.Critical;
+        if (doNotDisturb && !urgent) {
+            return;
+        }
+
+        dropPopup(n.id);
+        popupModel.append({
+            nid: n.id
+        });
+        countDown(n);
+        while (popupModel.count > Constants.MAX_NOTIFICATION_POPUPS) {
+            dropPopup(popupModel.get(0).nid);
+        }
+    }
+
     ListModel {
         id: popupModel
+    }
+
+    Timer {
+        interval: 200
+        repeat: true
+        running: popupModel.count > 0
+        onTriggered: root.expirePopups()
     }
 
     NotificationServer {
@@ -107,33 +232,7 @@ Singleton {
         imageSupported: true
         persistenceSupported: true
 
-        onNotification: n => {
-            // in place, before tracking it creates its rows (which read it once); nothing on
-            // screen needs to update when an entry goes
-            const id = n.id;
-            root.times[id] = new Date();
-            n.closed.connect(() => delete root.times[id]);
-            n.tracked = true;
-
-            if (n.lastGeneration) {
-                return;
-            }
-            if (!root.centerOpen) {
-                root.unread += 1;
-            }
-
-            const urgent = n.urgency === NotificationUrgency.Critical;
-            if (root.centerOpen || (root.doNotDisturb && !urgent)) {
-                return;
-            }
-            root.dropPopup(n.id);
-            popupModel.append({
-                nid: n.id
-            });
-            while (popupModel.count > Constants.MAX_NOTIFICATION_POPUPS) {
-                popupModel.remove(0);
-            }
-        }
+        onNotification: n => root.receive(n)
     }
 
     FileView {

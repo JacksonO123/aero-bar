@@ -36,7 +36,7 @@ Item {
     // keeps the volume pop-up away while this is open
     OpenCounter {
         target: Audio
-        counter: "flyoutsOpen"
+        counter: "panesOpen"
         when: root.shown
     }
 
@@ -100,7 +100,6 @@ Item {
         }
 
         ImageIcon {
-            id: appIcon
             x: 6
             anchors.verticalCenter: parent.verticalCenter
             size: 24
@@ -142,14 +141,7 @@ Item {
             trackHeight: 6
             value: row.node?.audio?.volume ?? 0
             muted: row.muted
-            onMoved: value => {
-                if (row.node?.audio) {
-                    if (row.node.audio.muted && value > 0) {
-                        row.node.audio.muted = false;
-                    }
-                    row.node.audio.volume = value;
-                }
-            }
+            onMoved: value => Audio.setNodeVolume(row.node, value)
         }
 
         LightButton {
@@ -159,11 +151,7 @@ Item {
             width: 26
             height: 24
             checked: row.muted
-            onClicked: {
-                if (row.node?.audio) {
-                    row.node.audio.muted = !row.node.audio.muted;
-                }
-            }
+            onClicked: Audio.toggleNodeMute(row.node)
 
             SpeakerGlyph {
                 anchors.centerIn: parent
@@ -278,7 +266,9 @@ Item {
                 width: parent.width
 
                 Repeater {
-                    model: root.sinks
+                    model: ScriptModel {
+                        values: root.sinks
+                    }
 
                     Item {
                         id: sinkRow
@@ -294,12 +284,15 @@ Item {
                             hot: sinkMouse.containsMouse
                         }
 
-                        // radio orb
-                        GlassOrb {
+                        // radio orb, only built for the current device
+                        Loader {
                             x: 28
                             anchors.verticalCenter: parent.verticalCenter
-                            size: 12
-                            visible: sinkRow.current
+                            active: sinkRow.current
+
+                            sourceComponent: GlassOrb {
+                                size: 12
+                            }
                         }
 
                         Rectangle {
@@ -317,7 +310,7 @@ Item {
                             x: 48
                             width: parent.width - x - 8
                             anchors.verticalCenter: parent.verticalCenter
-                            text: sinkRow.modelData.description || sinkRow.modelData.nickname || sinkRow.modelData.name
+                            text: Audio.nameOf(sinkRow.modelData)
                             elide: Text.ElideRight
                             color: "#1e2f40"
                             font.pixelSize: 11
@@ -362,7 +355,6 @@ Item {
             }
 
             Column {
-                id: masterColumn
                 width: content.width - 44
                 spacing: 1
 
@@ -401,7 +393,9 @@ Item {
         }
 
         Repeater {
-            model: root.streams
+            model: ScriptModel {
+                values: root.streams
+            }
 
             StreamRow {
                 id: streamRow
@@ -409,7 +403,8 @@ Item {
                 width: content.width
                 node: modelData
 
-                // (also gives the hold back if the row is rebuilt mid-drag)
+                // hold the flyout open while this row's slider is dragged; a row removed mid-drag
+                // (its stream ended) gives the hold back
                 OpenCounter {
                     target: root.flyoutEl
                     counter: "holdCount"

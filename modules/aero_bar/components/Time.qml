@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../utils/constants.js" as Constants
 
 // Clock in the corner. Click to pin the calendar flyout open.
 Win7Frame {
@@ -20,9 +21,8 @@ Win7Frame {
 
     Text {
         id: timeText
-        text: Qt.formatDateTime(root.date, "h:mm AP")
+        text: Qt.formatDateTime(root.date, Constants.TIME_FORMAT)
         color: "white"
-        font.bold: false
         font.pointSize: 10.5
         anchors.top: parent.top
         anchors.topMargin: -1
@@ -34,7 +34,6 @@ Win7Frame {
         id: dateText
         text: Qt.formatDate(root.date, "dd/M/yy")
         color: "white"
-        font.bold: false
         font.pointSize: 10.5
         anchors.bottom: parent.bottom
         anchors.right: parent.right

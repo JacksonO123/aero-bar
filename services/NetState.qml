@@ -20,7 +20,7 @@ Singleton {
     readonly property var wifiNetworks: panesOpen > 0 ? wifiAll.slice().sort((a, b) => (b.connected - a.connected) || (b.signalStrength - a.signalStrength)) : []
 
     readonly property bool connected: wiredUp !== null || wifiConnected !== null
-    readonly property string kind: wiredUp || !wifiDevice ? "wired" : "wifi"
+    readonly property string kind: (wiredUp || !wifiDevice) ? "wired" : "wifi"
     readonly property real strength: wifiConnected?.signalStrength ?? 0
     readonly property string name: wiredUp ? (wiredUp.network?.name || "Wired connection") : wifiConnected?.name ?? ""
 

@@ -46,19 +46,12 @@ Variants {
                     required property int nid
                     required property int index
 
+                    // every screen has a copy; only the one showing can hold its countdown
+                    readonly property bool holding: hovered && window.wanted
+
                     notification: Notifications.find(nid)
                     tail: index === Notifications.popups.count - 1
-                    onNotificationChanged: {
-                        if (!notification) {
-                            Notifications.dropPopup(nid);
-                        }
-                    }
-                    onTimedOut: {
-                        if (notification?.transient) {
-                            notification.expire();
-                        }
-                        Notifications.dropPopup(nid);
-                    }
+                    onHoldingChanged: holding ? Notifications.holdPopup(nid) : Notifications.countDown(notification)
 
                     opacity: 0
                     Component.onCompleted: opacity = 1

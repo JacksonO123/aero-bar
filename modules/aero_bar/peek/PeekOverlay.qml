@@ -26,6 +26,9 @@ Variants {
         readonly property real originY: (monitor?.y ?? 0) + (monitor?.reserved?.[1] ?? 0)
         readonly property var toplevel: Peek.toplevel
 
+        // the other windows on this monitor's active workspace
+        readonly property var others: wanted ? HyprState.clients.filter(c => c.monitorId === monitor.id && c.wsId === monitor.activeWorkspaceId && !Taskbar.sameAddress(c.address, Peek.address)) : []
+
         // the thumbnail flyout, cut out of the veil while it shows (a flyout on another screen
         // simply lands outside this window)
         readonly property bool hasHole: Peek.clearRect.width > 0 && veil.opacity > 0
@@ -75,7 +78,7 @@ Variants {
 
             // the other windows on screen, as glass sheets
             Repeater {
-                model: window.wanted ? HyprState.clients.filter(c => c.monitorId === window.monitor.id && c.wsId === window.monitor.activeWorkspaceId && !Taskbar.sameAddress(c.address, Peek.address)) : []
+                model: window.others
 
                 Rectangle {
                     required property var modelData

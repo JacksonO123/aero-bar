@@ -33,7 +33,6 @@ Rectangle {
     }
 
     Image {
-        id: image
         anchors.fill: root
         source: Qt.resolvedUrl("../../../assets/arch-orb.png")
         sourceSize: Qt.size(width * 2, height * 2)
@@ -41,7 +40,6 @@ Rectangle {
     }
 
     Image {
-        id: imageBright
         anchors.fill: root
         source: Qt.resolvedUrl("../../../assets/arch-orb-bright.png")
         sourceSize: Qt.size(width * 2, height * 2)

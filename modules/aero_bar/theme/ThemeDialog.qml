@@ -9,6 +9,34 @@ import "../../../services"
 Variants {
     model: Quickshell.screens
 
+    // a labelled slider: the intensity and the colour mixer's three
+    component SliderRow: Row {
+        id: sliderRow
+
+        property alias label: labelText.text
+        property real value
+
+        signal moved(real value)
+
+        spacing: 12
+
+        Text {
+            id: labelText
+            width: 92
+            anchors.verticalCenter: parent.verticalCenter
+            color: "#1a1a1a"
+            font.pixelSize: 12
+        }
+
+        AeroSlider {
+            width: 300
+            knobSize: 26
+            trackHeight: 6
+            value: sliderRow.value
+            onMoved: value => sliderRow.moved(value)
+        }
+    }
+
     PanelWindow {
         id: window
 
@@ -113,27 +141,13 @@ Variants {
                     onToggled: checked => Theme.previewTransparency = checked
                 }
 
-                Row {
+                SliderRow {
                     id: intensityRow
                     x: 20
                     y: transparency.y + transparency.height + 12
-                    spacing: 12
-
-                    Text {
-                        width: 92
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Color intensity:"
-                        color: "#1a1a1a"
-                        font.pixelSize: 12
-                    }
-
-                    AeroSlider {
-                        width: 300
-                        knobSize: 26
-                        trackHeight: 6
-                        value: Theme.intensity
-                        onMoved: value => Theme.previewIntensity = Math.max(0.1, value)
-                    }
+                    label: "Color intensity:"
+                    value: Theme.intensity
+                    onMoved: value => Theme.previewIntensity = Math.max(0.1, value)
                 }
 
                 // color mixer, folded away like Win7's
@@ -169,25 +183,11 @@ Variants {
                             }
                         ]
 
-                        Row {
+                        SliderRow {
                             required property var modelData
-                            spacing: 12
-
-                            Text {
-                                width: 92
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.label
-                                color: "#1a1a1a"
-                                font.pixelSize: 12
-                            }
-
-                            AeroSlider {
-                                width: 300
-                                knobSize: 26
-                                trackHeight: 6
-                                value: Theme.mix[modelData.key]
-                                onMoved: value => Theme.setMix(modelData.key, value)
-                            }
+                            label: modelData.label
+                            value: Theme.mix[modelData.key]
+                            onMoved: value => Theme.setMix(modelData.key, value)
                         }
                     }
                 }

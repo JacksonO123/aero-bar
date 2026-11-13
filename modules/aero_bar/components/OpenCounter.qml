@@ -1,8 +1,8 @@
 import QtQuick
 
 // Adds one to `target[counter]` while `when` is true, and takes it back when `when` turns false
-// or this is destroyed. Services use such counters to know that one of several per-screen panes
-// is open (and to stop work when none is).
+// or this is destroyed. Services count their open per-screen panes this way (to stop work while
+// none is open); the flyout counts holds (holdCount) the same way.
 QtObject {
     id: root
 

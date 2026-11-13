@@ -20,10 +20,14 @@ Singleton {
     readonly property string screen: Screens.resolve(screenName)
     // the last attempt failed; cleared when the user types again
     property bool wrongPassword: false
+    // a password was submitted. Picking another identity cancels the session, which polkit also
+    // reports as a failure: only one after a submit means a wrong password.
+    property bool submitted: false
 
     function submit(password) {
         if (flow?.isResponseRequired) {
             wrongPassword = false;
+            submitted = true;
             flow.submit(password);
         }
     }
@@ -38,6 +42,7 @@ Singleton {
         onAuthenticationRequestStarted: {
             root.screenName = Screens.focused;
             root.wrongPassword = false;
+            root.submitted = false;
         }
     }
 
@@ -46,7 +51,8 @@ Singleton {
         ignoreUnknownSignals: true
 
         function onAuthenticationFailed() {
-            root.wrongPassword = true;
+            root.wrongPassword = root.submitted;
+            root.submitted = false;
         }
     }
 }

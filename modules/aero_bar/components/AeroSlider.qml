@@ -68,23 +68,13 @@ Item {
             height: parent.height
             radius: height / 2
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: root.muted ? "#eceff1" : "#d6f7ff"
-                }
-                GradientStop {
-                    position: 0.5
-                    color: root.muted ? "#bcc2c8" : "#62d0f8"
-                }
-                GradientStop {
-                    position: 0.51
-                    color: root.muted ? "#9aa1a8" : "#1898e0"
-                }
-                GradientStop {
-                    position: 1.0
-                    color: root.muted ? "#b5bbc1" : "#4ec2f3"
-                }
+            gradient: SplitGradient {
+                colors: [
+                    root.muted ? "#eceff1" : "#d6f7ff",
+                    root.muted ? "#bcc2c8" : "#62d0f8",
+                    root.muted ? "#9aa1a8" : "#1898e0",
+                    root.muted ? "#b5bbc1" : "#4ec2f3"
+                ]
             }
         }
     }
@@ -94,9 +84,9 @@ Item {
         size: root.knobSize
         x: root.ratio * root.travel
         anchors.verticalCenter: parent.verticalCenter
-        hoverT: mouse.containsMouse ? 1 : 0
+        hoverT: mouseArea.containsMouse ? 1 : 0
         pressedT: root.dragging ? 1 : 0
-        scale: root.dragging ? 1.12 : (mouse.containsMouse ? 1.04 : 1)
+        scale: root.dragging ? 1.12 : (mouseArea.containsMouse ? 1.04 : 1)
 
         lightColor: root.muted ? "#f4f6f8" : "#a6f2ff"
         baseColor: root.muted ? "#98a2ac" : "#1f7ad8"
@@ -130,7 +120,7 @@ Item {
     }
 
     MouseArea {
-        id: mouse
+        id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
         preventStealing: true

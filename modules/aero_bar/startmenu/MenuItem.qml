@@ -8,7 +8,6 @@ Item {
     property string label: ""
     property string sublabel: ""
     property string iconName: ""
-    property string wmClass: ""
     property real iconSize: 32
     property real indent: 0
     property bool selected: false
@@ -62,7 +61,6 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         visible: root.iconSize > 0
         size: root.iconSize
-        wmClass: root.wmClass
         desktopIcon: root.iconName
     }
 
@@ -90,21 +88,25 @@ Item {
         }
     }
 
-    MediaGlyph {
-        visible: root.showArrow
+    // only built for rows that show it (All Programs has hundreds of rows without)
+    Loader {
         anchors.right: parent.right
         anchors.rightMargin: 9
         anchors.verticalCenter: parent.verticalCenter
-        width: 6
-        height: 8
-        kind: "play"
-        rotation: root.arrowDown ? 90 : 0
-        color: "#3c3c3c"
-        shadow: false
+        active: root.showArrow
 
-        Behavior on rotation {
-            NumberAnimation {
-                duration: 150
+        sourceComponent: MediaGlyph {
+            width: 6
+            height: 8
+            kind: "play"
+            rotation: root.arrowDown ? 90 : 0
+            color: "#3c3c3c"
+            shadow: false
+
+            Behavior on rotation {
+                NumberAnimation {
+                    duration: 150
+                }
             }
         }
     }

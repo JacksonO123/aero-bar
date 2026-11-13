@@ -3,6 +3,7 @@ import Quickshell
 import "../../components"
 import "../../notifications"
 import "../../../../services"
+import "../../../../utils/constants.js" as Constants
 
 // The Action Center: everything that hasn't been dismissed, newest app group first, with
 // "Do not disturb" and "Clear all" at the bottom.
@@ -14,22 +15,25 @@ Item {
     readonly property real padding: 12
     readonly property color linkColor: "#1c5ea8"
 
-    // [{ app, items: [notification, ...newest first] }], groups ordered by their newest item
-    readonly property var groups: {
+    // app names, ordered by each app's newest notification
+    readonly property var apps: {
         const out = [];
-        const byApp = {};
         for (const n of Notifications.list.slice().reverse()) {
-            const app = n.appName || "Other";
-            if (!byApp[app]) {
-                byApp[app] = {
-                    app: app,
-                    items: []
-                };
-                out.push(byApp[app]);
+            const app = appOf(n);
+            if (!out.includes(app)) {
+                out.push(app);
             }
-            byApp[app].items.push(n);
         }
         return out;
+    }
+
+    function appOf(n) {
+        return n.appName || "Other";
+    }
+
+    // an app's notifications, newest first
+    function itemsOf(app) {
+        return Notifications.list.filter(n => appOf(n) === app).reverse();
     }
 
     width: 352
@@ -37,17 +41,18 @@ Item {
 
     OpenCounter {
         target: Notifications
-        counter: "centersOpen"
+        counter: "panesOpen"
         when: root.shown
     }
 
+    // today's notifications show the time, older ones the date (re-evaluated as the clock ticks)
     function timeText(n) {
         const t = Notifications.timeOf(n);
         if (!t) {
             return "";
         }
-        const now = new Date();
-        return t.toDateString() === now.toDateString() ? Qt.formatTime(t, "h:mm AP") : Qt.formatDate(t, "d MMM");
+        const now = Clock.date;
+        return t.toDateString() === now.toDateString() ? Qt.formatTime(t, Constants.TIME_FORMAT) : Qt.formatDate(t, "d MMM");
     }
 
     Column {
@@ -78,10 +83,8 @@ Item {
             }
         }
 
-        Rectangle {
+        FlyoutRule {
             width: parent.width
-            height: 1
-            color: Qt.rgba(0.6, 0.72, 0.85, 0.7)
         }
 
         // nothing to show
@@ -148,8 +151,11 @@ Item {
                 width: scroller.width
                 spacing: 10
 
+                // ScriptModels: rows stay put as notifications come and go
                 Repeater {
-                    model: root.groups
+                    model: ScriptModel {
+                        values: root.apps
+                    }
 
                     Column {
                         id: group
@@ -159,11 +165,13 @@ Item {
 
                         SectionHeader {
                             width: parent.width
-                            text: group.modelData.app
+                            text: group.modelData
                         }
 
                         Repeater {
-                            model: group.modelData.items
+                            model: ScriptModel {
+                                values: root.itemsOf(group.modelData)
+                            }
 
                             Item {
                                 id: row
@@ -188,7 +196,6 @@ Item {
                                 }
 
                                 MouseArea {
-                                    id: rowMouse
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
@@ -262,7 +269,7 @@ Item {
 
                                         Repeater {
                                             id: actions
-                                            model: (row.n.actions ?? []).filter(a => a.identifier !== "default")
+                                            model: Notifications.extraActions(row.n)
 
                                             LinkText {
                                                 required property var modelData
@@ -279,10 +286,8 @@ Item {
             }
         }
 
-        Rectangle {
+        FlyoutRule {
             width: parent.width
-            height: 1
-            color: Qt.rgba(0.6, 0.72, 0.85, 0.7)
         }
 
         Item {

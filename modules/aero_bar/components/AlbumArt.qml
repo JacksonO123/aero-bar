@@ -8,8 +8,6 @@ Item {
 
     property string source: ""
     property real radius: 3
-    property bool showSheen: true
-    property bool showFrame: true
 
     property Image current: null
     property Image loading: null
@@ -18,21 +16,36 @@ Item {
     onSourceChanged: load()
     Component.onCompleted: load()
 
+    // two images crossfade: the next track's art loads into the hidden one, then fades in
+    component ArtImage: Image {
+        anchors.fill: parent
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        mipmap: true
+        opacity: 0
+        sourceSize: Qt.size(Math.max(64, width * 2), Math.max(64, height * 2))
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 280
+            }
+        }
+    }
+
     function load() {
         if (source === "") {
-            loading = null;
-            if (current) {
-                current.opacity = 0;
-            }
-            current = null;
+            clear();
             return;
         }
 
         const next = current === imageA ? imageB : imageA;
         loading = next;
         next.source = source;
+        // the spare image may hold this URL already, so no status change is coming
         if (next.status === Image.Ready) {
             reveal(next);
+        } else if (next.status === Image.Error) {
+            clear();
         }
     }
 
@@ -45,10 +58,16 @@ Item {
         loading = null;
     }
 
-    function failed(image) {
-        if (loading !== image) {
-            return;
+    function imageStatusChanged(image) {
+        if (image.status === Image.Ready && loading === image) {
+            reveal(image);
+        } else if (image.status === Image.Error && loading === image) {
+            clear();
         }
+    }
+
+    // no art: fade it out and let the music orb show
+    function clear() {
         loading = null;
         if (current) {
             current.opacity = 0;
@@ -95,75 +114,23 @@ Item {
             }
         }
 
-        Image {
+        ArtImage {
             id: imageA
-            anchors.fill: parent
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            mipmap: true
-            opacity: 0
-            sourceSize: Qt.size(Math.max(64, root.width * 2), Math.max(64, root.height * 2))
-
-            onStatusChanged: {
-                if (status === Image.Ready && root.loading === imageA) {
-                    root.reveal(imageA);
-                } else if (status === Image.Error) {
-                    root.failed(imageA);
-                }
-            }
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 280
-                }
-            }
+            onStatusChanged: root.imageStatusChanged(imageA)
         }
 
-        Image {
+        ArtImage {
             id: imageB
-            anchors.fill: parent
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            mipmap: true
-            opacity: 0
-            sourceSize: Qt.size(Math.max(64, root.width * 2), Math.max(64, root.height * 2))
-
-            onStatusChanged: {
-                if (status === Image.Ready && root.loading === imageB) {
-                    root.reveal(imageB);
-                } else if (status === Image.Error) {
-                    root.failed(imageB);
-                }
-            }
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 280
-                }
-            }
+            onStatusChanged: root.imageStatusChanged(imageB)
         }
 
         Rectangle {
             anchors.fill: parent
-            visible: root.showSheen
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: Qt.rgba(1, 1, 1, 0.4)
-                }
-                GradientStop {
-                    position: 0.47
-                    color: Qt.rgba(1, 1, 1, 0.12)
-                }
-                GradientStop {
-                    position: 0.471
-                    color: Qt.rgba(1, 1, 1, 0.0)
-                }
-                GradientStop {
-                    position: 1.0
-                    color: Qt.rgba(1, 1, 1, 0.0)
-                }
+            gradient: SplitGradient {
+                split: 0.47
+                splitEnd: 0.471
+                colors: [Qt.rgba(1, 1, 1, 0.4), Qt.rgba(1, 1, 1, 0.12), Qt.rgba(1, 1, 1, 0.0), Qt.rgba(1, 1, 1, 0.0)]
             }
         }
     }
@@ -172,7 +139,6 @@ Item {
         anchors.fill: parent
         radius: root.radius
         color: "transparent"
-        visible: root.showFrame
         border.width: 1
         border.color: Qt.rgba(0, 0, 0, 0.55)
     }
@@ -182,7 +148,6 @@ Item {
         anchors.margins: 1
         radius: Math.max(0, root.radius - 1)
         color: "transparent"
-        visible: root.showFrame
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.35)
     }

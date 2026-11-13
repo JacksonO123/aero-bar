@@ -34,13 +34,18 @@ Singleton {
         return t?.address ? "0x" + t.address : "";
     }
 
+    // the same window? (hyprctl writes "0x…", Quickshell's toplevels plain hex)
     function sameAddress(a, b) {
-        const norm = v => String(v ?? "").toLowerCase().replace(/^0x/, "").replace(/^0+/, "");
-        return norm(a) !== "" && norm(a) === norm(b);
+        const na = normalizeAddress(a);
+        return na !== "" && na === normalizeAddress(b);
+    }
+
+    function normalizeAddress(v) {
+        return String(v ?? "").toLowerCase().replace(/^0x/, "").replace(/^0+/, "");
     }
 
     function entryFor(app) {
-        DesktopEntries.applications.values;
+        DesktopEntries.applications.values; // look again when desktop entries reload
         for (const id of idsOf(app)) {
             const e = DesktopEntries.byId(id) ?? DesktopEntries.heuristicLookup(id);
             if (e) {

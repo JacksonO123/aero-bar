@@ -39,7 +39,7 @@ Item {
     // ---- hyprland state
     readonly property string focusedAddress: HyprState.focusedAddress
     readonly property var activeWorkspaceIds: HyprState.monitors.map(m => m.activeWorkspaceId)
-    readonly property int focusedWorkspaceId: HyprState.monitors.find(m => m.focused)?.activeWorkspaceId ?? -99999
+    readonly property int focusedWorkspaceId: HyprState.monitors.find(m => m.focused)?.activeWorkspaceId ?? Constants.NO_WORKSPACE
     property var windowCounts: ({})
     property var layout: ({
             entries: [],
@@ -59,14 +59,14 @@ Item {
     property var resizeInfo: null
     property var dropTarget: null
     property point pointer: Qt.point(0, 0)
-    property int hoveredWorkspaceId: -99999
+    property int hoveredWorkspaceId: Constants.NO_WORKSPACE
     readonly property bool resizing: resizeInfo !== null
     readonly property bool interacting: dragInfo !== null || resizeInfo !== null
     property bool syncPending: false
     // snapshots older than this predate our last dispatch and would undo the optimistic update
     property int requiredEpoch: 0
 
-    readonly property int highlightedWorkspaceId: dropTarget ? (dropTarget.wsId ?? -99999) : hoveredWorkspaceId
+    readonly property int highlightedWorkspaceId: dropTarget ? (dropTarget.wsId ?? Constants.NO_WORKSPACE) : hoveredWorkspaceId
 
     implicitHeight: frame.height
 
@@ -103,7 +103,7 @@ Item {
             HyprState.retain(true);
         } else {
             HyprState.release(true);
-            hoveredWorkspaceId = -99999;
+            hoveredWorkspaceId = Constants.NO_WORKSPACE;
         }
     }
 
@@ -149,20 +149,36 @@ Item {
     Binding {
         target: root.anchorItem
         property: "highlightWorkspaceId"
-        value: root.open ? root.highlightedWorkspaceId : -99999
+        value: root.open ? root.highlightedWorkspaceId : Constants.NO_WORKSPACE
     }
 
     // ---- syncing ---------------------------------------------------------------------------
 
+    // only while it is (about to be) showing: a closed overview has nothing to lay out
+    readonly property bool tracking: open || triggerHovered || frame.visible
+
+    // lay out the latest snapshot, unless a gesture is under way or hyprland hasn't caught up
+    // with a dispatched move yet (then the stale snapshot would undo it)
+    function syncWhenSettled() {
+        if (interacting || HyprState.dataEpoch < requiredEpoch) {
+            syncPending = true;
+        } else {
+            sync();
+        }
+    }
+
+    onTrackingChanged: {
+        if (tracking && HyprState.loaded) {
+            syncWhenSettled();
+        }
+    }
+
     Connections {
         target: HyprState
+        enabled: root.tracking
 
         function onUpdated() {
-            if (root.interacting || HyprState.dataEpoch < root.requiredEpoch) {
-                root.syncPending = true;
-                return;
-            }
-            root.sync();
+            root.syncWhenSettled();
         }
     }
 
@@ -375,7 +391,8 @@ Item {
         return px >= r.x + ix && px <= r.x + r.w - ix && py >= r.y + iy && py <= r.y + r.h - iy;
     }
 
-    function tiledNeighbours(w) {
+    // the tiled windows on w's workspace, w included
+    function tiledWindowsOf(w) {
         const list = [];
         for (let i = 0; i < winModel.count; i++) {
             const o = winModel.get(i);
@@ -418,7 +435,7 @@ Item {
         }
 
         const tol = edgeTolerance;
-        for (const o of tiledNeighbours(w)) {
+        for (const o of tiledWindowsOf(w)) {
             if (o.address === w.address) {
                 continue;
             }
@@ -443,15 +460,16 @@ Item {
     // ---- hit testing -------------------------------------------------------------------------
 
     function hitTest(px, py, dragged) {
-        const viaButton = anchorItem.workspaceAt ? anchorItem.workspaceAt(windowLayer, px, py) : null;
-        if (viaButton) {
-            if (viaButton.id === dragged.wsId) {
+        const buttonWs = anchorItem.workspaceAt ? anchorItem.workspaceAt(windowLayer, px, py) : null;
+        if (buttonWs) {
+            // not one the overview lays out (a special workspace, or one newer than the snapshot)
+            if (buttonWs.id === dragged.wsId || !layout.byId[buttonWs.id]) {
                 return null;
             }
             return {
                 type: "move",
-                wsId: viaButton.id,
-                name: String(viaButton.name),
+                wsId: buttonWs.id,
+                name: String(buttonWs.name),
                 viaButton: true
             };
         }
@@ -582,7 +600,8 @@ Item {
         finishInteraction();
     }
 
-    function setGeometry(index, values) {
+    // optimistic model update, until hyprland's next snapshot replaces it
+    function updateWindow(index, values) {
         if (index >= 0) {
             winModel.set(index, values);
         }
@@ -625,9 +644,9 @@ Item {
                 gw: b.gw,
                 gh: b.gh
             };
-            // optimistic: trade places now, hyprland's answer will settle the details
-            setGeometry(index, gb);
-            setGeometry(other, ga);
+            // trade places now; hyprland's answer will settle the details
+            updateWindow(index, gb);
+            updateWindow(other, ga);
             epoch = HyprState.swapWindows(w.address, t.address);
         } else if (t.type === "move" || t.type === "reposition") {
             const e = layout.byId[t.wsId];
@@ -649,16 +668,16 @@ Item {
                 geo = dropGeometry(w, e, w.floating);
             }
 
-            setGeometry(index, Object.assign({
+            updateWindow(index, Object.assign({
                 wsId: t.wsId
             }, geo));
 
-            const floatingPos = w.floating && !t.viaButton ? {
-                x: geo.gx,
-                y: geo.gy
-            } : null;
-
             if (t.type === "move") {
+                // a floating window keeps the spot it was dropped at
+                const floatingPos = w.floating && !t.viaButton ? {
+                    x: geo.gx,
+                    y: geo.gy
+                } : null;
                 epoch = HyprState.moveToWorkspace(w.address, HyprState.workspaceSelector(t.wsId, workspaceName(t.wsId)), floatingPos);
             } else {
                 epoch = HyprState.moveFloating(w.address, geo.gx, geo.gy);
@@ -699,26 +718,37 @@ Item {
                 b: vEdge === "b"
             });
         } else {
-            // every tiled edge lying on the dragged divider moves with it, which is what
-            // hyprland will do once the split ratio changes
+            // every tiled edge on the dragged divider moves with it, which is what hyprland will
+            // do once the split ratio changes. Only as far as the divider runs on from the dragged
+            // window, though: an edge that merely lines up past a gap belongs to another split.
             const tol = edgeTolerance;
             const lineX = hEdge === "l" ? w.gx : hEdge === "r" ? w.gx + w.gw : null;
             const lineY = vEdge === "t" ? w.gy : vEdge === "b" ? w.gy + w.gh : null;
 
-            for (const o of tiledNeighbours(w)) {
+            const touching = tiledWindowsOf(w).map(o => ({
+                        o,
+                        l: lineX !== null && Math.abs(o.gx - lineX) < tol,
+                        r: lineX !== null && Math.abs(o.gx + o.gw - lineX) < tol,
+                        t: lineY !== null && Math.abs(o.gy - lineY) < tol,
+                        b: lineY !== null && Math.abs(o.gy + o.gh - lineY) < tol
+                    }));
+            const onX = chained(touching.filter(c => c.l || c.r), c => [c.o.gy, c.o.gy + c.o.gh], [w.gy, w.gy + w.gh]);
+            const onY = chained(touching.filter(c => c.t || c.b), c => [c.o.gx, c.o.gx + c.o.gw], [w.gx, w.gx + w.gw]);
+
+            for (const c of touching) {
                 const link = {
-                    index: o.index,
-                    address: o.address,
+                    index: c.o.index,
+                    address: c.o.address,
                     orig: {
-                        gx: o.gx,
-                        gy: o.gy,
-                        gw: o.gw,
-                        gh: o.gh
+                        gx: c.o.gx,
+                        gy: c.o.gy,
+                        gw: c.o.gw,
+                        gh: c.o.gh
                     },
-                    l: lineX !== null && Math.abs(o.gx - lineX) < tol,
-                    r: lineX !== null && Math.abs(o.gx + o.gw - lineX) < tol,
-                    t: lineY !== null && Math.abs(o.gy - lineY) < tol,
-                    b: lineY !== null && Math.abs(o.gy + o.gh - lineY) < tol
+                    l: c.l && onX.includes(c),
+                    r: c.r && onX.includes(c),
+                    t: c.t && onY.includes(c),
+                    b: c.b && onY.includes(c)
                 };
                 if (link.l || link.r || link.t || link.b) {
                     links.push(link);
@@ -740,6 +770,26 @@ Item {
             links
         };
         pointer = Qt.point(px, py);
+    }
+
+    // the candidates whose spans along a divider overlap `start`, or one already taken
+    function chained(candidates, spanOf, start) {
+        let lo = start[0], hi = start[1];
+        const chain = [];
+        let grew = true;
+        while (grew) {
+            grew = false;
+            for (const c of candidates) {
+                const span = spanOf(c);
+                if (!chain.includes(c) && Math.min(span[1], hi) - Math.max(span[0], lo) > 0) {
+                    chain.push(c);
+                    lo = Math.min(lo, span[0]);
+                    hi = Math.max(hi, span[1]);
+                    grew = true;
+                }
+            }
+        }
+        return chain;
     }
 
     function updateResize(px, py) {
@@ -882,6 +932,7 @@ Item {
 
     // ---- view ----------------------------------------------------------------------------------
 
+    // mapToItem() isn't tracked by bindings, so read the geometry it depends on to re-evaluate
     readonly property real anchorCenterX: {
         anchorItem.x;
         anchorItem.width;

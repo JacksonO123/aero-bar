@@ -14,8 +14,6 @@ GlassOrb {
 
     Canvas {
         anchors.fill: parent
-        property bool off: root.off
-        onOffChanged: requestPaint()
         onWidthChanged: requestPaint()
         onPaint: {
             const ctx = getContext("2d");

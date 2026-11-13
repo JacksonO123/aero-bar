@@ -8,8 +8,6 @@ Item {
 
     default property alias content: frame.content
     property string title: ""
-    property bool closable: true
-    property color contentColor: "white"
 
     signal closeClicked
 
@@ -35,7 +33,7 @@ Item {
         frameWidth: 8
         topFrameWidth: 30
         contentRadius: 2
-        contentColor: root.contentColor
+        contentColor: "white"
     }
 
     CaptionText {
@@ -48,7 +46,6 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: 6
         y: 1
-        visible: root.closable
         onClicked: root.closeClicked()
     }
 }

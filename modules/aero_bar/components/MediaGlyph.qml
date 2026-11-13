@@ -12,6 +12,7 @@ Canvas {
     onKindChanged: requestPaint()
     onColorChanged: requestPaint()
     onShadowColorChanged: requestPaint()
+    onShadowChanged: requestPaint()
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()
 

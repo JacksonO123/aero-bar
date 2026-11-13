@@ -7,11 +7,8 @@ Item {
     property alias text: label.text
     property alias font: label.font
     property alias color: label.color
-    property alias style: label.style
-    property alias styleColor: label.styleColor
     property bool scrolling: false
     property real maxWidth: 10000
-    property real speed: 30
 
     // measured separately: an elided Text can keep reporting its old (elided) implicitWidth
     readonly property real naturalWidth: Math.ceil(metrics.advanceWidth)
@@ -52,7 +49,8 @@ Item {
             property: "x"
             from: 0
             to: -root.overflow
-            duration: Math.max(400, root.overflow / root.speed * 1000)
+            // 30 px a second
+            duration: Math.max(400, root.overflow / 30 * 1000)
             easing.type: Easing.InOutSine
         }
         PauseAnimation {

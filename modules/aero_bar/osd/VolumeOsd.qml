@@ -24,7 +24,7 @@ Scope {
             settle.restart();
             return;
         }
-        if (settle.running || !Audio.available || Audio.flyoutsOpen > 0) {
+        if (settle.running || !Audio.available || Audio.panesOpen > 0) {
             return;
         }
         root.shown = true;
@@ -47,8 +47,8 @@ Scope {
             root.poke();
         }
 
-        function onFlyoutsOpenChanged() {
-            if (Audio.flyoutsOpen > 0) {
+        function onPanesOpenChanged() {
+            if (Audio.panesOpen > 0) {
                 root.shown = false;
             }
         }
@@ -159,23 +159,15 @@ Scope {
                                 opacity: parent.lit ? 1 : 0
                                 border.width: 1
                                 border.color: Audio.muted ? Qt.rgba(0.2, 0.22, 0.25, 0.9) : Qt.rgba(0.02, 0.25, 0.5, 0.9)
-                                gradient: Gradient {
-                                    GradientStop {
-                                        position: 0
-                                        color: Audio.muted ? "#e3e7eb" : "#c8f4ff"
-                                    }
-                                    GradientStop {
-                                        position: 0.48
-                                        color: Audio.muted ? "#b2bac2" : "#5cc6f5"
-                                    }
-                                    GradientStop {
-                                        position: 0.52
-                                        color: Audio.muted ? "#8a949e" : "#1d8fe0"
-                                    }
-                                    GradientStop {
-                                        position: 1
-                                        color: Audio.muted ? "#a3abb3" : "#3fb0f0"
-                                    }
+                                gradient: SplitGradient {
+                                    split: 0.48
+                                    splitEnd: 0.52
+                                    colors: [
+                                        Audio.muted ? "#e3e7eb" : "#c8f4ff",
+                                        Audio.muted ? "#b2bac2" : "#5cc6f5",
+                                        Audio.muted ? "#8a949e" : "#1d8fe0",
+                                        Audio.muted ? "#a3abb3" : "#3fb0f0"
+                                    ]
                                 }
 
                                 Behavior on opacity {

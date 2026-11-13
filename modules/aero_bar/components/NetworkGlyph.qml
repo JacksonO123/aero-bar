@@ -17,6 +17,7 @@ Canvas {
     // five bars: only repaint when the number lit changes, not on every 1% of signal
     readonly property int lit: badge === "error" ? 0 : Math.max(1, Math.ceil(strength * 5 - 0.001))
     onLitChanged: requestPaint()
+    onOnGlassChanged: requestPaint()
     onBadgeChanged: requestPaint()
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()

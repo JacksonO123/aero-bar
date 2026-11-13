@@ -31,21 +31,6 @@ Item {
     width: jump ? jumpList.width : windows.length > 0 ? thumbs.width + 12 : nameLabel.implicitWidth + 24
     height: jump ? jumpList.height : windows.length > 0 ? thumbs.height + 10 : 30
 
-    onShownChanged: {
-        if (!shown) {
-            Peek.hide();
-        }
-    }
-
-    // e.g. its screen was unplugged mid-peek: don't leave the peek (and its retain) behind
-    Component.onDestruction: {
-        if (shown) {
-            Peek.hide();
-        }
-    }
-
-    onJumpChanged: Peek.hide()
-
     // ---- name only (not running) ---------------------------------------------------------------
 
     CaptionText {
@@ -81,6 +66,14 @@ Item {
                 height: root.thumbH + 28
                 frameOpacity: Math.max(hoverT, toplevel.activated ? 0.5 : 0)
 
+                // a thumbnail going away (flyout closed, jump list opened, its window closed, the
+                // screen unplugged) ends its peek
+                Component.onDestruction: {
+                    if (Peek.toplevel === toplevel) {
+                        Peek.hide();
+                    }
+                }
+
                 onHoveredChanged: {
                     if (hovered) {
                         Peek.prepare();
@@ -98,7 +91,6 @@ Item {
                         HyprState.closeWindow(address);
                         return;
                     }
-                    Peek.hide();
                     HyprState.focusWindow(address);
                     root.flyoutEl.close();
                 }
@@ -201,12 +193,11 @@ Item {
             }
         }
 
-        Rectangle {
+        FlyoutRule {
             x: 8
             width: parent.width - 16
-            height: 1
             visible: tasks.count > 0
-            color: Qt.rgba(0.6, 0.72, 0.85, 0.6)
+            alpha: 0.6
         }
 
         MenuItem {

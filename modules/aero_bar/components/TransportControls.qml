@@ -35,23 +35,13 @@ Item {
             radius: height / 2
             opacity: segmentMouse.containsMouse ? 1 : 0
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: segmentMouse.pressed ? "#cfe9fa" : "#eef8ff"
-                }
-                GradientStop {
-                    position: 0.5
-                    color: segmentMouse.pressed ? "#9fd2f2" : "#cbe9fc"
-                }
-                GradientStop {
-                    position: 0.51
-                    color: segmentMouse.pressed ? "#79bfea" : "#a9dcfa"
-                }
-                GradientStop {
-                    position: 1.0
-                    color: segmentMouse.pressed ? "#a6d6f3" : "#d4eefd"
-                }
+            gradient: SplitGradient {
+                colors: [
+                    segmentMouse.pressed ? "#cfe9fa" : "#eef8ff",
+                    segmentMouse.pressed ? "#9fd2f2" : "#cbe9fc",
+                    segmentMouse.pressed ? "#79bfea" : "#a9dcfa",
+                    segmentMouse.pressed ? "#a6d6f3" : "#d4eefd"
+                ]
             }
 
             Behavior on opacity {
@@ -90,23 +80,15 @@ Item {
         border.width: 1
         border.color: "#7b8794"
 
-        gradient: Gradient {
-            GradientStop {
-                position: 0.0
-                color: "#fdfdfd"
-            }
-            GradientStop {
-                position: 0.49
-                color: "#e6e9ec"
-            }
-            GradientStop {
-                position: 0.5
-                color: "#d1d6db"
-            }
-            GradientStop {
-                position: 1.0
-                color: "#eceff2"
-            }
+        gradient: SplitGradient {
+            split: 0.49
+            splitEnd: 0.5
+            colors: [
+                "#fdfdfd",
+                "#e6e9ec",
+                "#d1d6db",
+                "#eceff2"
+            ]
         }
 
         Rectangle {
