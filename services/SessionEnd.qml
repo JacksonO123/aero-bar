@@ -1,7 +1,6 @@
 pragma Singleton
 
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 import QtQuick
 
@@ -9,13 +8,14 @@ import QtQuick
 Singleton {
     id: root
 
-    // "shutDown" | "restart" | "logOff", "" while the session goes on
-    property string action: ""
-    readonly property bool active: action !== ""
+    // "shutDown" | "restart" | "logOff": the last one started
+    property string action: "shutDown"
+    property bool active: false
     property bool blocked: false
     property bool ending: false
 
-    readonly property var windows: Hyprland.toplevels.values
+    // only real windows: Hyprland also lists hidden X11 windows (never closed) and popups
+    readonly property var windows: Taskbar.toplevels.filter(t => t.wayland)
 
     onWindowsChanged: finishIfClosed()
 
@@ -25,15 +25,9 @@ Singleton {
         }
 
         action = kind;
-        blocked = false;
+        active = true;
         ending = false;
-        const closing = windows.map(t => ({
-                    op: "close",
-                    address: Taskbar.hyprAddress(t)
-                })).filter(op => op.address !== "");
-        if (closing.length > 0) {
-            HyprState.dispatch(closing);
-        }
+        HyprState.closeWindows(windows.map(Taskbar.hyprAddress));
         patience.restart();
         finishIfClosed();
     }
@@ -45,6 +39,10 @@ Singleton {
     }
 
     function finish() {
+        if (!active || ending) {
+            return;
+        }
+
         ending = true;
         blocked = false;
         patience.stop();
@@ -58,7 +56,7 @@ Singleton {
 
         patience.stop();
         blocked = false;
-        action = "";
+        active = false;
     }
 
     Timer {
@@ -89,7 +87,7 @@ Singleton {
         interval: 20000
         onTriggered: {
             root.ending = false;
-            root.action = "";
+            root.active = false;
         }
     }
 

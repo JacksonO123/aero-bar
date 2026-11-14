@@ -10,7 +10,6 @@ Item {
     property bool divided: false
 
     readonly property string appId: Taskbar.appIdOf(toplevel)
-    readonly property var entry: Taskbar.entryById(appId)
 
     Rectangle {
         id: tile
@@ -37,9 +36,9 @@ Item {
         }
 
         ImageIcon {
+            id: icon
             anchors.centerIn: parent
             wmClass: root.appId
-            desktopIcon: root.entry?.icon ?? ""
             size: 28
         }
     }
@@ -56,7 +55,7 @@ Item {
             id: name
             width: parent.width
             elide: Text.ElideRight
-            text: root.entry?.name || root.appId || root.toplevel?.title || "Program"
+            text: icon.entry?.name || root.appId || root.toplevel?.title || "Program"
             color: "white"
             font.pixelSize: 15
             font.weight: Font.DemiBold

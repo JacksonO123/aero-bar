@@ -279,10 +279,17 @@ Singleton {
     }
 
     function closeWindow(address) {
-        return dispatch({
-            op: "close",
-            address
-        });
+        return closeWindows([address]);
+    }
+
+    function closeWindows(addresses) {
+        const known = addresses.filter(address => address !== "");
+        if (known.length > 0) {
+            dispatch(known.map(address => ({
+                        op: "close",
+                        address
+                    })));
+        }
     }
 
     function focusWorkspace(selector) {

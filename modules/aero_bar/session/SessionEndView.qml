@@ -10,19 +10,6 @@ LogonScreen {
     clockShown: false
     shown: SessionEnd.active
 
-    // kept through the fade-out, after SessionEnd.action is cleared
-    property string kind: "shutDown"
-
-    Connections {
-        target: SessionEnd
-
-        function onActionChanged() {
-            if (SessionEnd.action !== "") {
-                root.kind = SessionEnd.action;
-            }
-        }
-    }
-
     readonly property var words: ({
             shutDown: {
                 caption: "Shutting down…",
@@ -36,15 +23,26 @@ LogonScreen {
                 caption: "Logging off…",
                 force: "Force log off"
             }
-        })[kind]
+        })[SessionEnd.action]
 
     readonly property int waiting: SessionEnd.windows.length
     readonly property real rowHeight: 56
 
     Keys.onEscapePressed: SessionEnd.cancel()
-    Keys.onReturnPressed: SessionEnd.cancel()
-    Keys.onEnterPressed: SessionEnd.cancel()
+    Keys.onReturnPressed: cancelIfBlocked()
+    Keys.onEnterPressed: cancelIfBlocked()
+
+    function cancelIfBlocked() {
+        if (SessionEnd.blocked) {
+            SessionEnd.cancel();
+        }
+    }
     onShownChanged: {
+        if (shown) {
+            forceActiveFocus();
+        }
+    }
+    Component.onCompleted: {
         if (shown) {
             forceActiveFocus();
         }
@@ -90,8 +88,6 @@ LogonScreen {
 
                 BusyCircle {
                     anchors.fill: parent
-                    size: 34
-                    running: progress.visible
                 }
             }
 

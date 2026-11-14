@@ -6,8 +6,18 @@ Canvas {
 
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()
+    // a hidden copy (the lock screen's shutdown view) shouldn't hold a full-screen image
+    onVisibleChanged: {
+        if (visible) {
+            requestPaint();
+        }
+    }
 
     onPaint: {
+        if (!visible) {
+            return;
+        }
+
         const ctx = getContext("2d");
         ctx.reset();
         const w = width, h = height;

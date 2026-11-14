@@ -47,7 +47,7 @@ Singleton {
     }
 
     function lookupEntry(id) {
-        return id ? (DesktopEntries.byId(id) ?? DesktopEntries.heuristicLookup(id)) : null;
+        return id ? DesktopEntries.heuristicLookup(id) : null;
     }
 
     function entryFor(app) {

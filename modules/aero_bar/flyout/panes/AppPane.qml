@@ -205,9 +205,7 @@ FlyoutPane {
             label: root.windows.length > 1 ? "Close all windows" : "Close window"
             iconName: "window-close"
             onActivated: {
-                for (const t of root.windows) {
-                    HyprState.closeWindow(Taskbar.hyprAddress(t));
-                }
+                HyprState.closeWindows(root.windows.map(Taskbar.hyprAddress));
                 root.flyoutEl.close();
             }
         }

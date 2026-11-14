@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 import "../../../services"
+import "../session"
 
 Scope {
     // a reload rebuilds LockState unlocked; restore it here, before the lock reloads
@@ -41,6 +42,9 @@ Scope {
             color: "black"
 
             LockSurface {}
+
+            // layer surfaces don't show over a session lock
+            SessionEndView {}
         }
     }
 
