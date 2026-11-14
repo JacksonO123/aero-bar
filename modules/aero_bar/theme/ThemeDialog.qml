@@ -195,6 +195,16 @@ Variants {
                     y: mixer.y + mixer.height + 16
                     width: parent.width
 
+                    // Win7's Personalization links: on to the wallpaper (keeping the colour)
+                    leading: LinkText {
+                        text: "Desktop Background"
+                        onClicked: {
+                            const screen = Theme.screen;
+                            Theme.save();
+                            Wallpaper.openDialog(screen);
+                        }
+                    }
+
                     PushButton {
                         text: "Save changes"
                         isDefault: true

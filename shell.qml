@@ -10,11 +10,13 @@ import "modules/aero_bar/notifications"
 import "modules/aero_bar/lock"
 import "modules/aero_bar/polkit"
 import "modules/aero_bar/peek"
+import "modules/aero_bar/wallpaper"
 
 ShellRoot {
     Bar {}
     StartMenu {}
     ThemeDialog {}
+    WallpaperDialog {}
     VolumeOsd {}
     NotificationPopups {}
     LockScreen {}
