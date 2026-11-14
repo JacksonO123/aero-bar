@@ -11,49 +11,32 @@ LogonScreen {
     readonly property bool choosing: GreeterState.selectedUser === "" && !GreeterState.welcome
     readonly property bool signingIn: GreeterState.selectedUser !== "" && !GreeterState.welcome
 
-    powerActions: [
-        {
-            label: "Sleep",
-            command: GreeterState.sleep
-        },
-        {
-            label: "Restart",
-            command: GreeterState.restart
-        },
-        {
-            label: "Shut down",
-            command: GreeterState.shutDown
-        }
-    ]
+    power: GreeterState
 
     onBackgroundClicked: {
         sessionMenu.visible = false;
-        password.focusInput();
+        signIn.focusInput();
     }
 
     // ---- the session to start -----------------------------------------------------------------
 
     controls: Item {
-        id: sessionChooser
-
-        property real hoverT: sessionMouse.containsMouse ? 1 : 0
-
         visible: !GreeterState.welcome && GreeterState.session !== null
         width: sessionRow.width
         height: 38
-
-        Behavior on hoverT {
-            NumberAnimation {
-                duration: 150
-                easing.type: Easing.OutQuad
-            }
-        }
 
         Row {
             id: sessionRow
             anchors.verticalCenter: parent.verticalCenter
             spacing: 7
-            opacity: 0.85 + 0.15 * sessionChooser.hoverT
+            opacity: sessionMouse.containsMouse ? 1 : 0.85
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 150
+                    easing.type: Easing.OutQuad
+                }
+            }
 
             CaptionText {
                 anchors.verticalCenter: parent.verticalCenter
@@ -135,43 +118,20 @@ LogonScreen {
 
     // ---- signing in ----------------------------------------------------------------------------
 
-    ProfileTile {
+    SignInBox {
+        id: signIn
         anchors.horizontalCenter: parent.horizontalCenter
         visible: root.signingIn
-        size: 168
-        bezel: 11
-        cornerRadius: 18
-        bow: 3.2
-        pictureRadius: 5
         picture: GreeterState.user?.picture ?? ""
-    }
-
-    CaptionText {
-        anchors.horizontalCenter: parent.horizontalCenter
-        visible: root.signingIn
-        text: GreeterState.user?.displayName ?? GreeterState.selectedUser
-        font.pixelSize: 28
-        glow: 0.8
-    }
-
-    PasswordBox {
-        id: password
-        anchors.horizontalCenter: parent.horizontalCenter
-        visible: root.signingIn
+        name: GreeterState.user?.displayName ?? GreeterState.selectedUser
+        message: GreeterState.error || GreeterState.info
         busy: GreeterState.busy
         // PAM can ask for something other than a password (a code, a user name)
-        placeholder: GreeterState.awaitingResponse && GreeterState.echoResponse ? GreeterState.prompt.replace(/:\s*$/, "") : "Password"
-        echoMode: GreeterState.awaitingResponse && GreeterState.echoResponse ? TextInput.Normal : TextInput.Password
+        placeholder: GreeterState.echoing ? GreeterState.prompt.replace(/:\s*$/, "") : "Password"
+        echoMode: GreeterState.echoing ? TextInput.Normal : TextInput.Password
         text: GreeterState.typed
         onTextChanged: GreeterState.typed = text
         onSubmitted: GreeterState.submit()
-    }
-
-    CaptionText {
-        anchors.horizontalCenter: parent.horizontalCenter
-        visible: root.signingIn && text !== ""
-        text: GreeterState.error || GreeterState.info
-        font.pixelSize: 14
     }
 
     LogonButton {

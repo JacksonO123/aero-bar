@@ -46,7 +46,15 @@ Item {
             opacity: segmentMouse.containsMouse ? 1 : 0
 
             gradient: SplitGradient {
-                colors: [ColorUtils.interpolateColors("#eef8ff", "#cfe9fa", segment.pressedT), ColorUtils.interpolateColors("#cbe9fc", "#9fd2f2", segment.pressedT), ColorUtils.interpolateColors("#a9dcfa", "#79bfea", segment.pressedT), ColorUtils.interpolateColors("#d4eefd", "#a6d6f3", segment.pressedT)]
+                // pale blue glass, deeper while pressed
+                colors: {
+                    const press = (rest, pressed) => ColorUtils.interpolateColors(rest, pressed, segment.pressedT);
+                    const top = press("#eef8ff", "#cfe9fa");
+                    const aboveSplit = press("#cbe9fc", "#9fd2f2");
+                    const belowSplit = press("#a9dcfa", "#79bfea");
+                    const bottom = press("#d4eefd", "#a6d6f3");
+                    return [top, aboveSplit, belowSplit, bottom];
+                }
             }
 
             Behavior on opacity {

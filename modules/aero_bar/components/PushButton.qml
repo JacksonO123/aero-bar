@@ -14,27 +14,20 @@ Item {
     readonly property bool hovered: mouse.containsMouse
     readonly property bool pressed: mouse.pressed && mouse.containsMouse
 
-    property real hoverT: hovered ? 1 : 0
-    property real pressedT: pressed ? 1 : 0
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
     property real pulse: 0
+
+    HoverPress {
+        id: hp
+        hovered: root.hovered
+        pressed: root.pressed
+        hoverDuration: 160
+    }
 
     implicitWidth: Math.max(78, label.implicitWidth + 26)
     implicitHeight: 24
     opacity: enabled ? 1 : 0.6
-
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 160
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    Behavior on pressedT {
-        NumberAnimation {
-            duration: 80
-            easing.type: Easing.OutQuad
-        }
-    }
 
     // (dialogs stay loaded while hidden: only pulse while the window is up)
     SequentialAnimation on pulse {

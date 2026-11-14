@@ -150,6 +150,12 @@ Singleton {
         return out !== "" ? "/org/freedesktop/login1/session/" + out : "";
     }
 
+    // the D-Bus match rule for logind's Lock signal (for this session only, if it's known)
+    readonly property string lockSignalRule: {
+        const rule = "type='signal',interface='org.freedesktop.login1.Session',member='Lock'";
+        return sessionPath !== "" ? `${rule},path='${sessionPath}'` : rule;
+    }
+
     // when the watcher last started, and the back-off for the next quick failure
     property double logindStartedAt: 0
     property int retryDelay: 5000
@@ -158,7 +164,7 @@ Singleton {
         id: logind
 
         running: true
-        command: ["dbus-monitor", "--system", "type='signal',interface='org.freedesktop.login1.Session',member='Lock'" + (root.sessionPath !== "" ? ",path='" + root.sessionPath + "'" : "")]
+        command: ["dbus-monitor", "--system", root.lockSignalRule]
 
         stdout: SplitParser {
             onRead: line => {

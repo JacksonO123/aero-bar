@@ -39,6 +39,8 @@ Singleton {
     property bool awaitingResponse: false
     property string prompt: ""
     property bool echoResponse: false
+    // the box shows what's typed (a code or a name, not a password)
+    readonly property bool echoing: awaitingResponse && echoResponse
 
     // a submitted password, held until greetd asks for it
     property string pending: ""
@@ -146,7 +148,8 @@ Singleton {
             error = "No desktop session was found.";
             return;
         }
-        Greetd.launch(["sh", "-c", s.command], ["XDG_SESSION_TYPE=wayland", `XDG_SESSION_DESKTOP=${s.id}`, `XDG_CURRENT_DESKTOP=${s.desktopNames || s.id}`], true);
+        const environment = ["XDG_SESSION_TYPE=wayland", `XDG_SESSION_DESKTOP=${s.id}`, `XDG_CURRENT_DESKTOP=${s.desktopNames || s.id}`];
+        Greetd.launch(["sh", "-c", s.command], environment, true);
     }
 
     // ---- power ------------------------------------------------------------------------------

@@ -13,50 +13,40 @@ Item {
 
     readonly property bool hovered: mouse.containsMouse
 
-    property real hoverT: hovered ? 1 : 0
-    property real pressedT: mouse.pressed ? 1 : 0
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
+    // how far the red glass shows: always when lit, else as the pointer arrives
+    readonly property real shownT: lit ? 1 : hoverT
+    readonly property color glyphColor: ColorUtils.interpolateColors("#5b6470", "white", shownT)
 
     implicitWidth: 16
     implicitHeight: 15
 
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 150
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    Behavior on pressedT {
-        NumberAnimation {
-            duration: 80
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    // resting (lit), hot and pressed colour at one stop of the glass
-    function shade(rest, hot, pressed) {
-        return ColorUtils.interpolateColors(ColorUtils.interpolateColors(rest, hot, hoverT), pressed, pressedT);
+    HoverPress {
+        id: hp
+        hovered: mouse.containsMouse
+        pressed: mouse.pressed
     }
 
     Rectangle {
         anchors.fill: parent
         radius: root.radius
-        opacity: Math.max(root.lit ? 1 : 0, root.hoverT)
+        opacity: root.shownT
         visible: opacity > 0
         border.width: 1
         border.color: Qt.rgba(0.35, 0, 0, 0.7)
         gradient: Gradient {
             GradientStop {
                 position: 0
-                color: root.shade("#e9a99a", "#f3a493", "#d98a78")
+                color: hp.shade("#e9a99a", "#f3a493", "#d98a78")
             }
             GradientStop {
                 position: 0.5
-                color: root.shade("#c8462a", "#d9563b", "#a8301a")
+                color: hp.shade("#c8462a", "#d9563b", "#a8301a")
             }
             GradientStop {
                 position: 1
-                color: root.shade("#d7704f", "#c63a1c", "#a83014")
+                color: hp.shade("#d7704f", "#c63a1c", "#a83014")
             }
         }
     }
@@ -72,13 +62,13 @@ Item {
     Bar {
         anchors.centerIn: parent
         rotation: 45
-        color: ColorUtils.interpolateColors("#5b6470", "white", Math.max(root.lit ? 1 : 0, root.hoverT))
+        color: root.glyphColor
     }
 
     Bar {
         anchors.centerIn: parent
         rotation: -45
-        color: ColorUtils.interpolateColors("#5b6470", "white", Math.max(root.lit ? 1 : 0, root.hoverT))
+        color: root.glyphColor
     }
 
     MouseArea {

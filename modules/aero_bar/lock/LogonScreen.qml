@@ -11,8 +11,9 @@ Item {
 
     default property alias content: center.data
     property alias controls: controlsRow.data
-    // [{ label, command }] for the power button's menu
-    property var powerActions: []
+    // what the power menu runs: anything with sleep(), restart() and shutDown()
+    // (StartMenuState, GreeterState)
+    required property var power
 
     // a click on the background (the menus have closed themselves)
     signal backgroundClicked
@@ -77,15 +78,15 @@ Item {
 
     Row {
         id: controlsRow
-        anchors.right: power.left
+        anchors.right: powerButton.left
         anchors.rightMargin: 18
-        anchors.verticalCenter: power.verticalCenter
+        anchors.verticalCenter: powerButton.verticalCenter
         spacing: 18
     }
 
     // power, bottom right
     GlassOrb {
-        id: power
+        id: powerButton
         anchors.right: parent.right
         anchors.rightMargin: 48
         anchors.bottom: parent.bottom
@@ -114,9 +115,22 @@ Item {
 
     LogonMenu {
         id: powerMenu
-        anchors.right: power.right
-        anchors.bottom: power.top
+        anchors.right: powerButton.right
+        anchors.bottom: powerButton.top
         anchors.bottomMargin: 8
-        actions: root.powerActions
+        actions: [
+            {
+                label: "Sleep",
+                command: root.power.sleep
+            },
+            {
+                label: "Restart",
+                command: root.power.restart
+            },
+            {
+                label: "Shut down",
+                command: root.power.shutDown
+            }
+        ]
     }
 }

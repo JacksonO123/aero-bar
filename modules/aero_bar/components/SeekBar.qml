@@ -1,5 +1,4 @@
 import QtQuick
-import "../../../utils/colors.js" as ColorUtils
 
 // Windows 7 style green progress bar (with the travelling highlight while playing). Seekable.
 Item {
@@ -18,16 +17,6 @@ Item {
     readonly property real shownPosition: scrubbing ? scrubPosition : position
     readonly property real ratio: length > 0 ? Math.max(0, Math.min(1, shownPosition / length)) : 0
 
-    // the track's outline turns blue under the pointer (and while scrubbing), like a text box
-    property real hoverT: seekMouse.enabled && (seekMouse.containsMouse || scrubbing) ? 1 : 0
-
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 150
-            easing.type: Easing.OutQuad
-        }
-    }
-
     implicitWidth: 200
     implicitHeight: 10
 
@@ -40,7 +29,15 @@ Item {
         anchors.fill: parent
         radius: 3
         border.width: 1
-        border.color: ColorUtils.interpolateColors("#8b97a3", "#5794bf", root.hoverT)
+        // turns blue under the pointer (and while scrubbing), like a text box
+        border.color: seekMouse.enabled && (seekMouse.containsMouse || root.scrubbing) ? "#5794bf" : "#8b97a3"
+
+        Behavior on border.color {
+            ColorAnimation {
+                duration: 150
+                easing.type: Easing.OutQuad
+            }
+        }
 
         gradient: Gradient {
             GradientStop {

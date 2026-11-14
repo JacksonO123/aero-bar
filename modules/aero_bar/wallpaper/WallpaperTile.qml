@@ -99,11 +99,15 @@ Item {
         }
     }
 
-    CheckBox {
+    // the tick, only on the chosen picture (only built there)
+    Loader {
         x: 3
         y: 3
-        visible: root.selected
-        checked: true
+        active: root.selected
+
+        sourceComponent: CheckBox {
+            checked: true
+        }
     }
 
     MouseArea {

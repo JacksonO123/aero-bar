@@ -47,15 +47,17 @@ Singleton {
     property bool scanning: false
     // the folder couldn't be read
     property bool missing: false
-    // a folder chooser (zenity or kdialog) is installed, for "Browse…"
-    property bool canBrowse: false
+    // the folder chooser for "Browse…" (zenity or kdialog), looked for each time the picker opens
+    property string chooserTool: ""
+    readonly property bool canBrowse: chooserTool !== ""
 
     function openDialog(screenName) {
         preview = "";
         // stay on this screen, even if focus moves to another one while it is open
         dialogScreen = screenName || Screens.focused;
-        dialogOpen = true;
+        // before it shows, so the grid doesn't build tiles for the old list first
         scan();
+        dialogOpen = true;
         chooserCheck.running = true;
     }
 
@@ -100,16 +102,28 @@ Singleton {
         scanner.running = true;
     }
 
-    // a folder chooser, if one is installed (zenity or kdialog)
     function browse() {
         chooser.running = true;
+    }
+
+    // a script listing the pictures under $1 (exit status 3: the folder isn't there or can't be
+    // read)
+    function findPictures() {
+        const types = ["jpg", "jpeg", "png", "webp", "bmp", "gif"].map(t => `-iname "*.${t}"`).join(" -o ");
+        return `test -d "$1" && test -r "$1" || exit 3; find -L "$1" -maxdepth 3 -type f \\( ${types} \\) 2>/dev/null`;
+    }
+
+    function chooserCommand() {
+        if (chooserTool.endsWith("kdialog")) {
+            return [chooserTool, "--getexistingdirectory", directory];
+        }
+        return [chooserTool, "--file-selection", "--directory", "--filename=" + directory + "/"];
     }
 
     Process {
         id: scanner
 
-        // exit status 3: the folder isn't there (or can't be read)
-        command: ["sh", "-c", 'test -d "$1" && test -r "$1" || exit 3; ' + 'find -L "$1" -maxdepth 3 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" ' + '-o -iname "*.webp" -o -iname "*.bmp" -o -iname "*.gif" \\) 2>/dev/null', "sh", root.directory]
+        command: ["sh", "-c", root.findPictures(), "sh", root.directory]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -135,15 +149,15 @@ Singleton {
         command: ["sh", "-c", "command -v zenity || command -v kdialog"]
 
         stdout: StdioCollector {
-            onStreamFinished: root.canBrowse = text.trim() !== ""
+            onStreamFinished: root.chooserTool = text.trim().split("\n")[0]
         }
     }
 
     Process {
         id: chooser
 
-        // prints the chosen folder; exit status 127: no chooser installed
-        command: ["sh", "-c", 'if command -v zenity >/dev/null; then exec zenity --file-selection --directory --filename="$1/"; ' + 'elif command -v kdialog >/dev/null; then exec kdialog --getexistingdirectory "$1"; else exit 127; fi', "sh", root.directory]
+        // prints the chosen folder
+        command: root.chooserCommand()
 
         stdout: StdioCollector {
             onStreamFinished: {

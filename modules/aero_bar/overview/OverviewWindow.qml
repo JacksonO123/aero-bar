@@ -159,7 +159,15 @@ Item {
             gradient: SplitGradient {
                 split: 0.45
                 splitEnd: 0.451
-                colors: [Qt.rgba(0.82, 0.92, 1.0, win.focused ? 0.85 : 0.7), Qt.rgba(0.58, 0.76, 0.93, win.focused ? 0.75 : 0.6), Qt.rgba(0.38, 0.58, 0.8, win.focused ? 0.75 : 0.6), Qt.rgba(0.48, 0.68, 0.88, win.focused ? 0.8 : 0.65)]
+                // a little stronger on the focused window
+                colors: {
+                    const f = win.focused;
+                    const top = Qt.rgba(0.82, 0.92, 1.0, f ? 0.85 : 0.7);
+                    const aboveSplit = Qt.rgba(0.58, 0.76, 0.93, f ? 0.75 : 0.6);
+                    const belowSplit = Qt.rgba(0.38, 0.58, 0.8, f ? 0.75 : 0.6);
+                    const bottom = Qt.rgba(0.48, 0.68, 0.88, f ? 0.8 : 0.65);
+                    return [top, aboveSplit, belowSplit, bottom];
+                }
             }
         }
 

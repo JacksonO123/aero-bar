@@ -183,7 +183,12 @@ Item {
                 height: Math.max(2, card.reserved[3] * card.s)
 
                 gradient: SplitGradient {
-                    colors: [Qt.rgba(0.75, 0.75, 0.75, 0.9), Qt.rgba(0.2, 0.2, 0.2, 0.85), Qt.rgba(0.06, 0.06, 0.06, 0.85), Qt.rgba(0.06, 0.06, 0.06, 0.85)]
+                    colors: {
+                        const top = Qt.rgba(0.75, 0.75, 0.75, 0.9);
+                        const aboveSplit = Qt.rgba(0.2, 0.2, 0.2, 0.85);
+                        const belowSplit = Qt.rgba(0.06, 0.06, 0.06, 0.85);
+                        return [top, aboveSplit, belowSplit, belowSplit];
+                    }
                 }
 
                 Rectangle {

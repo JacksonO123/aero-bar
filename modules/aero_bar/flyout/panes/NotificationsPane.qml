@@ -181,6 +181,7 @@ FlyoutPane {
                                 height: rowColumn.height + 12
 
                                 RowHighlight {
+                                    id: rowHighlight
                                     anchors.fill: parent
                                     hot: rowHover.hovered
                                     hotBorderColor: "#70c0e7"
@@ -247,15 +248,10 @@ FlyoutPane {
                                         SmallClose {
                                             anchors.right: parent.right
                                             anchors.verticalCenter: summary.verticalCenter
-                                            opacity: rowHover.hovered ? 1 : 0
+                                            // fades in with the row's highlight
+                                            opacity: rowHighlight.opacity
                                             visible: opacity > 0
                                             onClicked: Notifications.dismiss(row.n)
-
-                                            Behavior on opacity {
-                                                NumberAnimation {
-                                                    duration: 110
-                                                }
-                                            }
                                         }
                                     }
 

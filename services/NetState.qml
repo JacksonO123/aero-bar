@@ -25,7 +25,7 @@ Singleton {
     readonly property string name: wiredUp ? (wiredUp.network?.name || "Wired connection") : wifiConnected?.name ?? ""
 
     readonly property int connectivity: Networking.connectivity
-    readonly property bool limited: connected && (connectivity === NetworkConnectivity.Limited || connectivity === NetworkConnectivity.Portal || connectivity === NetworkConnectivity.None)
+    readonly property bool limited: connected && [NetworkConnectivity.Limited, NetworkConnectivity.Portal, NetworkConnectivity.None].includes(connectivity)
     readonly property string status: {
         if (!connected) {
             return "Not connected";

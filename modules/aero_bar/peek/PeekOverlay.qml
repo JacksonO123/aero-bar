@@ -27,7 +27,13 @@ Variants {
         readonly property var toplevel: Peek.toplevel
 
         // the other windows on this monitor's active workspace
-        readonly property var others: wanted ? HyprState.clients.filter(c => c.monitorId === monitor.id && c.wsId === monitor.activeWorkspaceId && !Taskbar.sameAddress(c.address, Peek.address)) : []
+        readonly property var others: {
+            if (!wanted) {
+                return [];
+            }
+            const onActiveWorkspace = c => c.monitorId === monitor.id && c.wsId === monitor.activeWorkspaceId;
+            return HyprState.clients.filter(c => onActiveWorkspace(c) && !Taskbar.sameAddress(c.address, Peek.address));
+        }
 
         // the thumbnail flyout, cut out of the veil while it shows (a flyout on another screen
         // simply lands outside this window)

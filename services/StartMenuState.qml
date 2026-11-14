@@ -183,7 +183,11 @@ Singleton {
 
     Process {
         running: true
-        command: ["sh", "-c", 'echo "name:$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1)"; ' + 'for f in "$HOME/.face" "$HOME/.face.icon" "/var/lib/AccountsService/icons/$USER"; do ' + 'if [ -r "$f" ] && [ -s "$f" ]; then echo "pic:$f"; break; fi; done']
+        // prints "name:<full name>" and "pic:<the first readable account picture>"
+        command: ["sh", "-c", `echo "name:$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1)"
+for f in "$HOME/.face" "$HOME/.face.icon" "/var/lib/AccountsService/icons/$USER"; do
+    if [ -r "$f" ] && [ -s "$f" ]; then echo "pic:$f"; break; fi
+done`]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -293,15 +297,29 @@ Singleton {
         return scored.sort((a, b) => b.score - a.score).slice(0, 10).map(s => s.entry);
     }
 
-    // freedesktop main categories -> Win7-ish folder names
-    readonly property var categoryNames: [["AudioVideo", "Multimedia"], ["Audio", "Multimedia"], ["Video", "Multimedia"], ["Development", "Development"], ["Game", "Games"], ["Graphics", "Graphics"], ["Network", "Internet"], ["Office", "Office"], ["Education", "Education"], ["Science", "Science"], ["Settings", "Settings"], ["System", "System Tools"], ["Utility", "Accessories"]]
+    // desktop-entry category -> All Programs folder; an app goes in the first one it has
+    readonly property var categoryNames: ({
+            AudioVideo: "Multimedia",
+            Audio: "Multimedia",
+            Video: "Multimedia",
+            Development: "Development",
+            Game: "Games",
+            Graphics: "Graphics",
+            Network: "Internet",
+            Office: "Office",
+            Education: "Education",
+            Science: "Science",
+            Settings: "Settings",
+            System: "System Tools",
+            Utility: "Accessories"
+        })
 
     readonly property var categories: {
         const groups = {};
         for (const e of applications) {
             const cats = e.categories ?? [];
-            const match = categoryNames.find(([key]) => cats.includes(key));
-            const name = match ? match[1] : "Other";
+            const key = Object.keys(categoryNames).find(k => cats.includes(k));
+            const name = key ? categoryNames[key] : "Other";
             (groups[name] = groups[name] ?? []).push(e);
         }
 

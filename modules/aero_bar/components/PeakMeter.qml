@@ -22,6 +22,15 @@ Item {
     readonly property int lit: Math.round(shown * segments)
     readonly property int held: Math.round(hold * segments)
 
+    // each segment's two-tone glass (top, above and below the split, bottom): unlit, dimmed
+    // (muted), hot (the top of the scale) and lit
+    readonly property var palettes: ({
+            unlit: ["#eef1f4", "#dde2e7", "#d3d9df", "#e6eaee"],
+            dimmed: ["#d9dee3", "#b3bac1", "#9da5ad", "#b8bfc6"],
+            hot: ["#ffe7a6", "#f7b73a", "#e0901a", "#f2ad33"],
+            lit: ["#c9f7bd", "#5fd34e", "#2fb51f", "#4fcd40"]
+        })
+
     onTargetChanged: {
         if (target > shown) {
             shown = target;
@@ -68,9 +77,8 @@ Item {
                 border.width: 1
                 border.color: on ? (hot ? "#a8640f" : "#2d8a1f") : "#b9c3cd"
 
-                // unlit / dimmed (muted) / hot (top of the scale) / lit
                 gradient: SplitGradient {
-                    colors: !segment.on ? ["#eef1f4", "#dde2e7", "#d3d9df", "#e6eaee"] : root.dimmed ? ["#d9dee3", "#b3bac1", "#9da5ad", "#b8bfc6"] : segment.hot ? ["#ffe7a6", "#f7b73a", "#e0901a", "#f2ad33"] : ["#c9f7bd", "#5fd34e", "#2fb51f", "#4fcd40"]
+                    colors: root.palettes[!segment.on ? "unlit" : root.dimmed ? "dimmed" : segment.hot ? "hot" : "lit"]
                 }
             }
         }

@@ -10,7 +10,6 @@ Item {
     property alias placeholder: field.placeholder
     property alias echoMode: field.echoMode
     property bool busy: false
-    property string busyText: "Checking…"
 
     signal submitted
 
@@ -74,7 +73,7 @@ Item {
         }
         CaptionText {
             anchors.verticalCenter: parent.verticalCenter
-            text: root.busyText
+            text: "Checking…"
             font.pixelSize: 16
         }
     }

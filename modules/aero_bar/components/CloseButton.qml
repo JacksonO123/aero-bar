@@ -6,24 +6,16 @@ Item {
 
     signal clicked
 
-    property real hoverT: mouse.containsMouse ? 1 : 0
-    property real pressedT: mouse.pressed ? 1 : 0
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
 
     implicitWidth: 43
     implicitHeight: 19
 
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 150
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    Behavior on pressedT {
-        NumberAnimation {
-            duration: 80
-            easing.type: Easing.OutQuad
-        }
+    HoverPress {
+        id: hp
+        hovered: mouse.containsMouse
+        pressed: mouse.pressed
     }
 
     component Face: Rectangle {

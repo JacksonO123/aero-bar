@@ -10,23 +10,15 @@ Item {
 
     // from a HoverHandler, so the frame stays hovered over controls inside it (e.g. the overlay)
     readonly property bool hovered: hoverHandler.hovered
-    property real hoverT: hovered ? 1 : 0
-    property real pressedT: mouse.pressed ? 1 : 0
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
 
     property real frameOpacity
 
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 150
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    Behavior on pressedT {
-        NumberAnimation {
-            duration: 80
-            easing.type: Easing.OutQuad
-        }
+    HoverPress {
+        id: hp
+        hovered: root.hovered
+        pressed: mouse.pressed
     }
 
     Rectangle {

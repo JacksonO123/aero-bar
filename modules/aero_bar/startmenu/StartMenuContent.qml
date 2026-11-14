@@ -346,15 +346,9 @@ Item {
                         }
                     }
 
-                    // slim Aero scroll thumb
-                    Rectangle {
+                    ScrollThumb {
                         anchors.right: parent.right
-                        width: 4
-                        radius: 2
-                        visible: allFlick.contentHeight > allFlick.height
-                        y: allFlick.visibleArea.yPosition * allFlick.height
-                        height: allFlick.visibleArea.heightRatio * allFlick.height
-                        color: Qt.rgba(0.3, 0.42, 0.55, 0.45)
+                        flickable: allFlick
                     }
                 }
 

@@ -81,6 +81,7 @@ FlyoutPane {
         }
 
         RowHighlight {
+            id: rowHighlight
             anchors.fill: parent
             hot: row.hovered
         }
@@ -124,16 +125,11 @@ FlyoutPane {
 
             LinkText {
                 anchors.verticalCenter: parent.verticalCenter
-                opacity: !row.pairRow && row.hovered ? 1 : 0
+                // fades in with the row's highlight
+                opacity: row.pairRow ? 0 : rowHighlight.opacity
                 visible: opacity > 0
                 text: "Remove"
                 onClicked: row.d.forget()
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 110
-                    }
-                }
             }
 
             PushButton {
