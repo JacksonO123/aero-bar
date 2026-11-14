@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../utils/path.js" as PathUtils
 
 // One picture in a picker's grid (Desktop Background, Change Your Picture): a framed thumbnail
 // with a soft shadow and a touch of gloss that lifts a little under the pointer, with Win7's
@@ -70,7 +71,7 @@ Item {
                 id: picture
                 anchors.fill: parent
                 anchors.margins: 2
-                source: root.path !== "" ? "file://" + root.path : ""
+                source: PathUtils.fileUrl(root.path)
                 sourceSize: Qt.size(width * 2, height * 2)
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true

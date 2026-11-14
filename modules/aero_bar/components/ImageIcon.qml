@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
+import "../../../utils/path.js" as PathUtils
 
 IconImage {
     id: root
@@ -30,7 +31,7 @@ IconImage {
 
             // desktop files may point straight at an image file
             if (name.startsWith("/")) {
-                return "file://" + name;
+                return PathUtils.fileUrl(name);
             }
 
             const path = Quickshell.iconPath(name, true);

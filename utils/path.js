@@ -9,3 +9,8 @@ function pathRelativeToHome(path) {
 function expandHome(path) {
   return path.startsWith("~") ? pathRelativeToHome(path.slice(1)) : path;
 }
+
+// the file:// URL of a local path, escaped so any file name works (#, ? and % included); "" stays ""
+function fileUrl(path) {
+  return path === "" ? "" : "file://" + path.split("/").map(encodeURIComponent).join("/");
+}

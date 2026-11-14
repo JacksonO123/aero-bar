@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../components"
 import "../../../services"
+import "../../../utils/path.js" as PathUtils
 
 // The picture for a notification: its image if it sent one, else the app's icon.
 Item {
@@ -15,7 +16,7 @@ Item {
     // the app icon is either a picture (a path or URL) or the name of a themed icon
     readonly property string appIcon: notification?.appIcon ?? ""
     readonly property bool appIconIsUrl: appIcon.startsWith("file:") || appIcon.startsWith("image:") || appIcon.startsWith("/")
-    readonly property string appIconUrl: !appIconIsUrl ? "" : appIcon.startsWith("/") ? "file://" + appIcon : appIcon
+    readonly property string appIconUrl: !appIconIsUrl ? "" : appIcon.startsWith("/") ? PathUtils.fileUrl(appIcon) : appIcon
 
     // the desktop entry's icon, tracking newly installed apps
     readonly property string entryIcon: Taskbar.entryById(notification?.desktopEntry ?? "")?.icon ?? ""

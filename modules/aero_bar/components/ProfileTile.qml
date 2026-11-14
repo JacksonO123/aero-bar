@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import "../../../utils/path.js" as PathUtils
 
 // The Windows 7 user tile: a picture set in a thin, translucent glass bezel.
 //
@@ -171,14 +172,7 @@ Item {
             ctx.clip();
 
             // body: translucent, silvery across the top, two-toned at the middle like Aero glass
-            ctx.fillStyle = vgrad([
-                [0.0, Qt.rgba(0.95, 0.98, 1, 0.92)],
-                [0.12, Qt.rgba(0.86, 0.93, 1, 0.8)],
-                [0.47, Qt.rgba(0.72, 0.84, 0.95, 0.64)],
-                [0.5, Qt.rgba(0.44, 0.62, 0.79, 0.52)],
-                [0.84, Qt.rgba(0.36, 0.56, 0.74, 0.5)],
-                [1.0, Qt.rgba(0.46, 0.72, 0.9, 0.62)]
-            ]);
+            ctx.fillStyle = vgrad([[0.0, Qt.rgba(0.95, 0.98, 1, 0.92)], [0.12, Qt.rgba(0.86, 0.93, 1, 0.8)], [0.47, Qt.rgba(0.72, 0.84, 0.95, 0.64)], [0.5, Qt.rgba(0.44, 0.62, 0.79, 0.52)], [0.84, Qt.rgba(0.36, 0.56, 0.74, 0.5)], [1.0, Qt.rgba(0.46, 0.72, 0.9, 0.62)]]);
             ctx.fillRect(ox - 1, oy - 1, s + 2, s + 2);
 
             // a rounded glass rod catches light on both edges and is clearer through the
@@ -186,33 +180,17 @@ Item {
             strokeFrame(root.bezel * 0.55, root.bezel * 0.4, Qt.rgba(0.05, 0.16, 0.3, 0.12));
 
             // aqua light caught along the bottom edge
-            strokeFrame(2.2, 2.2, vgrad([
-                [0.0, Qt.rgba(0.35, 0.82, 1, 0)],
-                [0.64, Qt.rgba(0.35, 0.82, 1, 0)],
-                [1.0, Qt.rgba(0.35, 0.82, 1, 0.6)]
-            ]));
+            strokeFrame(2.2, 2.2, vgrad([[0.0, Qt.rgba(0.35, 0.82, 1, 0)], [0.64, Qt.rgba(0.35, 0.82, 1, 0)], [1.0, Qt.rgba(0.35, 0.82, 1, 0.6)]]));
             ctx.restore();
 
             // outer edge: a dark line, a bright rim just inside it, and its fall-off
             strokeFrame(0.5, 1, Qt.rgba(0.02, 0.07, 0.16, 0.62));
-            strokeFrame(1.5, 1, vgrad([
-                [0.0, Qt.rgba(1, 1, 1, 0.95)],
-                [0.5, Qt.rgba(1, 1, 1, 0.7)],
-                [1.0, Qt.rgba(0.8, 0.96, 1, 0.75)]
-            ]));
-            strokeFrame(2.5, 1, vgrad([
-                [0.0, Qt.rgba(1, 1, 1, 0.4)],
-                [0.5, Qt.rgba(1, 1, 1, 0.2)],
-                [1.0, Qt.rgba(0.8, 0.96, 1, 0.12)]
-            ]));
+            strokeFrame(1.5, 1, vgrad([[0.0, Qt.rgba(1, 1, 1, 0.95)], [0.5, Qt.rgba(1, 1, 1, 0.7)], [1.0, Qt.rgba(0.8, 0.96, 1, 0.75)]]));
+            strokeFrame(2.5, 1, vgrad([[0.0, Qt.rgba(1, 1, 1, 0.4)], [0.5, Qt.rgba(1, 1, 1, 0.2)], [1.0, Qt.rgba(0.8, 0.96, 1, 0.12)]]));
 
             // inner edge: a soft light where the glass meets the picture, then the picture's
             // grey border
-            strokePicture(1.5, 1, vgrad([
-                [0.0, Qt.rgba(1, 1, 1, 0.62)],
-                [0.5, Qt.rgba(0.94, 0.98, 1, 0.36)],
-                [1.0, Qt.rgba(0.86, 0.93, 1, 0.3)]
-            ]));
+            strokePicture(1.5, 1, vgrad([[0.0, Qt.rgba(1, 1, 1, 0.62)], [0.5, Qt.rgba(0.94, 0.98, 1, 0.36)], [1.0, Qt.rgba(0.86, 0.93, 1, 0.3)]]));
             strokePicture(0.5, 1, Qt.rgba(0.5, 0.54, 0.56, 0.95));
         }
     }
@@ -288,7 +266,7 @@ Item {
             id: userImage
             anchors.fill: parent
             visible: root.picture !== ""
-            source: root.picture !== "" ? "file://" + root.picture : ""
+            source: PathUtils.fileUrl(root.picture)
             fillMode: Image.PreserveAspectCrop
             sourceSize: Qt.size(root.well * 2, root.well * 2)
             asynchronous: true

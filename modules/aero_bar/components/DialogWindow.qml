@@ -29,7 +29,8 @@ PanelWindow {
 
     WlrLayershell.namespace: "aero-dialog"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.keyboardFocus: wanted ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    // (not while the service's file chooser is open: it needs the keyboard)
+    WlrLayershell.keyboardFocus: wanted && !(service.browsing ?? false) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     onWantedChanged: {
         if (wanted) {

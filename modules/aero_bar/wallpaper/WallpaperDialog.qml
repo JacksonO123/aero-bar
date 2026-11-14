@@ -2,6 +2,7 @@ import Quickshell
 import QtQuick
 import "../components"
 import "../../../services"
+import "../../../utils/path.js" as PathUtils
 
 // "Desktop Background": pick the wallpaper from a folder of pictures. Clicking one applies it
 // (through Wallpaper.setCommand); Save keeps it, Cancel / Esc / close puts the old one back.
@@ -58,7 +59,7 @@ Variants {
 
                     Image {
                         anchors.fill: parent
-                        source: preview.path !== "" ? "file://" + preview.path : ""
+                        source: PathUtils.fileUrl(preview.path)
                         sourceSize: Qt.size(width * 2, height * 2)
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true

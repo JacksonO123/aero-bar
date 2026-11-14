@@ -26,11 +26,11 @@ Scope {
         scanner.running = true;
     }
 
-    // a script listing the pictures under $1 (exit status 3: the folder isn't there or can't be
-    // read)
+    // a script printing $1, then the pictures under it (exit status 3: the folder isn't there or
+    // can't be read)
     function findScript() {
         const names = types.map(t => `-iname "*.${t}"`).join(" -o ");
-        return `test -d "$1" && test -r "$1" || exit 3; find -L "$1" -maxdepth 3 -type f \\( ${names} \\) 2>/dev/null`;
+        return `test -d "$1" && test -r "$1" || exit 3; printf '%s\\n' "$1"; find -L "$1" -maxdepth 3 -type f \\( ${names} \\) 2>/dev/null`;
     }
 
     Process {
@@ -40,8 +40,15 @@ Scope {
 
         stdout: StdioCollector {
             onStreamFinished: {
+                const [folder, ...paths] = text.split("\n");
+                // a scan stopped part way for a newer one (of another folder) gives what it found
+                // so far: wait for the newer one
+                if (folder !== root.directory) {
+                    return;
+                }
+
                 // Qt's localeCompare ignores options like `numeric`, so pad the numbers instead
-                const keyed = text.split("\n").filter(line => line !== "").map(path => ({
+                const keyed = paths.filter(line => line !== "").map(path => ({
                             path,
                             key: path.replace(/\d+/g, n => n.padStart(12, "0"))
                         }));

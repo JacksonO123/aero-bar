@@ -43,8 +43,10 @@ Singleton {
     readonly property bool scanning: folder.scanning
     // the folder couldn't be read
     readonly property bool missing: folder.missing
-    // "Browse…" for another folder (the chooser is looked for each time the picker opens)
+    // "Browse…" for another folder (the chooser is looked for each time the picker opens), and
+    // whether it's open (the picker lets go of the keyboard meanwhile)
     readonly property bool canBrowse: chooser.available
+    readonly property bool browsing: chooser.busy
 
     function openDialog(screenName) {
         preview = "";
