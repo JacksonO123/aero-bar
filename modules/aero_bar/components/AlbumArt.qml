@@ -42,11 +42,7 @@ Item {
         loading = next;
         next.source = source;
         // the spare image may hold this URL already, so no status change is coming
-        if (next.status === Image.Ready) {
-            reveal(next);
-        } else if (next.status === Image.Error) {
-            clear();
-        }
+        imageStatusChanged(next);
     }
 
     function reveal(image) {

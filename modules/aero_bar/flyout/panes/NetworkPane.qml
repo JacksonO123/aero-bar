@@ -45,10 +45,11 @@ FlyoutPane {
     }
 
     function select(n) {
-        selected = n;
+        // the key box goes first: shown in the newly selected row, it would take the focus
         askKey = false;
         key = "";
         error = "";
+        selected = n;
     }
 
     function submitKey() {
@@ -347,73 +348,78 @@ FlyoutPane {
                             strength: net.n.signalStrength
                         }
 
-                        Column {
+                        // only the selected row builds its details (and the key box)
+                        Loader {
                             id: details
                             x: 8
                             y: 32
                             width: parent.width - 16
-                            spacing: 6
-                            visible: net.isSelected
+                            active: net.isSelected
 
-                            Text {
-                                text: root.wifiStatus(net.n)
-                                color: "#6b7785"
-                                font.pixelSize: 11
-                            }
-
-                            Row {
-                                visible: root.askKey
+                            sourceComponent: Column {
                                 spacing: 6
 
-                                TextField {
-                                    width: 180
-                                    placeholder: "Security key"
-                                    echoMode: TextInput.Password
-                                    // focus when shown, also when a rescan recreated the row mid-typing
-                                    autoFocus: true
-                                    text: net.isSelected ? root.key : ""
-                                    onTextChanged: {
-                                        if (net.isSelected) {
-                                            root.key = text;
+                                Text {
+                                    text: root.wifiStatus(net.n)
+                                    color: "#6b7785"
+                                    font.pixelSize: 11
+                                }
+
+                                Row {
+                                    visible: root.askKey
+                                    spacing: 6
+
+                                    TextField {
+                                        width: 180
+                                        placeholder: "Security key"
+                                        echoMode: TextInput.Password
+                                        // focus when shown, also when a rescan recreated the row mid-typing
+                                        autoFocus: true
+                                        text: root.key
+                                        onTextChanged: root.key = text
+                                        // (a hidden box can keep the focus: no Enter from it then)
+                                        onAccepted: {
+                                            if (root.askKey) {
+                                                root.submitKey();
+                                            }
                                         }
                                     }
-                                    onAccepted: root.submitKey()
                                 }
-                            }
 
-                            Text {
-                                visible: root.error !== "" && net.isSelected
-                                text: root.error
-                                color: "#b3261e"
-                                font.pixelSize: 11
-                            }
+                                Text {
+                                    visible: root.error !== ""
+                                    text: root.error
+                                    color: "#b3261e"
+                                    font.pixelSize: 11
+                                }
 
-                            Item {
-                                width: parent.width
-                                height: 24
+                                Item {
+                                    width: parent.width
+                                    height: 24
 
-                                LinkText {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    visible: net.n.known
-                                    text: "Forget"
-                                    onClicked: {
-                                        net.n.forget();
-                                        root.select(null);
+                                    LinkText {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        visible: net.n.known
+                                        text: "Forget"
+                                        onClicked: {
+                                            net.n.forget();
+                                            root.select(null);
+                                        }
                                     }
-                                }
 
-                                PushButton {
-                                    anchors.right: parent.right
-                                    text: net.n.connected ? "Disconnect" : "Connect"
-                                    isDefault: !net.n.connected
-                                    enabled: !net.n.stateChanging
-                                    onClicked: {
-                                        if (net.n.connected) {
-                                            net.n.disconnect();
-                                        } else if (root.askKey) {
-                                            root.submitKey();
-                                        } else {
-                                            root.connectTo(net.n);
+                                    PushButton {
+                                        anchors.right: parent.right
+                                        text: net.n.connected ? "Disconnect" : "Connect"
+                                        isDefault: !net.n.connected
+                                        enabled: !net.n.stateChanging
+                                        onClicked: {
+                                            if (net.n.connected) {
+                                                net.n.disconnect();
+                                            } else if (root.askKey) {
+                                                root.submitKey();
+                                            } else {
+                                                root.connectTo(net.n);
+                                            }
                                         }
                                     }
                                 }

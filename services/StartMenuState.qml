@@ -84,7 +84,6 @@ Singleton {
     // the user tile opens Control Panel; the user's name (top of the places) opens their home
     property var controlPanelCommand: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
     property var homeCommand: ["sh", "-c", "xdg-open \"$HOME\""]
-    property var shutdownCommand: ["systemctl", "poweroff"]
 
     // ---- session actions (shared by the power menu and the lock screen) --------------------
 
@@ -108,7 +107,7 @@ Singleton {
     }
 
     function shutDown() {
-        Quickshell.execDetached(shutdownCommand);
+        Quickshell.execDetached(["systemctl", "poweroff"]);
     }
 
     property var powerActions: [

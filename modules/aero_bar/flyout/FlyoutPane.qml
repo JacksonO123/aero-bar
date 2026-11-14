@@ -17,11 +17,9 @@ Item {
 
     readonly property bool active: owner !== null && owner === parent.activeOwner
 
+    // (each pane sets its own width and height)
     opacity: active ? 1 : 0
     visible: opacity > 0
-
-    width: childrenRect.width
-    height: childrenRect.height
 
     Behavior on opacity {
         NumberAnimation {
