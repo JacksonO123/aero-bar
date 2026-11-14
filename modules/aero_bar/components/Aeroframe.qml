@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import "../../../services"
 
 Item {
     id: root
@@ -15,41 +16,11 @@ Item {
     property real radius: 6
     property real contentRadius: 4
     property bool clipContent: true
+    // false: no inset content well, the whole frame is glass (e.g. the start menu)
+    property bool showContentFrame: true
 
-    //   Sky #6b74b8fc
-    //   Twilight #a80046ad
-    //   Sea #8032cdcd
-    //   Leaf #6614a600
-    //   Lime #6697d937
-    //   Sun #54fadc0e
-    //   Pumpkin #80ff9c00
-    //   Ruby #a8ce0f0f
-    //   Fuchsia #66ff0099
-    //   Blush #70fcc7f8
-    //   Violet #856e3ba1
-    //   Lavender #528d5a94
-    //   Taupe #6698844c
-    //   Chocolate #a84f1b1b
-    //   Slate #80555555
-    //   Frost #54fcfcfc
-    property color glassColor: "#6b333333"
-
-    // property color glassColor: "#6b74b8fc"
-    // property color glassColor: "#a80046ad"
-    // property color glassColor: "#8032cdcd"
-    // property color glassColor: "#6614a600"
-    // property color glassColor: "#6697d937"
-    // property color glassColor: "#54fadc0e"
-    // property color glassColor: "#80ff9c00"
-    // property color glassColor: "#a8ce0f0f"
-    // property color glassColor: "#66ff0099"
-    // property color glassColor: "#70fcc7f8"
-    // property color glassColor: "#856e3ba1"
-    // property color glassColor: "#528d5a94"
-    // property color glassColor: "#6698844c"
-    // property color glassColor: "#a84f1b1b"
-    // property color glassColor: "#80555555"
-    // property color glassColor: "#54fcfcfc"
+    // follows the shell-wide colour picked in "Window Color and Appearance" (services/Theme.qml)
+    property color glassColor: Theme.glassColor
 
     property color outlineColor: Qt.rgba(0, 0, 0, 0.6)
     property color highlightColor: Qt.rgba(1, 1, 1, 0.5)
@@ -211,6 +182,7 @@ Item {
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.4)
         opacity: root.frameOpacity
+        visible: root.showContentFrame
     }
 
     Rectangle {
@@ -223,8 +195,8 @@ Item {
             bottomMargin: root.frameWidth
         }
         radius: root.contentRadius
-        color: root.contentColor
-        border.width: 1
+        color: root.showContentFrame ? root.contentColor : "transparent"
+        border.width: root.showContentFrame ? 1 : 0
         border.color: Qt.rgba(0, 0, 0, 0.6)
         opacity: root.frameOpacity
 

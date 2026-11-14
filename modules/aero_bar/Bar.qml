@@ -1,13 +1,15 @@
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import QtQuick
 
 import "components"
 import "tray"
 import "flyout"
+import "flyout/panes"
+import "overview"
 
 import "../../services"
-import "../../utils/path.js" as PathUtils
 import "../../utils/constants.js" as Constants
 
 Variants {
@@ -33,6 +35,9 @@ Variants {
             item: bar
             Region {
                 item: flyout.aeroframe
+            }
+            Region {
+                item: overview.maskItem
             }
         }
 
@@ -61,7 +66,8 @@ Variants {
                     spacing: 12
 
                     ArchIcon {
-                        onClicked: Quickshell.execDetached([PathUtils.pathRelativeToHome(".local/bin/control-center")])
+                        active: StartMenuState.open && StartMenuState.screenName === here.modelData.name
+                        onClicked: StartMenuState.toggle(here.modelData.name)
                     }
 
                     AppIcons {
@@ -71,6 +77,7 @@ Variants {
             }
 
             WorkspaceButtons {
+                id: workspaceButtons
                 anchors.centerIn: parent
             }
 
@@ -84,22 +91,25 @@ Variants {
 
                 Tray {}
 
-                AudioInline {
-                    id: audioInlineOther
+                MediaInline {
+                    id: mediaInline
                     flyoutEl: flyout
                 }
 
-                AudioInline {
-                    id: audioInline
+                VolumeInline {
+                    id: volumeInline
                     flyoutEl: flyout
                 }
 
                 Time {
+                    id: clockButton
                     anchors.top: parent.top
                     anchors.topMargin: 4
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 4
                     date: Clock.date
+                    active: flyout.pinned && flyout.current === clockButton
+                    onClicked: flyout.toggle(clockButton)
                 }
             }
         }
@@ -111,28 +121,58 @@ Variants {
             anchors.bottomMargin: 10
 
             FlyoutPane {
-                owner: audioInlineOther
+                id: mediaFlyoutPane
+                owner: mediaInline
 
-                Row {
-                    padding: 8
-
-                    Text {
-                        text: "other text aaahaahklsdhflkasdjhflkasdjhlkfahsd"
-                    }
+                MediaPane {
+                    shown: mediaFlyoutPane.active
                 }
             }
 
             FlyoutPane {
-                owner: audioInline
+                id: calendarFlyoutPane
+                owner: clockButton
 
-                Row {
-                    padding: 8
-
-                    Text {
-                        text: "i am text here"
-                    }
+                CalendarPane {
+                    shown: calendarFlyoutPane.active
                 }
             }
+
+            FlyoutPane {
+                id: volumeFlyoutPane
+                owner: volumeInline
+
+                VolumePane {
+                    shown: volumeFlyoutPane.active
+                    flyoutEl: flyout
+                }
+            }
+        }
+
+        // a click anywhere outside the bar closes a pinned (click-opened) flyout like the calendar
+        HyprlandFocusGrab {
+            windows: [here]
+            active: flyout.pinned
+            onCleared: flyout.close()
+        }
+
+        Connections {
+            target: StartMenuState
+
+            function onOpenChanged() {
+                if (StartMenuState.open) {
+                    flyout.close();
+                }
+            }
+        }
+
+        WorkspaceOverview {
+            id: overview
+            anchorItem: workspaceButtons
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: bar.top
+            anchors.bottomMargin: 10
         }
     }
 }

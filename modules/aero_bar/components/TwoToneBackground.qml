@@ -1,6 +1,7 @@
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import Quickshell.Widgets
+import "../../../services"
 
 ClippingRectangle {
     id: root
@@ -34,6 +35,18 @@ ClippingRectangle {
             GradientStop {
                 position: 0.500001
                 color: Qt.rgba(root.darkRGBColor, root.darkRGBColor, root.darkRGBColor, 0.75)
+            }
+        }
+    }
+
+    // the glass colour from "Window Color and Appearance"
+    Rectangle {
+        anchors.fill: parent
+        color: Theme.barTint
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 250
             }
         }
     }

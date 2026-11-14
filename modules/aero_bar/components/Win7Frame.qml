@@ -6,6 +6,7 @@ Item {
     signal clicked(var mouse)
     default property alias content: contentArea.data
 
+    readonly property bool hovered: mouse.containsMouse
     property real hoverT: mouse.containsMouse ? 1 : 0
     property real pressedT: mouse.pressed ? 1 : 0
 

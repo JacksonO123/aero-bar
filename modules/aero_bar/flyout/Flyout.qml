@@ -33,25 +33,28 @@ Item {
     Behavior on targetHeight {
         NumberAnimation {
             duration: 110
-            easing: Easing.InOutCubic
+            easing.type: Easing.InOutCubic
         }
     }
 
     Behavior on targetWidth {
         NumberAnimation {
             duration: 110
-            easing: Easing.InOutCubic
+            easing.type: Easing.InOutCubic
         }
     }
 
     Behavior on animatedCenterX {
         NumberAnimation {
             duration: 110
-            easing: Easing.InOutCubic
+            easing.type: Easing.InOutCubic
         }
     }
 
     function hover(item) {
+        if (pinned) {
+            return;
+        }
         closeTimer.stop();
         last = current;
         current = item;
@@ -59,13 +62,59 @@ Item {
     }
 
     function unhover() {
-        closeTimer.restart();
+        // the pointer can enter the flyout before the module reports that it left
+        if (!pinned && !frame.hovered) {
+            closeTimer.restart();
+        }
+    }
+
+    // click-opened panes (the calendar) pin the flyout: hovering other modules is ignored and
+    // it stays until toggled again or close() is called (e.g. on a click outside)
+    property bool pinned: false
+
+    function toggle(item) {
+        if (pinned && current === item) {
+            close();
+            return;
+        }
+
+        closeTimer.stop();
+        pinned = true;
+        last = current;
+        current = item;
+        centerX = item.mapToItem(root.parent, item.width / 2, 0).x;
+    }
+
+    function close() {
+        pinned = false;
+        closeTimer.stop();
+        current = null;
+        last = null;
+    }
+
+    // panes call hold()/release() around interactions (e.g. dragging a slider) so the flyout
+    // doesn't close if the pointer wanders outside it mid-drag
+    property int holdCount: 0
+
+    function hold() {
+        holdCount += 1;
+        closeTimer.stop();
+    }
+
+    function release() {
+        holdCount = Math.max(0, holdCount - 1);
+        if (holdCount === 0 && !frame.hovered) {
+            closeTimer.restart();
+        }
     }
 
     Timer {
         id: closeTimer
         interval: root.closeDelay
         onTriggered: {
+            if (root.holdCount > 0 || root.pinned || frame.hovered) {
+                return;
+            }
             root.current = null;
             root.last = null;
         }
@@ -85,14 +134,14 @@ Item {
         Behavior on frameOpacity {
             NumberAnimation {
                 duration: 200
-                easing: Easing.InOutCubic
+                easing.type: Easing.InOutCubic
             }
         }
 
         Behavior on scale {
             NumberAnimation {
                 duration: 200
-                easing: Easing.InOutCubic
+                easing.type: Easing.InOutCubic
             }
         }
 
@@ -101,6 +150,12 @@ Item {
             property Item activeOwner: root.current
         }
 
-        onHoveredChanged: hovered ? closeTimer.stop() : closeTimer.restart()
+        onHoveredChanged: {
+            if (hovered) {
+                closeTimer.stop();
+            } else if (root.holdCount === 0 && !root.pinned) {
+                closeTimer.restart();
+            }
+        }
     }
 }
