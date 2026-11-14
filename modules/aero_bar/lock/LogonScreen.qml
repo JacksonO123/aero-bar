@@ -12,7 +12,6 @@ Item {
     // anything with sleep(), restart() and shutDown(); null hides the power button
     property var power: null
     property bool clockShown: true
-    // shown over the aurora once loaded
     property string wallpaper: ""
     property bool shown: true
     property bool entered: false
@@ -38,7 +37,8 @@ Item {
     Image {
         id: picture
         anchors.fill: parent
-        source: PathUtils.fileUrl(root.wallpaper)
+        // only once sized: a 0×0 sourceSize decodes at full resolution
+        source: width > 0 && height > 0 ? PathUtils.fileUrl(root.wallpaper) : ""
         sourceSize: Qt.size(width, height)
         fillMode: Image.PreserveAspectCrop
         asynchronous: true

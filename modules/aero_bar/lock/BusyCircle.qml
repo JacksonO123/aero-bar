@@ -43,7 +43,7 @@ Item {
                 ctx.fill();
             }
 
-            const hx = c + r * Math.cos(head), hy = c + r * Math.sin(head);
+            const hx = c, hy = c - r;
             const glow = ctx.createRadialGradient(hx, hy, 0, hx, hy, w * 1.25);
             glow.addColorStop(0, "rgba(255,255,255,1)");
             glow.addColorStop(0.4, "rgba(200,242,255,0.85)");

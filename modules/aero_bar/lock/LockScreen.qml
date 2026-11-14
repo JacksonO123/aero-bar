@@ -39,7 +39,7 @@ Scope {
         Component.onCompleted: LockState.secure = Qt.binding(() => secure)
 
         WlSessionLockSurface {
-            id: surface
+            id: lockSurface
             color: "black"
 
             LockSurface {
@@ -48,7 +48,7 @@ Scope {
 
             // layer surfaces don't show over a session lock
             SessionEndLayer {
-                screenName: surface.screen?.name ?? ""
+                screenName: lockSurface.screen?.name ?? ""
             }
         }
     }

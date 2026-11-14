@@ -60,8 +60,10 @@ Singleton {
         dialogOpen = false;
     }
 
-    // what hyprpaper shows on each monitor ("" for all), else the picture saved here
+    // what hyprpaper shows on each monitor ("" for all)
     property var active: ({})
+
+    Component.onCompleted: refreshActive()
 
     function pathFor(screenName) {
         return active[screenName] || active[""] || current;
