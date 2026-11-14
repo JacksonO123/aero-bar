@@ -302,16 +302,6 @@ Item {
         return -1;
     }
 
-    function workspaceName(wsId) {
-        for (let i = 0; i < wsModel.count; i++) {
-            const ws = wsModel.get(i);
-            if (ws.wsId === wsId) {
-                return ws.name;
-            }
-        }
-        return String(wsId);
-    }
-
     function prettyName(cls) {
         if (!cls) {
             return "window";
@@ -421,12 +411,13 @@ Item {
     function hitTest(px, py, dragged) {
         const buttonWs = anchorItem.workspaceAt ? anchorItem.workspaceAt(windowLayer, px, py) : null;
         if (buttonWs) {
-            if (buttonWs.id === dragged.wsId || !layout.byId[buttonWs.id]) {
+            const key = HyprState.keyOf(buttonWs);
+            if (key === dragged.wsId || !layout.byId[key]) {
                 return null;
             }
             return {
                 type: "move",
-                wsId: buttonWs.id,
+                wsId: key,
                 name: String(buttonWs.name),
                 viaButton: true
             };
@@ -471,7 +462,8 @@ Item {
             }
 
             const sameWorkspace = e.wsId === dragged.wsId;
-            if (hit && !hit.floating && !hit.fullscreen && !dragged.floating) {
+            // Hyprland refuses to swap fullscreen windows
+            if (hit && !hit.floating && !hit.fullscreen && !dragged.floating && !dragged.fullscreen) {
                 if (sameWorkspace || contains(hitRect, px, py, 0.22)) {
                     return {
                         type: "swap",
@@ -483,7 +475,7 @@ Item {
             }
 
             if (sameWorkspace) {
-                return dragged.floating ? {
+                return dragged.floating && !dragged.fullscreen ? {
                     type: "reposition",
                     wsId: e.wsId
                 } : null;
@@ -574,6 +566,19 @@ Item {
         };
     }
 
+    // a floating window keeps its size and relative spot on another monitor, kept on screen
+    function carriedGeometry(w, m) {
+        const from = layout.byId[w.wsId]?.mon ?? m;
+        const gw = Math.min(w.gw, m.width);
+        const gh = Math.min(w.gh, m.height);
+        return {
+            gx: m.x + clamp((w.gx - from.x) / from.width * m.width, 0, m.width - gw),
+            gy: m.y + clamp((w.gy - from.y) / from.height * m.height, 0, m.height - gh),
+            gw,
+            gh
+        };
+    }
+
     function commitDrop(w, t) {
         const index = indexOf(w.address);
         let epoch = 0;
@@ -598,7 +603,9 @@ Item {
             }
 
             let geo;
-            if (t.viaButton) {
+            if (t.viaButton && w.floating) {
+                geo = carriedGeometry(w, e.mon);
+            } else if (t.viaButton) {
                 const m = e.mon;
                 geo = {
                     gx: m.x + m.width * 0.25,
@@ -615,11 +622,11 @@ Item {
             }, geo));
 
             if (t.type === "move") {
-                const floatingPos = w.floating && !t.viaButton ? {
+                const floatingPos = w.floating && !w.fullscreen ? {
                     x: geo.gx,
                     y: geo.gy
                 } : null;
-                epoch = HyprState.moveToWorkspace(w.address, HyprState.workspaceSelector(t.wsId, workspaceName(t.wsId)), floatingPos);
+                epoch = HyprState.moveToWorkspace(w.address, HyprState.workspaceSelector(t.wsId), floatingPos);
             } else {
                 epoch = HyprState.moveFloating(w.address, geo.gx, geo.gy);
             }
@@ -682,9 +689,18 @@ Item {
             }
         }
 
+        const tiled = w.floating ? [] : tiledWindowsOf(w);
         resizeInfo = {
             address: w.address,
             floating: w.floating,
+            mon: e.mon,
+            layoutName: HyprState.workspaces.find(ws => ws.id === w.wsId)?.layout ?? "",
+            bounds: {
+                x0: Math.min(...tiled.map(o => o.gx)),
+                x1: Math.max(...tiled.map(o => o.gx + o.gw)),
+                y0: Math.min(...tiled.map(o => o.gy)),
+                y1: Math.max(...tiled.map(o => o.gy + o.gh))
+            },
             edge,
             hEdge,
             vEdge,
@@ -724,6 +740,22 @@ Item {
 
         let dx = r.hEdge ? (px - r.startX) / r.scale : 0;
         let dy = r.vEdge ? (py - r.startY) / r.scale : 0;
+
+        if (r.floating) {
+            const l = r.links[0], m = r.mon;
+            if (l.r) {
+                dx = Math.min(dx, Math.max(0, m.x + m.width - l.orig.gx - l.orig.gw));
+            }
+            if (l.l) {
+                dx = Math.max(dx, Math.min(0, m.x - l.orig.gx));
+            }
+            if (l.b) {
+                dy = Math.min(dy, Math.max(0, m.y + m.height - l.orig.gy - l.orig.gh));
+            }
+            if (l.t) {
+                dy = Math.max(dy, Math.min(0, m.y - l.orig.gy));
+            }
+        }
 
         for (const l of r.links) {
             if (l.r) {
@@ -768,8 +800,31 @@ Item {
         r.dy = dy;
     }
 
-    // usually the longest edge on a divider owns its split; ties go to the dragged
+    // a window reaching the far side of the workspace has no other divider on this axis, so a
+    // resize can only move this one; otherwise the longest edge usually owns the split
     function dividerOwner(r, axis) {
+        const tol = edgeTolerance, b = r.bounds;
+        const onDivider = r.links.filter(l => axis === "x" ? (l.l || l.r) : (l.t || l.b));
+        const before = l => axis === "x" ? l.r : l.b;
+
+        // master grows the window it's given and shrinks the ones after it
+        if (r.layoutName.includes("master")) {
+            const owner = onDivider.find(l => l.address === r.address && before(l)) ?? onDivider.find(before);
+            if (owner) {
+                return owner.address;
+            }
+        }
+
+        const outer = onDivider.filter(l => {
+            if (axis === "x") {
+                return l.r ? Math.abs(l.orig.gx - b.x0) < tol : Math.abs(l.orig.gx + l.orig.gw - b.x1) < tol;
+            }
+            return l.b ? Math.abs(l.orig.gy - b.y0) < tol : Math.abs(l.orig.gy + l.orig.gh - b.y1) < tol;
+        });
+        if (outer.length > 0) {
+            return (outer.find(before) ?? outer[0]).address;
+        }
+
         let best = null;
         let bestLength = -1;
         for (const l of r.links) {
@@ -842,7 +897,7 @@ Item {
     }
 
     function activateWorkspace(wsId) {
-        HyprState.focusWorkspace(HyprState.workspaceSelector(wsId, workspaceName(wsId)));
+        HyprState.focusWorkspace(HyprState.workspaceSelector(wsId));
     }
 
     function createWorkspace() {

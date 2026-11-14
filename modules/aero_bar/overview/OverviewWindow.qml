@@ -274,7 +274,8 @@ Item {
             width: 20
             height: Math.max(10, Math.min(13, win.captionH))
             radius: 2
-            visible: win.vw >= 44 && win.vh >= 30 && (win.hoverT > 0.05 || hovered)
+            // hidden on the resize band, so the top-right corner can be grabbed
+            visible: win.vw >= 44 && win.vh >= 30 && (win.hoverT > 0.05 || hovered) && mouseArea.edge === ""
             opacity: Math.max(win.hoverT, hovered ? 1 : 0)
             lit: true
             onClicked: win.overview.closeWindow(win.address)
@@ -364,10 +365,17 @@ Item {
             }
         }
 
+        onExited: {
+            if (!pressed) {
+                edge = "";
+            }
+        }
+
         onPressed: mouse => {
             if (mouse.button !== Qt.LeftButton) {
                 return;
             }
+            edge = win.overview.interacting ? "" : edgeAt(mouse.x, mouse.y);
             const p = mapToItem(win.overview.windowLayerItem, mouse.x, mouse.y);
             pressX = p.x;
             pressY = p.y;
@@ -376,7 +384,9 @@ Item {
 
         onReleased: mouse => {
             if (mouse.button === Qt.MiddleButton) {
-                win.overview.closeWindow(win.address);
+                if (mode === "") {
+                    win.overview.closeWindow(win.address);
+                }
                 return;
             }
 

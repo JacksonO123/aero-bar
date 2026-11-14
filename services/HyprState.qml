@@ -79,12 +79,39 @@ Singleton {
         }
     }
 
-    function isSpecial(workspaceName) {
-        return String(workspaceName ?? "").startsWith("special");
+    function isSpecial(ws) {
+        return ws.type ? ws.type === "special" : String(ws.name ?? "").startsWith("special");
+    }
+
+    // newer Hyprland gives named workspaces no "id", only an "address"
+    property var namedKeys: Object.create(null)
+
+    function workspaceKey(ws) {
+        if (typeof ws.id === "number") {
+            return ws.id;
+        }
+
+        const address = ws.address ?? ws.name ?? "";
+        if (!(address in namedKeys)) {
+            namedKeys[address] = -200000 - Object.keys(namedKeys).length;
+        }
+        return namedKeys[address];
+    }
+
+    // a Quickshell HyprlandWorkspace's key (its id is -1 for named workspaces)
+    function keyOf(qsWorkspace) {
+        return qsWorkspace.id !== -1 ? qsWorkspace.id : workspaceKey({
+            address: qsWorkspace.address
+        });
+    }
+
+    // name: matches a workspace's address, not its display name
+    function selectorOf(ws) {
+        return ws.id > 0 ? String(ws.id) : `name:${ws.address ?? ws.name}`;
     }
 
     function isShownClient(c) {
-        return c.mapped !== false && !c.hidden && c.workspace && c.workspace.id !== -1 && !isSpecial(c.workspace.name) && Array.isArray(c.at) && Array.isArray(c.size);
+        return c.mapped !== false && !c.hidden && c.workspace && c.workspace.id !== -1 && !isSpecial(c.workspace) && Array.isArray(c.at) && Array.isArray(c.size);
     }
 
     function parseMonitors(raw) {
@@ -99,16 +126,18 @@ Singleton {
                 width: (rotated ? m.height : m.width) / scale,
                 height: (rotated ? m.width : m.height) / scale,
                 reserved: Array.isArray(m.reserved) ? m.reserved : [0, 0, 0, 0],
-                activeWorkspaceId: m.activeWorkspace ? m.activeWorkspace.id : -1,
+                activeWorkspaceId: m.activeWorkspace ? workspaceKey(m.activeWorkspace) : -1,
                 focused: !!m.focused
             };
         });
     }
 
     function parseWorkspaces(raw) {
-        return raw.filter(w => w.id !== -1 && !isSpecial(w.name)).map(w => ({
-                    id: w.id,
+        return raw.filter(w => w.id !== -1 && !isSpecial(w)).map(w => ({
+                    id: workspaceKey(w),
                     name: String(w.name),
+                    selector: selectorOf(w),
+                    layout: String(w.tiledLayout ?? ""),
                     monitorId: w.monitorID ?? -1
                 })).sort((a, b) => a.id - b.id);
     }
@@ -119,7 +148,7 @@ Singleton {
                     address: c.address,
                     cls: c.class || c.initialClass || "",
                     title: c.title || c.initialTitle || "",
-                    wsId: c.workspace.id,
+                    wsId: workspaceKey(c.workspace),
                     x: c.at[0],
                     y: c.at[1],
                     w: c.size[0],
@@ -183,8 +212,10 @@ Singleton {
         dispatcher.running = true;
     }
 
+    // Lua escapes: JSON's \\u0001 form isn't valid Lua
     function luaString(value) {
-        return JSON.stringify(String(value));
+        const escaped = String(value).replace(/[\\"]/g, c => "\\" + c).replace(/[\x00-\x1f\x7f]/g, c => "\\" + String(c.charCodeAt(0)).padStart(3, "0"));
+        return `"${escaped}"`;
     }
 
     function luaWindow(address) {
@@ -234,18 +265,21 @@ Singleton {
             return `hl.dsp.window.close({ window = ${win} })`;
         case "exit":
             return "hl.dsp.exit()";
-        case "swapWith":
-            return `hl.dsp.window.swap({ target = ${win} })`;
+        case "swapPair":
+            return `hl.dsp.window.swap({ window = ${win}, target = ${luaWindow(op.target)} })`;
         }
         return "";
     }
 
-    // restoreCursor: focusing warps the pointer; classic config only
+    // restoreCursor: focusing and swapping warp the pointer
     function dispatch(ops, restoreCursor) {
         const list = Array.isArray(ops) ? ops : [ops];
 
         if (lua) {
-            const chunk = list.map(op => `hl.dispatch(${renderLua(op)})`).join("; ");
+            let chunk = list.map(op => `hl.dispatch(${renderLua(op)})`).join("; ");
+            if (restoreCursor) {
+                chunk = `local p = hl.get_cursor_pos(); ${chunk}; if p then hl.dispatch(hl.dsp.cursor.move({ x = p.x, y = p.y })) end`;
+            }
             return enqueue(["hyprctl", "eval", chunk]);
         }
 
@@ -257,8 +291,9 @@ Singleton {
         return enqueue(["hyprctl", "--batch", batch]);
     }
 
-    function workspaceSelector(id, name) {
-        return id > 0 ? String(id) : `name:${name}`;
+    // "" for a named workspace that's gone
+    function workspaceSelector(id) {
+        return workspaces.find(w => w.id === id)?.selector ?? (id > 0 ? String(id) : "");
     }
 
     function activeWorkspaceSelector() {
@@ -267,8 +302,7 @@ Singleton {
             return "";
         }
 
-        const ws = workspaces.find(w => w.id === monitor.activeWorkspaceId);
-        return ws ? workspaceSelector(ws.id, ws.name) : String(monitor.activeWorkspaceId);
+        return workspaceSelector(monitor.activeWorkspaceId);
     }
 
     function focusWindow(address) {
@@ -293,6 +327,9 @@ Singleton {
     }
 
     function focusWorkspace(selector) {
+        if (!selector) {
+            return epoch;
+        }
         return dispatch({
             op: "focusWorkspace",
             workspace: selector
@@ -300,6 +337,9 @@ Singleton {
     }
 
     function moveToWorkspace(address, selector, floatingPos) {
+        if (!selector) {
+            return epoch;
+        }
         const ops = [
             {
                 op: "moveToWorkspace",
@@ -354,8 +394,33 @@ Singleton {
                 })));
     }
 
-    // swapwindow acts on the focused window, so focus a first, then restore focus
     function swapWindows(a, b) {
+        if (lua) {
+            const ops = [
+                {
+                    op: "swapPair",
+                    address: a,
+                    target: b
+                }
+            ];
+            // the swap keeps focus, so a focused window sent to a hidden workspace keeps it
+            const other = focusedAddress === a ? b : focusedAddress === b ? a : "";
+            if (other && clientAt(a)?.wsId !== clientAt(b)?.wsId) {
+                ops.push({
+                    op: "focusWindow",
+                    address: other
+                });
+            }
+            return dispatch(ops, true);
+        }
+
+        // classic swapwindow acts on the focused window: focus one that's already showing, if
+        // either is, so no monitor switches workspace
+        const shown = new Set(monitors.map(m => m.activeWorkspaceId));
+        if (!shown.has(clientAt(a)?.wsId) && shown.has(clientAt(b)?.wsId)) {
+            [a, b] = [b, a];
+        }
+
         const ops = [
             {
                 op: "focusWindow",
@@ -421,6 +486,15 @@ Singleton {
 
     Process {
         id: dispatcher
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const problems = text.split("\n").map(line => line.trim()).filter(line => line !== "" && line !== "ok");
+                if (problems.length > 0) {
+                    console.warn("[HyprState] hyprctl:", problems.join(" | "));
+                }
+            }
+        }
 
         onExited: {
             root.epoch += 1;

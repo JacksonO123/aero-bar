@@ -3,6 +3,7 @@ import Quickshell.Hyprland
 import QtQuick.Layouts
 import Quickshell.Widgets
 import "../../../utils/colors.js" as ColorUtils
+import "../../../services"
 import "../../../utils/constants.js" as Constants
 
 RowLayout {
@@ -41,7 +42,7 @@ RowLayout {
             required property var modelData
             property real isActive: frame.modelData.active
             property real hasContent: frame.modelData.toplevels.values.length
-            property real highlightT: root.highlightWorkspaceId === frame.modelData.id ? 1 : 0
+            property real highlightT: root.highlightWorkspaceId === HyprState.keyOf(frame.modelData) ? 1 : 0
 
             Behavior on isActive {
                 NumberAnimation {
