@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../utils/colors.js" as ColorUtils
 
 // A Windows 7 push button: grey glass that turns pale blue under the pointer. `isDefault` marks
 // the button Enter presses, which pulses slowly blue like Win7's default button.
@@ -14,6 +15,7 @@ Item {
     readonly property bool pressed: mouse.pressed && mouse.containsMouse
 
     property real hoverT: hovered ? 1 : 0
+    property real pressedT: pressed ? 1 : 0
     property real pulse: 0
 
     implicitWidth: Math.max(78, label.implicitWidth + 26)
@@ -23,6 +25,13 @@ Item {
     Behavior on hoverT {
         NumberAnimation {
             duration: 160
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    Behavior on pressedT {
+        NumberAnimation {
+            duration: 80
             easing.type: Easing.OutQuad
         }
     }
@@ -70,14 +79,15 @@ Item {
 
     Face {
         colors: ["#e5f4fc", "#c4e5f6", "#98d1ef", "#68b3db"]
-        opacity: root.pressed ? 1 : 0
+        opacity: root.pressedT
     }
 
+    // the outline turns blue with the hover glow (the default button's stays blue)
     Bevel {
         anchors.fill: parent
         radius: 3
-        outerColor: root.pressed ? "#2c628b" : (root.hovered || root.isDefault) ? "#3c7fb1" : "#707070"
-        innerColor: root.pressed ? Qt.rgba(0, 0.1, 0.25, 0.25) : Qt.rgba(1, 1, 1, 0.8)
+        outerColor: ColorUtils.interpolateColors(ColorUtils.interpolateColors("#707070", "#3c7fb1", root.isDefault ? 1 : root.hoverT), "#2c628b", root.pressedT)
+        innerColor: ColorUtils.interpolateColors(Qt.rgba(1, 1, 1, 0.8), Qt.rgba(0, 0.1, 0.25, 0.25), root.pressedT)
         outlineOnTop: true
     }
 

@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../utils/colors.js" as ColorUtils
 
 // A Windows 7 check box with its label. Controlled: bind `checked`, handle `toggled`.
 Item {
@@ -9,6 +10,28 @@ Item {
 
     signal toggled(bool checked)
 
+    property real hoverT: mouse.containsMouse ? 1 : 0
+    property real pressedT: mouse.pressed ? 1 : 0
+
+    Behavior on hoverT {
+        NumberAnimation {
+            duration: 150
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    Behavior on pressedT {
+        NumberAnimation {
+            duration: 80
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    // a colour at rest, under the pointer and pressed
+    function shade(rest, hot, pressed) {
+        return ColorUtils.interpolateColors(ColorUtils.interpolateColors(rest, hot, hoverT), pressed, pressedT);
+    }
+
     implicitWidth: box.width + 7 + label.implicitWidth
     implicitHeight: Math.max(box.height, label.implicitHeight)
 
@@ -18,15 +41,15 @@ Item {
         height: 13
         anchors.verticalCenter: parent.verticalCenter
         border.width: 1
-        border.color: mouse.containsMouse ? "#3c7fb1" : "#8f8f8f"
+        border.color: root.shade("#8f8f8f", "#3c7fb1", "#2c628b")
         gradient: Gradient {
             GradientStop {
                 position: 0
-                color: mouse.containsMouse ? "#dff2fc" : "#e4e4e4"
+                color: root.shade("#e4e4e4", "#dff2fc", "#c2e4f6")
             }
             GradientStop {
                 position: 1
-                color: mouse.containsMouse ? "#f4fbfe" : "#fbfbfb"
+                color: root.shade("#fbfbfb", "#f4fbfe", "#e9f7fe")
             }
         }
 

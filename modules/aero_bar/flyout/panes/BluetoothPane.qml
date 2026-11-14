@@ -80,13 +80,9 @@ FlyoutPane {
             return "Paired";
         }
 
-        Rectangle {
+        RowHighlight {
             anchors.fill: parent
-            radius: 3
-            visible: row.hovered
-            color: "#e5f3fb"
-            border.width: 1
-            border.color: "#b8d6fb"
+            hot: row.hovered
         }
 
         HoverHandler {
@@ -128,9 +124,16 @@ FlyoutPane {
 
             LinkText {
                 anchors.verticalCenter: parent.verticalCenter
-                visible: !row.pairRow && row.hovered
+                opacity: !row.pairRow && row.hovered ? 1 : 0
+                visible: opacity > 0
                 text: "Remove"
                 onClicked: row.d.forget()
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 110
+                    }
+                }
             }
 
             PushButton {

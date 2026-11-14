@@ -7,6 +7,7 @@ Item {
     signal clicked
 
     property real hoverT: mouse.containsMouse ? 1 : 0
+    property real pressedT: mouse.pressed ? 1 : 0
 
     implicitWidth: 43
     implicitHeight: 19
@@ -14,6 +15,13 @@ Item {
     Behavior on hoverT {
         NumberAnimation {
             duration: 150
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    Behavior on pressedT {
+        NumberAnimation {
+            duration: 80
             easing.type: Easing.OutQuad
         }
     }
@@ -51,7 +59,7 @@ Item {
             }
             Face {
                 colors: ["#c97060", "#b0402a", "#8e1d06", "#c45a2c"]
-                opacity: mouse.pressed ? 1 : 0
+                opacity: root.pressedT
             }
             Bevel {
                 anchors.fill: parent

@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../utils/colors.js" as ColorUtils
 
 // The little x on balloons, list rows and taskbar thumbnails: a small red glass square under
 // the pointer. `lit` keeps the red square showing (dimmer) even when not hovered.
@@ -12,27 +13,50 @@ Item {
 
     readonly property bool hovered: mouse.containsMouse
 
+    property real hoverT: hovered ? 1 : 0
+    property real pressedT: mouse.pressed ? 1 : 0
+
     implicitWidth: 16
     implicitHeight: 15
+
+    Behavior on hoverT {
+        NumberAnimation {
+            duration: 150
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    Behavior on pressedT {
+        NumberAnimation {
+            duration: 80
+            easing.type: Easing.OutQuad
+        }
+    }
+
+    // resting (lit), hot and pressed colour at one stop of the glass
+    function shade(rest, hot, pressed) {
+        return ColorUtils.interpolateColors(ColorUtils.interpolateColors(rest, hot, hoverT), pressed, pressedT);
+    }
 
     Rectangle {
         anchors.fill: parent
         radius: root.radius
-        visible: root.lit || mouse.containsMouse
+        opacity: Math.max(root.lit ? 1 : 0, root.hoverT)
+        visible: opacity > 0
         border.width: 1
         border.color: Qt.rgba(0.35, 0, 0, 0.7)
         gradient: Gradient {
             GradientStop {
                 position: 0
-                color: mouse.containsMouse ? "#f3a493" : "#e9a99a"
+                color: root.shade("#e9a99a", "#f3a493", "#d98a78")
             }
             GradientStop {
                 position: 0.5
-                color: mouse.containsMouse ? "#d9563b" : "#c8462a"
+                color: root.shade("#c8462a", "#d9563b", "#a8301a")
             }
             GradientStop {
                 position: 1
-                color: mouse.containsMouse ? "#c63a1c" : "#d7704f"
+                color: root.shade("#d7704f", "#c63a1c", "#a83014")
             }
         }
     }
@@ -48,13 +72,13 @@ Item {
     Bar {
         anchors.centerIn: parent
         rotation: 45
-        color: root.lit || mouse.containsMouse ? "white" : "#5b6470"
+        color: ColorUtils.interpolateColors("#5b6470", "white", Math.max(root.lit ? 1 : 0, root.hoverT))
     }
 
     Bar {
         anchors.centerIn: parent
         rotation: -45
-        color: root.lit || mouse.containsMouse ? "white" : "#5b6470"
+        color: ColorUtils.interpolateColors("#5b6470", "white", Math.max(root.lit ? 1 : 0, root.hoverT))
     }
 
     MouseArea {

@@ -14,6 +14,12 @@ Text {
     font.pixelSize: 12
     font.underline: underlineOnHover && hovered
 
+    Behavior on color {
+        ColorAnimation {
+            duration: 120
+        }
+    }
+
     MouseArea {
         id: mouse
         anchors.fill: parent

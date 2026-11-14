@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../utils/colors.js" as ColorUtils
 
 // Media Player style transport: a silver capsule with prev/next, and a big glass play orb on top.
 Item {
@@ -27,7 +28,16 @@ Item {
         property bool active: true
         signal activated
 
+        property real pressedT: segmentMouse.pressed ? 1 : 0
+
         opacity: active ? 1 : 0.4
+
+        Behavior on pressedT {
+            NumberAnimation {
+                duration: 80
+                easing.type: Easing.OutQuad
+            }
+        }
 
         Rectangle {
             anchors.fill: parent
@@ -36,12 +46,7 @@ Item {
             opacity: segmentMouse.containsMouse ? 1 : 0
 
             gradient: SplitGradient {
-                colors: [
-                    segmentMouse.pressed ? "#cfe9fa" : "#eef8ff",
-                    segmentMouse.pressed ? "#9fd2f2" : "#cbe9fc",
-                    segmentMouse.pressed ? "#79bfea" : "#a9dcfa",
-                    segmentMouse.pressed ? "#a6d6f3" : "#d4eefd"
-                ]
+                colors: [ColorUtils.interpolateColors("#eef8ff", "#cfe9fa", segment.pressedT), ColorUtils.interpolateColors("#cbe9fc", "#9fd2f2", segment.pressedT), ColorUtils.interpolateColors("#a9dcfa", "#79bfea", segment.pressedT), ColorUtils.interpolateColors("#d4eefd", "#a6d6f3", segment.pressedT)]
             }
 
             Behavior on opacity {
@@ -83,12 +88,7 @@ Item {
         gradient: SplitGradient {
             split: 0.49
             splitEnd: 0.5
-            colors: [
-                "#fdfdfd",
-                "#e6e9ec",
-                "#d1d6db",
-                "#eceff2"
-            ]
+            colors: ["#fdfdfd", "#e6e9ec", "#d1d6db", "#eceff2"]
         }
 
         Rectangle {

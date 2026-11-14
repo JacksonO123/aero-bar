@@ -147,7 +147,9 @@ FlyoutPane {
                 overlay: SmallClose {
                     x: thumb.width - 21
                     y: 5
-                    visible: thumb.hoverT > 0.5
+                    // fades in with the thumbnail's hover glow
+                    opacity: thumb.hoverT
+                    visible: opacity > 0
                     lit: true
                     onClicked: HyprState.closeWindow(thumb.address)
                 }

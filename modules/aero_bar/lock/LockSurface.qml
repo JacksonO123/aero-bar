@@ -227,7 +227,8 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         radius: 3
-                        visible: itemMouse.containsMouse
+                        opacity: itemMouse.containsMouse ? 1 : 0
+                        visible: opacity > 0
                         border.width: 1
                         border.color: "#a8d8eb"
                         gradient: Gradient {
@@ -238,6 +239,12 @@ Item {
                             GradientStop {
                                 position: 1
                                 color: "#d5ecf9"
+                            }
+                        }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 90
                             }
                         }
                     }

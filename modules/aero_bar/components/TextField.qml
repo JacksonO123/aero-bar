@@ -35,6 +35,12 @@ Item {
         radius: 2
         border.width: 1
         border.color: root.focused ? "#3d7bad" : mouseArea.containsMouse ? "#5794bf" : "#abadb3"
+
+        Behavior on border.color {
+            ColorAnimation {
+                duration: 150
+            }
+        }
         gradient: Gradient {
             GradientStop {
                 position: 0

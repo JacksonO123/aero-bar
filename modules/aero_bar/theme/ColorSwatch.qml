@@ -1,4 +1,5 @@
 import QtQuick
+import "../components"
 
 // One colour tile in the picker: the colour behind a glossy glass face, with Win7's blue
 // selection frame when it is the current colour.
@@ -14,13 +15,12 @@ Item {
     implicitHeight: 52
 
     // selection / hover highlight
-    Rectangle {
+    RowHighlight {
         anchors.fill: parent
         radius: 4
-        visible: root.selected || mouse.containsMouse
-        color: root.selected ? "#dcebfc" : "#eef6fd"
-        border.width: 1
-        border.color: root.selected ? "#7da2ce" : "#b8d6fb"
+        hot: mouse.containsMouse
+        selected: root.selected
+        hotColor: "#eef6fd"
     }
 
     Rectangle {

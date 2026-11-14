@@ -179,9 +179,21 @@ AeroWindow {
                     width: 320
                     height: selected ? 76 : 56
                     radius: 4
-                    color: selected ? "#eaf3fc" : tileMouse.containsMouse ? "#f2f8fd" : "transparent"
-                    border.width: selected || tileMouse.containsMouse ? 1 : 0
-                    border.color: selected ? "#a9c8ea" : "#cfe2f5"
+                    color: selected ? "#eaf3fc" : tileMouse.containsMouse ? "#f2f8fd" : Qt.rgba(0.95, 0.97, 0.99, 0)
+                    border.width: 1
+                    border.color: selected ? "#a9c8ea" : tileMouse.containsMouse ? "#cfe2f5" : Qt.rgba(0.81, 0.89, 0.96, 0)
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 110
+                        }
+                    }
+
+                    Behavior on border.color {
+                        ColorAnimation {
+                            duration: 110
+                        }
+                    }
 
                     function claimPassword() {
                         if (selected) {

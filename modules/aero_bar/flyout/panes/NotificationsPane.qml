@@ -180,13 +180,10 @@ FlyoutPane {
                                 width: group.width
                                 height: rowColumn.height + 12
 
-                                Rectangle {
+                                RowHighlight {
                                     anchors.fill: parent
-                                    radius: 3
-                                    visible: rowHover.hovered
-                                    color: "#e5f3fb"
-                                    border.width: 1
-                                    border.color: "#70c0e7"
+                                    hot: rowHover.hovered
+                                    hotBorderColor: "#70c0e7"
                                 }
 
                                 // stays hovered over the row's close button and links
@@ -233,17 +230,32 @@ FlyoutPane {
                                         Text {
                                             id: time
                                             anchors.right: parent.right
+                                            // steps aside for the close button
                                             anchors.rightMargin: rowHover.hovered ? 20 : 0
                                             text: root.timeText(row.n)
                                             color: "#6b7785"
                                             font.pixelSize: 11
+
+                                            Behavior on anchors.rightMargin {
+                                                NumberAnimation {
+                                                    duration: 110
+                                                    easing.type: Easing.OutQuad
+                                                }
+                                            }
                                         }
 
                                         SmallClose {
                                             anchors.right: parent.right
                                             anchors.verticalCenter: summary.verticalCenter
-                                            visible: rowHover.hovered
+                                            opacity: rowHover.hovered ? 1 : 0
+                                            visible: opacity > 0
                                             onClicked: Notifications.dismiss(row.n)
+
+                                            Behavior on opacity {
+                                                NumberAnimation {
+                                                    duration: 110
+                                                }
+                                            }
                                         }
                                     }
 

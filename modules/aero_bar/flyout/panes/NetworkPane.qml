@@ -284,13 +284,10 @@ FlyoutPane {
                         width: wifiColumn.width
                         height: isSelected ? 30 + details.height + 8 : 30
 
-                        Rectangle {
+                        RowHighlight {
                             anchors.fill: parent
-                            radius: 3
-                            visible: net.isSelected || netMouse.containsMouse
-                            color: net.isSelected ? "#dcebfc" : "#e5f3fb"
-                            border.width: 1
-                            border.color: net.isSelected ? "#7da2ce" : "#b8d6fb"
+                            hot: netMouse.containsMouse
+                            selected: net.isSelected
                         }
 
                         MouseArea {

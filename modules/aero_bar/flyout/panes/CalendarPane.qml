@@ -151,6 +151,12 @@ FlyoutPane {
             rotation: arrow.pointsLeft ? 180 : 0
             color: arrowMouse.containsMouse ? "#1f6fc5" : "#4d6377"
             shadow: false
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 120
+                }
+            }
         }
 
         MouseArea {
@@ -221,7 +227,8 @@ FlyoutPane {
             anchors.fill: parent
             anchors.margins: 1
             radius: 3
-            visible: cellHover.hovered && !cell.isToday && cell.inMonth
+            opacity: cellHover.hovered && !cell.isToday && cell.inMonth ? 1 : 0
+            visible: opacity > 0
             border.width: 1
             border.color: "#b8d6fb"
 
@@ -233,6 +240,12 @@ FlyoutPane {
                 GradientStop {
                     position: 1
                     color: "#e1f0fb"
+                }
+            }
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 110
                 }
             }
         }
@@ -472,6 +485,12 @@ FlyoutPane {
                     color: monthTitleMouse.containsMouse ? "#1f6fc5" : "#1e2f40"
                     font.pixelSize: 13
                     font.bold: true
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 120
+                        }
+                    }
 
                     MouseArea {
                         id: monthTitleMouse
