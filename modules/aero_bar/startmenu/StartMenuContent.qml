@@ -20,6 +20,15 @@ Item {
     property bool powerMenuOpen: false
     // the home list only shows a keyboard selection once the arrow keys are used
     property bool keyboardNav: false
+    // All Programs builds its app rows the first time it's opened, not at startup (there's a
+    // menu per screen). The folders start collapsed, so their icons load before one is opened.
+    property bool allProgramsBuilt: false
+
+    onModeChanged: {
+        if (mode === "all") {
+            allProgramsBuilt = true;
+        }
+    }
 
     readonly property alias maskFrame: frame
     readonly property alias maskTile: tile
@@ -318,7 +327,7 @@ Item {
                                             width: parent.width
 
                                             Repeater {
-                                                model: folder.modelData.entries
+                                                model: root.allProgramsBuilt ? folder.modelData.entries : []
 
                                                 MenuItem {
                                                     required property var modelData

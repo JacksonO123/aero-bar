@@ -66,7 +66,8 @@ Singleton {
 
     property bool awaitingParse: false
     property bool refreshQueued: false
-    readonly property string separator: "@@AERO_SEP@@"
+    // hyprctl --batch puts this between the replies
+    readonly property string separator: "\n\n\n"
 
     function refresh() {
         // covers any batched refresh still pending
@@ -415,7 +416,8 @@ Singleton {
 
     Process {
         id: snapshot
-        command: ["sh", "-c", `hyprctl -j clients; echo ${root.separator}; hyprctl -j workspaces; echo ${root.separator}; hyprctl -j monitors; echo ${root.separator}; hyprctl -j activewindow`]
+        // one hyprctl call (and one socket round trip) for all four
+        command: ["hyprctl", "--batch", "j/clients; j/workspaces; j/monitors; j/activewindow"]
 
         stdout: StdioCollector {
             onStreamFinished: {

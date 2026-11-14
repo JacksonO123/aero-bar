@@ -328,8 +328,13 @@ Item {
         function edgeAt(mx, my) {
             // the area extends 2px past the window on each side
             const x = mx - 2, y = my - 2;
-            const allowed = win.overview.resizableEdges(win);
             const m = Math.max(3, Math.min(6, win.width / 5, win.height / 5));
+            // (looking up which edges can move scans every window: only near an edge)
+            if (x >= m && x <= win.width - m && y >= m && y <= win.height - m) {
+                return "";
+            }
+
+            const allowed = win.overview.resizableEdges(win);
             let v = "", h = "";
             if (allowed.t && y < m) {
                 v = "t";
