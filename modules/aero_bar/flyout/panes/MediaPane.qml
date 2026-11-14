@@ -1,37 +1,46 @@
 import QtQuick
+import Quickshell
+import ".."
 import "../../components"
 import "../../../../services"
 
-Item {
+FlyoutPane {
     id: root
 
-    property bool shown: false
+    required property var flyoutEl
+
+    // Flyout.toggle sets pinned before show(), so latch showAll a moment later
+    property bool showAll: false
+
+    readonly property bool hoverShown: active && !showAll
 
     readonly property var player: Media.player
     readonly property real position: player?.position ?? 0
     readonly property real length: Media.length
+    readonly property var polled: showAll ? Media.playing : (Media.isPlaying ? [player] : [])
 
     readonly property real artSize: 92
     readonly property real padding: 10
 
-    width: 340
-    height: content.height + padding * 2
+    width: showAll ? 460 : 340
+    height: (showAll ? sources.height : content.height) + padding * 2
 
-    // mpris position isn't reactive; poll it only while this pane is on screen
+    Binding {
+        target: root
+        property: "showAll"
+        value: root.flyoutEl.pinned
+        when: root.active
+        delayed: true
+        restoreMode: Binding.RestoreNone
+    }
+
+    // MPRIS position isn't reactive: poll it
     Timer {
         interval: 500
         repeat: true
         triggeredOnStart: true
-        running: root.shown && Media.isPlaying
-        onTriggered: root.player?.positionChanged()
-    }
-
-    function formatTime(seconds) {
-        const s = Math.max(0, Math.floor(seconds));
-        const h = Math.floor(s / 3600);
-        const m = Math.floor((s % 3600) / 60);
-        const sec = String(s % 60).padStart(2, "0");
-        return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+        running: root.active && root.polled.length > 0
+        onTriggered: root.polled.forEach(p => p.positionChanged())
     }
 
     Column {
@@ -40,6 +49,7 @@ Item {
         y: root.padding
         width: root.width - root.padding * 2
         spacing: 6
+        visible: !root.showAll
 
         Row {
             spacing: 12
@@ -61,7 +71,6 @@ Item {
             }
 
             Column {
-                id: details
                 width: content.width - root.artSize - 12
                 spacing: 1
 
@@ -77,22 +86,14 @@ Item {
                         elide: Text.ElideRight
                     }
 
-                    Text {
+                    LinkText {
                         id: switchLink
                         anchors.right: parent.right
                         visible: Media.players.length > 1
                         text: "Switch player"
-                        color: switchMouse.containsMouse ? "#3399ff" : "#0066cc"
+                        restColor: "#0066cc"
                         font.pixelSize: 10
-                        font.underline: switchMouse.containsMouse
-
-                        MouseArea {
-                            id: switchMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: Media.cycle()
-                        }
+                        onClicked: Media.cycle()
                     }
                 }
 
@@ -102,7 +103,7 @@ Item {
                     color: "#13263a"
                     font.pixelSize: 14
                     font.bold: true
-                    scrolling: root.shown
+                    scrolling: root.hoverShown
                 }
 
                 ScrollingText {
@@ -110,7 +111,7 @@ Item {
                     text: Media.artist
                     color: "#2f4559"
                     font.pixelSize: 12
-                    scrolling: root.shown
+                    scrolling: root.hoverShown
                 }
 
                 ScrollingText {
@@ -119,7 +120,7 @@ Item {
                     text: Media.album
                     color: "#6b7785"
                     font.pixelSize: 11
-                    scrolling: root.shown
+                    scrolling: root.hoverShown
                 }
 
                 Item {
@@ -129,13 +130,7 @@ Item {
 
                 TransportControls {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    playing: Media.isPlaying
-                    canPrevious: Media.canPrevious
-                    canNext: Media.canNext
-                    canToggle: Media.canToggle
-                    onPrevious: Media.previous()
-                    onNext: Media.next()
-                    onToggle: Media.togglePlaying()
+                    player: root.player
                 }
             }
         }
@@ -148,7 +143,7 @@ Item {
                 width: 36
                 anchors.verticalCenter: parent.verticalCenter
                 horizontalAlignment: Text.AlignRight
-                text: root.formatTime(seekBar.shownPosition)
+                text: Media.formatTime(seekBar.shownPosition)
                 color: "#4a5a6a"
                 font.pixelSize: 10
             }
@@ -161,16 +156,88 @@ Item {
                 position: root.position
                 length: root.length
                 seekable: Media.canSeek
-                playing: Media.isPlaying && root.shown
+                playing: Media.isPlaying && root.hoverShown
                 onSeek: seconds => Media.seek(seconds)
             }
 
             Text {
                 width: 36
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.formatTime(root.length)
+                text: Media.formatTime(root.length)
                 color: "#4a5a6a"
                 font.pixelSize: 10
+            }
+        }
+    }
+
+    Column {
+        id: sources
+        x: root.padding
+        y: root.padding
+        width: root.width - root.padding * 2
+        spacing: 8
+        visible: root.showAll
+
+        Item {
+            width: parent.width
+            height: heading.height
+
+            Text {
+                id: heading
+                text: "Now Playing"
+                color: "#1e3c78"
+                font.pixelSize: 15
+            }
+
+            Text {
+                anchors.right: parent.right
+                anchors.baseline: heading.baseline
+                text: Media.players.length === 1 ? "1 source" : Media.players.length + " sources"
+                color: "#6b7785"
+                font.pixelSize: 11
+            }
+        }
+
+        FlyoutRule {
+            width: parent.width
+        }
+
+        Item {
+            width: parent.width
+            // three and a half rows, then it scrolls
+            height: Math.min(list.height, 350)
+
+            Flickable {
+                id: scroller
+                anchors.fill: parent
+                contentHeight: list.height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+
+                Column {
+                    id: list
+                    width: scroller.width
+                    spacing: 4
+
+                    // a ScriptModel keeps each player's row as players come and go
+                    Repeater {
+                        model: ScriptModel {
+                            values: root.showAll ? Media.players : []
+                        }
+
+                        MediaSourceRow {
+                            required property var modelData
+                            width: list.width
+                            player: modelData
+                            active: root.active
+                        }
+                    }
+                }
+            }
+
+            ScrollThumb {
+                anchors.right: parent.right
+                flickable: scroller
             }
         }
     }

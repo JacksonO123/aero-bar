@@ -3,18 +3,17 @@ import Quickshell.Hyprland
 import QtQuick.Layouts
 import Quickshell.Widgets
 import "../../../utils/colors.js" as ColorUtils
+import "../../../services"
+import "../../../utils/constants.js" as Constants
 
 RowLayout {
     id: root
     spacing: 8
 
-    // the overview opens after resting on the buttons, and lights up the button of whatever
-    // workspace is hovered / targeted in it
     readonly property bool hovered: hoverHandler.hovered
-    property int highlightWorkspaceId: -99999
+    property int highlightWorkspaceId: Constants.NO_WORKSPACE
     signal buttonClicked
 
-    // workspace whose button is under (px, py) of `item`, or null
     function workspaceAt(item, px, py) {
         for (let i = 0; i < workspaceButtonsRepeater.count; i++) {
             const button = workspaceButtonsRepeater.itemAt(i);
@@ -43,7 +42,7 @@ RowLayout {
             required property var modelData
             property real isActive: frame.modelData.active
             property real hasContent: frame.modelData.toplevels.values.length
-            property real highlightT: root.highlightWorkspaceId === frame.modelData.id ? 1 : 0
+            property real highlightT: root.highlightWorkspaceId === HyprState.keyOf(frame.modelData) ? 1 : 0
 
             Behavior on isActive {
                 NumberAnimation {
@@ -85,7 +84,6 @@ RowLayout {
             }
 
             ClippingRectangle {
-                id: workspaceButton
 
                 anchors.fill: parent
                 color: Qt.rgba(1, 1, 1, 0.2 * frame.hoverT + 0.15 * frame.pressedT)

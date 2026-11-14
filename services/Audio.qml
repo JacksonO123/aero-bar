@@ -11,24 +11,37 @@ Singleton {
     readonly property bool available: sink !== null && sink.audio !== null
     readonly property real volume: available ? sink.audio.volume : 0
     readonly property bool muted: available ? sink.audio.muted : false
-    readonly property string deviceName: sink ? (sink.description || sink.nickname || sink.name) : "No audio device"
+    readonly property string deviceName: sink ? nameOf(sink) : "No audio device"
 
-    // the slider tops out here; volume set above it elsewhere still displays correctly
     property real maxVolume: 1.0
 
-    function setVolume(value) {
-        if (!available) {
+    property int panesOpen: 0
+
+    function nameOf(node) {
+        return node.description || node.nickname || node.name;
+    }
+
+    function setNodeVolume(node, value) {
+        if (!node?.audio) {
             return;
         }
-
-        const next = Math.max(0, Math.min(maxVolume, value));
-
-        // like Windows: dragging the slider while muted unmutes
-        if (sink.audio.muted && next > 0) {
-            sink.audio.muted = false;
+        if (node.audio.muted && value > 0) {
+            node.audio.muted = false;
         }
+        node.audio.volume = value;
+    }
 
-        sink.audio.volume = next;
+    function toggleNodeMute(node) {
+        if (node?.audio) {
+            node.audio.muted = !node.audio.muted;
+        }
+    }
+
+    function setVolume(value) {
+        if (available) {
+            // don't cut down a volume already set above maxVolume elsewhere
+            setNodeVolume(sink, Math.max(0, Math.min(Math.max(maxVolume, volume), value)));
+        }
     }
 
     function adjust(delta) {
@@ -36,12 +49,10 @@ Singleton {
     }
 
     function toggleMute() {
-        if (available) {
-            sink.audio.muted = !sink.audio.muted;
-        }
+        toggleNodeMute(sink);
     }
 
-    // pipewire node properties (volume/muted) are only valid while the node is bound
+    // PwNode audio properties are only valid while the node is bound
     PwObjectTracker {
         objects: [root.sink]
     }

@@ -1,8 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 
-// White caption text on glass with Win7's soft dark glow behind it. The glow is a blurred copy
-// drawn underneath, so the text itself stays unlayered and crisp.
+// the glow is a blurred copy underneath, so the label stays unlayered and crisp
 Item {
     id: root
 
@@ -10,6 +9,7 @@ Item {
     property alias font: label.font
     property alias color: label.color
     property real glow: 0.7
+    property alias elide: label.elide
 
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
@@ -17,8 +17,10 @@ Item {
     Text {
         x: label.x
         y: label.y
+        width: label.width
         text: label.text
         font: label.font
+        elide: label.elide
         color: "black"
         opacity: root.glow
 
@@ -32,6 +34,7 @@ Item {
 
     Text {
         id: label
+        width: root.width
         color: "white"
         font.pixelSize: 12
     }

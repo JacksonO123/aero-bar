@@ -1,15 +1,11 @@
 import QtQuick
 import Quickshell.Widgets
 
-// Album art tile with a Win7 thumbnail frame and two-tone sheen. Crossfades between tracks and
-// falls back to the music orb when the player provides no art.
 Item {
     id: root
 
     property string source: ""
     property real radius: 3
-    property bool showSheen: true
-    property bool showFrame: true
 
     property Image current: null
     property Image loading: null
@@ -18,22 +14,32 @@ Item {
     onSourceChanged: load()
     Component.onCompleted: load()
 
+    component ArtImage: Image {
+        anchors.fill: parent
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        mipmap: true
+        opacity: 0
+        sourceSize: Qt.size(Math.max(64, width * 2), Math.max(64, height * 2))
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 280
+            }
+        }
+    }
+
     function load() {
         if (source === "") {
-            loading = null;
-            if (current) {
-                current.opacity = 0;
-            }
-            current = null;
+            clear();
             return;
         }
 
         const next = current === imageA ? imageB : imageA;
         loading = next;
         next.source = source;
-        if (next.status === Image.Ready) {
-            reveal(next);
-        }
+        // the spare image may already hold this URL: no statusChanged will fire
+        imageStatusChanged(next);
     }
 
     function reveal(image) {
@@ -45,10 +51,15 @@ Item {
         loading = null;
     }
 
-    function failed(image) {
-        if (loading !== image) {
-            return;
+    function imageStatusChanged(image) {
+        if (image.status === Image.Ready && loading === image) {
+            reveal(image);
+        } else if (image.status === Image.Error && loading === image) {
+            clear();
         }
+    }
+
+    function clear() {
         loading = null;
         if (current) {
             current.opacity = 0;
@@ -82,7 +93,7 @@ Item {
                 }
             }
 
-            // the asset includes its own reflection underneath; crop to the top half
+            // the asset has its reflection underneath: crop to the top half
             Image {
                 anchors.centerIn: parent
                 width: parent.width * 0.8
@@ -95,95 +106,31 @@ Item {
             }
         }
 
-        Image {
+        ArtImage {
             id: imageA
-            anchors.fill: parent
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            mipmap: true
-            opacity: 0
-            sourceSize: Qt.size(Math.max(64, root.width * 2), Math.max(64, root.height * 2))
-
-            onStatusChanged: {
-                if (status === Image.Ready && root.loading === imageA) {
-                    root.reveal(imageA);
-                } else if (status === Image.Error) {
-                    root.failed(imageA);
-                }
-            }
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 280
-                }
-            }
+            onStatusChanged: root.imageStatusChanged(imageA)
         }
 
-        Image {
+        ArtImage {
             id: imageB
-            anchors.fill: parent
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            mipmap: true
-            opacity: 0
-            sourceSize: Qt.size(Math.max(64, root.width * 2), Math.max(64, root.height * 2))
-
-            onStatusChanged: {
-                if (status === Image.Ready && root.loading === imageB) {
-                    root.reveal(imageB);
-                } else if (status === Image.Error) {
-                    root.failed(imageB);
-                }
-            }
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 280
-                }
-            }
+            onStatusChanged: root.imageStatusChanged(imageB)
         }
 
         Rectangle {
             anchors.fill: parent
-            visible: root.showSheen
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: Qt.rgba(1, 1, 1, 0.4)
-                }
-                GradientStop {
-                    position: 0.47
-                    color: Qt.rgba(1, 1, 1, 0.12)
-                }
-                GradientStop {
-                    position: 0.471
-                    color: Qt.rgba(1, 1, 1, 0.0)
-                }
-                GradientStop {
-                    position: 1.0
-                    color: Qt.rgba(1, 1, 1, 0.0)
-                }
+            gradient: SplitGradient {
+                split: 0.47
+                splitEnd: 0.471
+                colors: [Qt.rgba(1, 1, 1, 0.4), Qt.rgba(1, 1, 1, 0.12), Qt.rgba(1, 1, 1, 0.0), Qt.rgba(1, 1, 1, 0.0)]
             }
         }
     }
 
-    Rectangle {
+    Bevel {
         anchors.fill: parent
         radius: root.radius
-        color: "transparent"
-        visible: root.showFrame
-        border.width: 1
-        border.color: Qt.rgba(0, 0, 0, 0.55)
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: Math.max(0, root.radius - 1)
-        color: "transparent"
-        visible: root.showFrame
-        border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.35)
+        outerColor: Qt.rgba(0, 0, 0, 0.55)
+        innerColor: Qt.rgba(1, 1, 1, 0.35)
     }
 }

@@ -20,6 +20,7 @@ Variants {
         required property var modelData
         screen: modelData
         WlrLayershell.namespace: "aero-bar"
+        WlrLayershell.keyboardFocus: flyout.pinned && (flyout.pane?.wantsKeyboard ?? false) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
         anchors {
             bottom: true
@@ -33,9 +34,11 @@ Variants {
 
         mask: Region {
             item: bar
+
             Region {
                 item: flyout.aeroframe
             }
+
             Region {
                 item: overview.maskItem
             }
@@ -66,12 +69,13 @@ Variants {
                     spacing: 12
 
                     ArchIcon {
-                        active: StartMenuState.open && StartMenuState.screenName === here.modelData.name
+                        active: StartMenuState.open && StartMenuState.screen === here.modelData.name
                         onClicked: StartMenuState.toggle(here.modelData.name)
                     }
 
                     AppIcons {
                         apps: Apps.apps
+                        flyoutEl: flyout
                     }
                 }
             }
@@ -93,6 +97,21 @@ Variants {
 
                 MediaInline {
                     id: mediaInline
+                    flyoutEl: flyout
+                }
+
+                ActionCenterInline {
+                    id: actionCenter
+                    flyoutEl: flyout
+                }
+
+                NetworkInline {
+                    id: networkButton
+                    flyoutEl: flyout
+                }
+
+                BluetoothInline {
+                    id: bluetoothButton
                     flyoutEl: flyout
                 }
 
@@ -120,36 +139,47 @@ Variants {
             anchors.bottom: bar.top
             anchors.bottomMargin: 10
 
-            FlyoutPane {
-                id: mediaFlyoutPane
+            AppPane {
+                flyoutEl: flyout
+                windowOrigin: Qt.point(here.modelData.x, here.modelData.y + here.modelData.height - here.height)
+            }
+
+            MediaPane {
                 owner: mediaInline
-
-                MediaPane {
-                    shown: mediaFlyoutPane.active
-                }
+                flyoutEl: flyout
             }
 
-            FlyoutPane {
-                id: calendarFlyoutPane
+            CalendarPane {
                 owner: clockButton
-
-                CalendarPane {
-                    shown: calendarFlyoutPane.active
-                }
             }
 
-            FlyoutPane {
-                id: volumeFlyoutPane
-                owner: volumeInline
+            NotificationsPane {
+                owner: actionCenter
+            }
 
-                VolumePane {
-                    shown: volumeFlyoutPane.active
-                    flyoutEl: flyout
-                }
+            NetworkPane {
+                owner: networkButton
+            }
+
+            BluetoothPane {
+                owner: bluetoothButton
+            }
+
+            VolumePane {
+                owner: volumeInline
+                flyoutEl: flyout
             }
         }
 
-        // a click anywhere outside the bar closes a pinned (click-opened) flyout like the calendar
+        WorkspaceOverview {
+            id: overview
+            anchorItem: workspaceButtons
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: bar.top
+            anchors.bottomMargin: 10
+        }
+
         HyprlandFocusGrab {
             windows: [here]
             active: flyout.pinned
@@ -164,15 +194,6 @@ Variants {
                     flyout.close();
                 }
             }
-        }
-
-        WorkspaceOverview {
-            id: overview
-            anchorItem: workspaceButtons
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: bar.top
-            anchors.bottomMargin: 10
         }
     }
 }

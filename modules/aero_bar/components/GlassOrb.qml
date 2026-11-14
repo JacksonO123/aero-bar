@@ -1,7 +1,5 @@
 import QtQuick
 
-// A glossy Aero orb (think the start orb / WMP play button). Children are drawn inside the orb,
-// underneath the top gloss so they pick up the same reflection.
 Item {
     id: root
 
@@ -33,7 +31,6 @@ Item {
         }
     }
 
-    // soft contact shadow
     Rectangle {
         x: -1
         y: 0
@@ -60,7 +57,6 @@ Item {
                 return;
             }
 
-            // light pools at the bottom like the glow coming through a glass marble
             const g = ctx.createRadialGradient(w / 2, h * 0.96, 0, w / 2, h * 0.96, h * 1.02);
             g.addColorStop(0.0, root.lightColor);
             g.addColorStop(0.45, root.baseColor);
@@ -78,6 +74,8 @@ Item {
         opacity: root.hoverT
         visible: opacity > 0
 
+        readonly property color glowColor: root.glowColor
+        onGlowColorChanged: requestPaint()
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
 
@@ -90,7 +88,7 @@ Item {
             }
 
             const g = ctx.createRadialGradient(w / 2, h * 0.92, 0, w / 2, h * 0.92, h * 0.8);
-            g.addColorStop(0.0, root.glowColor);
+            g.addColorStop(0.0, glowColor);
             g.addColorStop(1.0, Qt.rgba(0.6, 0.9, 1.0, 0));
             ctx.beginPath();
             ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2);
@@ -106,21 +104,11 @@ Item {
         opacity: root.pressedT
     }
 
-    Rectangle {
+    Bevel {
         anchors.fill: parent
         radius: width / 2
-        color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(0, 0, 0, 0.6)
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: width / 2
-        color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.22)
+        outerColor: Qt.rgba(0, 0, 0, 0.6)
+        innerColor: Qt.rgba(1, 1, 1, 0.22)
     }
 
     Item {

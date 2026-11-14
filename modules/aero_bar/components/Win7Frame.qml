@@ -5,25 +5,20 @@ Item {
     property int radius: 4
     signal clicked(var mouse)
     default property alias content: contentArea.data
+    // above the frame's MouseArea, for children that handle their own clicks
+    property alias overlay: overlayArea.data
 
-    readonly property bool hovered: mouse.containsMouse
-    property real hoverT: mouse.containsMouse ? 1 : 0
-    property real pressedT: mouse.pressed ? 1 : 0
+    // a HoverHandler, not the MouseArea, so hover holds over controls inside
+    readonly property bool hovered: hoverHandler.hovered
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
 
     property real frameOpacity
 
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 150
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    Behavior on pressedT {
-        NumberAnimation {
-            duration: 80
-            easing.type: Easing.OutQuad
-        }
+    HoverPress {
+        id: hp
+        hovered: root.hovered
+        pressed: mouse.pressed
     }
 
     Rectangle {
@@ -65,5 +60,14 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: mouse => root.clicked(mouse)
+    }
+
+    Item {
+        id: overlayArea
+        anchors.fill: parent
+    }
+
+    HoverHandler {
+        id: hoverHandler
     }
 }

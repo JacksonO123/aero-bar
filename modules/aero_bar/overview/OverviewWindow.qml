@@ -1,14 +1,10 @@
 import QtQuick
 import "../components"
 
-// A window in the overview: a tiny Aero window (glass frame, caption, frosted client area with
-// the app icon and its reflection). Handles its own drag / resize gestures and reports them to
-// the overview, which owns the logic.
 Item {
     id: win
 
     required property var overview
-    required property int index
     required property string address
     required property string cls
     required property string title
@@ -21,6 +17,7 @@ Item {
     required property bool fullscreen
     required property int focusHistoryId
 
+    // windowRect() is null mid-relayout: keep the last spot instead of 0,0
     readonly property var target: overview.windowRect(wsId, gx, gy, gw, gh)
     property var lastTarget: ({
             x: 0,
@@ -35,10 +32,8 @@ Item {
     }
     readonly property var geo: target ?? lastTarget
 
-    // `held` = geometry is being driven by the pointer, so don't animate it
-    property bool held: false
-    readonly property bool animate: !held && !overview.resizing
     readonly property bool dragging: overview.dragInfo !== null && overview.dragInfo.address === address
+    readonly property bool animate: !dragging && !overview.resizing
     readonly property bool resizingThis: overview.resizeInfo !== null && overview.resizeInfo.address === address
     readonly property bool focused: overview.focusedAddress === address
     readonly property bool swapTarget: overview.dropTarget !== null && overview.dropTarget.type === "swap" && overview.dropTarget.address === address
@@ -55,46 +50,39 @@ Item {
         vh = Qt.binding(() => win.geo.h);
     }
 
+    component Glide: NumberAnimation {
+        duration: 300
+        easing.type: Easing.OutCubic
+    }
+
     Behavior on vx {
         enabled: win.animate
-        NumberAnimation {
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on vy {
         enabled: win.animate
-        NumberAnimation {
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on vw {
         enabled: win.animate
-        NumberAnimation {
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on vh {
         enabled: win.animate
-        NumberAnimation {
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     x: vx
     y: vy
     width: vw
     height: vh
-    visible: target !== null || held
+    visible: target !== null || dragging
     z: dragging ? 1000 : floating ? 300 - Math.min(focusHistoryId, 200) : 10
 
-    property real hoverT: mouse.containsMouse && !overview.interacting ? 1 : 0
+    property real hoverT: mouseArea.containsMouse && !overview.interacting ? 1 : 0
     property real swapT: swapTarget ? 1 : 0
     property bool spawned: false
     Component.onCompleted: spawned = true
@@ -136,7 +124,6 @@ Item {
             }
         }
 
-        // drop shadow
         Rectangle {
             x: 1
             y: win.dragging ? 4 : 2
@@ -146,7 +133,6 @@ Item {
             color: Qt.rgba(0, 0, 0, win.dragging ? 0.45 : win.floating ? 0.32 : 0.2)
         }
 
-        // focused window halo
         Rectangle {
             anchors.fill: parent
             anchors.margins: -2
@@ -157,27 +143,20 @@ Item {
             visible: win.focused && !win.dragging
         }
 
-        // glass frame, two-tone like the Win7 caption
         Rectangle {
             anchors.fill: parent
             radius: 3
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: Qt.rgba(0.82, 0.92, 1.0, win.focused ? 0.85 : 0.7)
-                }
-                GradientStop {
-                    position: 0.45
-                    color: Qt.rgba(0.58, 0.76, 0.93, win.focused ? 0.75 : 0.6)
-                }
-                GradientStop {
-                    position: 0.451
-                    color: Qt.rgba(0.38, 0.58, 0.8, win.focused ? 0.75 : 0.6)
-                }
-                GradientStop {
-                    position: 1.0
-                    color: Qt.rgba(0.48, 0.68, 0.88, win.focused ? 0.8 : 0.65)
+            gradient: SplitGradient {
+                split: 0.45
+                splitEnd: 0.451
+                colors: {
+                    const f = win.focused;
+                    const top = Qt.rgba(0.82, 0.92, 1.0, f ? 0.85 : 0.7);
+                    const aboveSplit = Qt.rgba(0.58, 0.76, 0.93, f ? 0.75 : 0.6);
+                    const belowSplit = Qt.rgba(0.38, 0.58, 0.8, f ? 0.75 : 0.6);
+                    const bottom = Qt.rgba(0.48, 0.68, 0.88, f ? 0.8 : 0.65);
+                    return [top, aboveSplit, belowSplit, bottom];
                 }
             }
         }
@@ -196,7 +175,6 @@ Item {
             styleColor: Qt.rgba(1, 1, 1, 0.45)
         }
 
-        // frosted client area
         Rectangle {
             id: client
             x: win.borderW
@@ -227,30 +205,19 @@ Item {
             }
         }
 
-        Rectangle {
+        Bevel {
             anchors.fill: parent
             radius: 3
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(0, 0, 0, 0.65)
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: 2
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.45)
+            outerColor: Qt.rgba(0, 0, 0, 0.65)
+            innerColor: Qt.rgba(1, 1, 1, 0.45)
         }
 
         Win7Hover {
             radius: 3
             opacity: win.hoverT * 0.9
-            pressedT: mouse.pressed ? 1 : 0
+            pressedT: mouseArea.pressed ? 1 : 0
         }
 
-        // "drop here to swap" highlight
         Rectangle {
             anchors.fill: parent
             anchors.margins: -2
@@ -259,6 +226,7 @@ Item {
             border.width: 2
             border.color: "#a8ecff"
             opacity: win.swapT
+            visible: opacity > 0
 
             GlassOrb {
                 anchors.centerIn: parent
@@ -278,7 +246,6 @@ Item {
             }
         }
 
-        // live size readout while resizing
         Rectangle {
             anchors.centerIn: parent
             visible: win.resizingThis
@@ -298,8 +265,7 @@ Item {
             }
         }
 
-        // Win7 thumbnail close button
-        Rectangle {
+        SmallClose {
             id: closeButton
             anchors.top: parent.top
             anchors.right: parent.right
@@ -308,66 +274,22 @@ Item {
             width: 20
             height: Math.max(10, Math.min(13, win.captionH))
             radius: 2
-            visible: win.vw >= 44 && win.vh >= 30 && (win.hoverT > 0.05 || closeMouse.containsMouse)
-            opacity: Math.max(win.hoverT, closeMouse.containsMouse ? 1 : 0)
-            border.width: 1
-            border.color: Qt.rgba(0.35, 0.05, 0.02, 0.9)
-
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: closeMouse.containsMouse ? "#f8b4a4" : "#eba090"
-                }
-                GradientStop {
-                    position: 0.48
-                    color: closeMouse.containsMouse ? "#ec6a4f" : "#d9604a"
-                }
-                GradientStop {
-                    position: 0.49
-                    color: closeMouse.containsMouse ? "#d63b1c" : "#bd3a22"
-                }
-                GradientStop {
-                    position: 1.0
-                    color: closeMouse.containsMouse ? "#f08463" : "#d26b52"
-                }
-            }
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 9
-                height: 1.6
-                rotation: 45
-                color: "white"
-                antialiasing: true
-            }
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 9
-                height: 1.6
-                rotation: -45
-                color: "white"
-                antialiasing: true
-            }
-
-            MouseArea {
-                id: closeMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: win.overview.closeWindow(win.address)
-            }
+            // hidden on the resize band, so the top-right corner can be grabbed
+            visible: win.vw >= 44 && win.vh >= 30 && (win.hoverT > 0.05 || hovered) && mouseArea.edge === ""
+            opacity: Math.max(win.hoverT, hovered ? 1 : 0)
+            lit: true
+            onClicked: win.overview.closeWindow(win.address)
         }
     }
 
     MouseArea {
-        id: mouse
+        id: mouseArea
         anchors.fill: parent
         anchors.margins: -2
         hoverEnabled: true
         preventStealing: true
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-        z: -1 // keep the close button on top
+        z: -1 // under the close button
 
         property string edge: ""
         property string mode: ""
@@ -398,10 +320,14 @@ Item {
         }
 
         function edgeAt(mx, my) {
-            // the area extends 2px past the window on each side
             const x = mx - 2, y = my - 2;
-            const allowed = win.overview.resizableEdges(win);
             const m = Math.max(3, Math.min(6, win.width / 5, win.height / 5));
+            // early out: resizableEdges() scans every window
+            if (x >= m && x <= win.width - m && y >= m && y <= win.height - m) {
+                return "";
+            }
+
+            const allowed = win.overview.resizableEdges(win);
             let v = "", h = "";
             if (allowed.t && y < m) {
                 v = "t";
@@ -439,10 +365,17 @@ Item {
             }
         }
 
+        onExited: {
+            if (!pressed) {
+                edge = "";
+            }
+        }
+
         onPressed: mouse => {
             if (mouse.button !== Qt.LeftButton) {
                 return;
             }
+            edge = win.overview.interacting ? "" : edgeAt(mouse.x, mouse.y);
             const p = mapToItem(win.overview.windowLayerItem, mouse.x, mouse.y);
             pressX = p.x;
             pressY = p.y;
@@ -451,7 +384,9 @@ Item {
 
         onReleased: mouse => {
             if (mouse.button === Qt.MiddleButton) {
-                win.overview.closeWindow(win.address);
+                if (mode === "") {
+                    win.overview.closeWindow(win.address);
+                }
                 return;
             }
 

@@ -39,7 +39,6 @@ ClippingRectangle {
         }
     }
 
-    // the glass colour from "Window Color and Appearance"
     Rectangle {
         anchors.fill: parent
         color: Theme.barTint

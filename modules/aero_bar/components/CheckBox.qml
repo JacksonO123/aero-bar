@@ -1,6 +1,5 @@
 import QtQuick
 
-// A Windows 7 check box with its label.
 Item {
     id: root
 
@@ -8,6 +7,15 @@ Item {
     property alias text: label.text
 
     signal toggled(bool checked)
+
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
+
+    HoverPress {
+        id: hp
+        hovered: mouse.containsMouse
+        pressed: mouse.pressed
+    }
 
     implicitWidth: box.width + 7 + label.implicitWidth
     implicitHeight: Math.max(box.height, label.implicitHeight)
@@ -18,15 +26,15 @@ Item {
         height: 13
         anchors.verticalCenter: parent.verticalCenter
         border.width: 1
-        border.color: mouse.containsMouse ? "#3c7fb1" : "#8f8f8f"
+        border.color: hp.shade("#8f8f8f", "#3c7fb1", "#2c628b")
         gradient: Gradient {
             GradientStop {
                 position: 0
-                color: mouse.containsMouse ? "#dff2fc" : "#e4e4e4"
+                color: hp.shade("#e4e4e4", "#dff2fc", "#c2e4f6")
             }
             GradientStop {
                 position: 1
-                color: mouse.containsMouse ? "#f4fbfe" : "#fbfbfb"
+                color: hp.shade("#fbfbfb", "#f4fbfe", "#e9f7fe")
             }
         }
 
@@ -62,9 +70,7 @@ Item {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
-        onClicked: {
-            root.checked = !root.checked;
-            root.toggled(root.checked);
-        }
+        // controlled: callers update `checked` from `toggled`; don't set it here
+        onClicked: root.toggled(!root.checked)
     }
 }

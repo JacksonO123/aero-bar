@@ -7,22 +7,16 @@ import QtQuick
 import "../utils/path.js" as PathUtils
 import "../utils/constants.js" as Constants
 
-// Everything the start menu needs that isn't drawing: which screen it is open on, the user,
-// launch history ("frequent programs"), search and the All Programs categories.
-//
-// Open it from hyprland with either of:
-//   bindr = SUPER, SUPER_L, global, quickshell:startmenu
-//   bind  = SUPER, D, exec, qs ipc call startmenu toggle
+// hl.bind("SUPER + SUPER_L", hl.dsp.global("quickshell:startmenu"), { release = true })
 Singleton {
     id: root
 
     property bool open: false
     property string screenName: ""
+    readonly property string screen: Screens.resolve(screenName)
     property double closedAt: 0
+    readonly property int reopenGuard: 300 // ms
 
-    // ---- editable lists ------------------------------------------------------------------------
-
-    // shown (in this order) until there is enough launch history to fill the list
     property var defaultApps: ["google-chrome", "Alacritty", "org.kde.dolphin", "spotify", "code", "firefox", "steam", "discord"]
     property int maxFrequent: 9
 
@@ -62,13 +56,12 @@ Singleton {
         {
             label: "Control Panel",
             icon: "preferences-system",
-            command: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
+            command: root.controlPanelCommand
         },
         {
             label: "Personalization",
             icon: "preferences-desktop-color",
-            // a function runs in the shell instead of launching a program
-            command: () => Theme.openDialog(root.screenName)
+            command: () => Theme.openDialog(root.screen)
         },
         {
             label: "Terminal",
@@ -77,31 +70,50 @@ Singleton {
         }
     ]
 
-    property var shutdownCommand: ["systemctl", "poweroff"]
+    property var controlPanelCommand: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
+    property var homeCommand: ["sh", "-c", "xdg-open \"$HOME\""]
+
+    function lock() {
+        LockState.lock();
+    }
+
+    function logOff() {
+        SessionEnd.start("logOff");
+    }
+
+    function sleep() {
+        LockState.lockThen(() => Quickshell.execDetached(["systemctl", "suspend"]));
+    }
+
+    function restart() {
+        SessionEnd.start("restart");
+    }
+
+    function shutDown() {
+        SessionEnd.start("shutDown");
+    }
+
     property var powerActions: [
         {
             label: "Lock",
-            command: ["loginctl", "lock-session"]
+            command: root.lock
         },
         {
             label: "Log off",
-            // the Lua config takes Lua dispatchers over IPC
-            command: Hyprland.usingLua ? ["hyprctl", "dispatch", "hl.dsp.exit()"] : ["hyprctl", "dispatch", "exit"]
+            command: root.logOff
         },
         {
             label: "Sleep",
-            command: ["systemctl", "suspend"]
+            command: root.sleep
         },
         {
             label: "Restart",
-            command: ["systemctl", "reboot"]
+            command: root.restart
         }
     ]
 
-    // ---- open / close --------------------------------------------------------------------------
-
-    function show(screen) {
-        screenName = screen || (Hyprland.focusedMonitor?.name ?? "");
+    function show(name) {
+        screenName = name || Screens.focused;
         open = true;
     }
 
@@ -112,19 +124,19 @@ Singleton {
         }
     }
 
-    function toggle(screen) {
+    function toggle(name) {
         if (open) {
             close();
-        } else if (Date.now() - closedAt > 300) {
-            // a click on the orb that just dismissed the menu (outside click) must not reopen it
-            show(screen);
+        } else if (Date.now() - closedAt > reopenGuard) {
+            // the orb click that just closed it (outside click) mustn't reopen it
+            show(name);
         }
     }
 
     GlobalShortcut {
         name: "startmenu"
         description: "Toggle the Aero start menu"
-        onPressed: root.toggle("")
+        onReleased: root.toggle("")
     }
 
     IpcHandler {
@@ -143,16 +155,18 @@ Singleton {
         }
     }
 
-    // ---- the user ------------------------------------------------------------------------------
-
     property string userName: Quickshell.env("USER") ?? "user"
     property string fullName: ""
-    property string picture: ""
+    readonly property string picture: AccountPicture.picture || foundPicture
+    property string foundPicture: ""
     readonly property string displayName: fullName || userName
 
     Process {
         running: true
-        command: ["sh", "-c", 'echo "name:$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1)"; ' + 'for f in "$HOME/.face" "$HOME/.face.icon" "/var/lib/AccountsService/icons/$USER"; do ' + 'if [ -r "$f" ] && [ -s "$f" ]; then echo "pic:$f"; break; fi; done']
+        command: ["sh", "-c", `echo "name:$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1)"
+for f in "$HOME/.face" "$HOME/.face.icon" "/var/lib/AccountsService/icons/$USER"; do
+    if [ -r "$f" ] && [ -s "$f" ]; then echo "pic:$f"; break; fi
+done`]
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -160,14 +174,12 @@ Singleton {
                     if (line.startsWith("name:")) {
                         root.fullName = line.slice(5).trim();
                     } else if (line.startsWith("pic:")) {
-                        root.picture = line.slice(4).trim();
+                        root.foundPicture = line.slice(4).trim();
                     }
                 }
             }
         }
     }
-
-    // ---- launching + history -------------------------------------------------------------------
 
     FileView {
         id: historyFile
@@ -195,7 +207,10 @@ Singleton {
         }
 
         if (entry.runInTerminal) {
-            Quickshell.execDetached(Constants.TERMINAL_CMD.concat(entry.command));
+            Quickshell.execDetached({
+                command: Constants.TERMINAL_CMD.concat(entry.command),
+                workingDirectory: entry.workingDirectory
+            });
         } else {
             entry.execute();
         }
@@ -262,15 +277,30 @@ Singleton {
         return scored.sort((a, b) => b.score - a.score).slice(0, 10).map(s => s.entry);
     }
 
-    // freedesktop main categories -> Win7-ish folder names
-    readonly property var categoryNames: [["AudioVideo", "Multimedia"], ["Audio", "Multimedia"], ["Video", "Multimedia"], ["Development", "Development"], ["Game", "Games"], ["Graphics", "Graphics"], ["Network", "Internet"], ["Office", "Office"], ["Education", "Education"], ["Science", "Science"], ["Settings", "Settings"], ["System", "System Tools"], ["Utility", "Accessories"]]
+    // key order matters: an app goes in the first of these it has
+    readonly property var categoryNames: ({
+            AudioVideo: "Multimedia",
+            Audio: "Multimedia",
+            Video: "Multimedia",
+            Development: "Development",
+            Game: "Games",
+            Graphics: "Graphics",
+            Network: "Internet",
+            Office: "Office",
+            Education: "Education",
+            Science: "Science",
+            Settings: "Settings",
+            System: "System Tools",
+            Utility: "Accessories"
+        })
 
     readonly property var categories: {
         const groups = {};
+        const keys = Object.keys(categoryNames);
         for (const e of applications) {
             const cats = e.categories ?? [];
-            const match = categoryNames.find(([key]) => cats.includes(key));
-            const name = match ? match[1] : "Other";
+            const key = keys.find(k => cats.includes(k));
+            const name = key ? categoryNames[key] : "Other";
             (groups[name] = groups[name] ?? []).push(e);
         }
 

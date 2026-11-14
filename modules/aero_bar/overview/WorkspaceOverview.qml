@@ -6,18 +6,6 @@ import "../components"
 import "../../../services"
 import "../../../utils/constants.js" as Constants
 
-// Mini desktops for every workspace, popped up above the workspace buttons after hovering them.
-//
-//  - drag a window onto another workspace (its card or its taskbar button) to move it there
-//  - drop it on the middle of another window to swap the two
-//  - drop it on "+" to send it to a new workspace
-//  - drag an inner edge of a tiled window (any edge/corner of a floating one) to resize
-//  - click a window to focus it, middle click (or the close button) to close it
-//  - click a card to switch to that workspace
-//
-// Every window lives in one layer above the cards so a moved window can fly from one card to
-// another. Geometry is in hyprland's global logical pixels (gx/gy/gw/gh) and is only mapped
-// into card space for display.
 Item {
     id: root
 
@@ -27,7 +15,6 @@ Item {
     readonly property alias windowLayerItem: windowLayer
     property bool open: false
 
-    // ---- layout tunables
     readonly property real maxDeskW: 216
     readonly property real maxDeskH: 128
     readonly property real cardSpacing: 14
@@ -36,10 +23,9 @@ Item {
     readonly property real newCardW: 34
     readonly property real edgeMargin: 10
 
-    // ---- hyprland state
     readonly property string focusedAddress: HyprState.focusedAddress
     readonly property var activeWorkspaceIds: HyprState.monitors.map(m => m.activeWorkspaceId)
-    readonly property int focusedWorkspaceId: HyprState.monitors.find(m => m.focused)?.activeWorkspaceId ?? -99999
+    readonly property int focusedWorkspaceId: HyprState.monitors.find(m => m.focused)?.activeWorkspaceId ?? Constants.NO_WORKSPACE
     property var windowCounts: ({})
     property var layout: ({
             entries: [],
@@ -54,19 +40,18 @@ Item {
             height: 100
         })
 
-    // ---- interaction state
     property var dragInfo: null
     property var resizeInfo: null
     property var dropTarget: null
     property point pointer: Qt.point(0, 0)
-    property int hoveredWorkspaceId: -99999
+    property int hoveredWorkspaceId: Constants.NO_WORKSPACE
     readonly property bool resizing: resizeInfo !== null
     readonly property bool interacting: dragInfo !== null || resizeInfo !== null
     property bool syncPending: false
-    // snapshots older than this predate our last dispatch and would undo the optimistic update
+    // older snapshots predate our last dispatch and would undo optimistic updates
     property int requiredEpoch: 0
 
-    readonly property int highlightedWorkspaceId: dropTarget ? (dropTarget.wsId ?? -99999) : hoveredWorkspaceId
+    readonly property int highlightedWorkspaceId: dropTarget ? (dropTarget.wsId ?? Constants.NO_WORKSPACE) : hoveredWorkspaceId
 
     implicitHeight: frame.height
 
@@ -78,51 +63,38 @@ Item {
         id: winModel
     }
 
-    // ---- open / close ----------------------------------------------------------------------
-
     readonly property bool triggerHovered: anchorItem.hovered ?? false
-    readonly property bool frameHovered: frame.hovered
+
+    readonly property bool keepOpen: triggerHovered || frame.hovered || interacting
 
     onTriggerHoveredChanged: {
-        if (triggerHovered) {
-            closeTimer.stop();
-            if (!open) {
-                openTimer.restart();
-                HyprState.refresh(); // prefetch so the cards are ready when it opens
-            }
-        } else {
+        if (!triggerHovered) {
             openTimer.stop();
-            scheduleClose();
+        } else if (!open) {
+            openTimer.restart();
+            HyprState.refresh();
         }
     }
 
-    onFrameHoveredChanged: frameHovered ? closeTimer.stop() : scheduleClose()
-
     onOpenChanged: {
         if (open) {
-            HyprState.retain();
+            HyprState.retain(true);
         } else {
-            HyprState.release();
-            hoveredWorkspaceId = -99999;
+            HyprState.release(true);
+            hoveredWorkspaceId = Constants.NO_WORKSPACE;
         }
     }
 
     Component.onDestruction: {
         if (open) {
-            HyprState.release();
-        }
-    }
-
-    function scheduleClose() {
-        if (open && !triggerHovered && !frameHovered && !interacting) {
-            closeTimer.restart();
+            HyprState.release(true);
         }
     }
 
     Connections {
         target: root.anchorItem
 
-        // clicking a workspace button means "take me there", not "show me the overview"
+        // a click means "go there", so restart the hover delay rather than open
         function onButtonClicked() {
             if (!root.open && root.triggerHovered) {
                 openTimer.restart();
@@ -139,30 +111,38 @@ Item {
     Timer {
         id: closeTimer
         interval: 450
-        onTriggered: {
-            if (!root.interacting && !root.frameHovered && !root.triggerHovered) {
-                root.open = false;
-            }
-        }
+        running: root.open && !root.keepOpen
+        onTriggered: root.open = false
     }
 
     Binding {
         target: root.anchorItem
         property: "highlightWorkspaceId"
-        value: root.open ? root.highlightedWorkspaceId : -99999
+        value: root.open ? root.highlightedWorkspaceId : Constants.NO_WORKSPACE
     }
 
-    // ---- syncing ---------------------------------------------------------------------------
+    readonly property bool tracking: open || triggerHovered || frame.visible
+
+    function syncWhenSettled() {
+        if (interacting || HyprState.dataEpoch < requiredEpoch) {
+            syncPending = true;
+        } else {
+            sync();
+        }
+    }
+
+    onTrackingChanged: {
+        if (tracking && HyprState.loaded) {
+            syncWhenSettled();
+        }
+    }
 
     Connections {
         target: HyprState
+        enabled: root.tracking
 
         function onUpdated() {
-            if (root.interacting || HyprState.dataEpoch < root.requiredEpoch) {
-                root.syncPending = true;
-                return;
-            }
-            root.sync();
+            root.syncWhenSettled();
         }
     }
 
@@ -188,14 +168,13 @@ Item {
             counts[c.wsId] = (counts[c.wsId] ?? 0) + 1;
         }
 
-        // layout first so cards/windows never point at a workspace the layout doesn't know yet
+        // before the models, so no delegate sees a workspace the layout lacks
         layout = computeLayout(workspaces);
         windowCounts = counts;
 
         syncModel(wsModel, workspaces.map(w => ({
                     wsId: w.id,
-                    name: w.name,
-                    monitorId: w.monitorId
+                    name: w.name
                 })), "wsId");
 
         syncModel(winModel, HyprState.clients.filter(c => known.has(c.wsId)).map(c => ({
@@ -213,8 +192,7 @@ Item {
                 })), "address");
     }
 
-    // Updates `model` in place to match `items` (same order), keeping delegates for unchanged
-    // keys alive so their geometry animates instead of being recreated.
+    // in place: delegates for unchanged keys survive, so their geometry animates
     function syncModel(model, items, key) {
         const wanted = new Set(items.map(item => item[key]));
         for (let i = model.count - 1; i >= 0; i--) {
@@ -272,7 +250,6 @@ Item {
             };
         });
 
-        // shrink everything uniformly if the row would not fit on this screen
         const fixed = 2 * pad + newCardW + cardSpacing * entries.length;
         const available = Math.max(160, width - 2 * edgeMargin - 30 - fixed);
         const total = entries.reduce((sum, e) => sum + e.deskW, 0);
@@ -312,8 +289,6 @@ Item {
         };
     }
 
-    // ---- geometry helpers --------------------------------------------------------------------
-
     function clamp(v, lo, hi) {
         return Math.max(lo, Math.min(hi, v));
     }
@@ -325,16 +300,6 @@ Item {
             }
         }
         return -1;
-    }
-
-    function workspaceName(wsId) {
-        for (let i = 0; i < wsModel.count; i++) {
-            const ws = wsModel.get(i);
-            if (ws.wsId === wsId) {
-                return ws.name;
-            }
-        }
-        return String(wsId);
     }
 
     function prettyName(cls) {
@@ -349,7 +314,7 @@ Item {
         return last.charAt(0).toUpperCase() + last.slice(1);
     }
 
-    // global logical rect -> rect in the overview, clipped to its card's desk
+    // Hyprland global logical px -> overview px, clipped to the card's desk
     function windowRect(wsId, gx, gy, gw, gh) {
         const e = layout.byId[wsId];
         if (!e) {
@@ -375,19 +340,24 @@ Item {
         return px >= r.x + ix && px <= r.x + r.w - ix && py >= r.y + iy && py <= r.y + r.h - iy;
     }
 
-    function tiledNeighbours(w) {
+    function rectOf(o) {
+        return {
+            gx: o.gx,
+            gy: o.gy,
+            gw: o.gw,
+            gh: o.gh
+        };
+    }
+
+    function tiledWindowsOf(w) {
         const list = [];
         for (let i = 0; i < winModel.count; i++) {
             const o = winModel.get(i);
             if (o.wsId === w.wsId && !o.floating && !o.fullscreen) {
-                list.push({
+                list.push(Object.assign({
                     index: i,
-                    address: o.address,
-                    gx: o.gx,
-                    gy: o.gy,
-                    gw: o.gw,
-                    gh: o.gh
-                });
+                    address: o.address
+                }, rectOf(o)));
             }
         }
         return list;
@@ -396,8 +366,6 @@ Item {
     readonly property real edgeTolerance: 40
     readonly property real minWindowSize: 80
 
-    // which edges of a window can be dragged: every edge of a floating window, but only the
-    // inner edges (ones that have a neighbour across them) of a tiled one
     function resizableEdges(w) {
         const edges = {
             l: false,
@@ -418,7 +386,7 @@ Item {
         }
 
         const tol = edgeTolerance;
-        for (const o of tiledNeighbours(w)) {
+        for (const o of tiledWindowsOf(w)) {
             if (o.address === w.address) {
                 continue;
             }
@@ -440,18 +408,17 @@ Item {
         return edges;
     }
 
-    // ---- hit testing -------------------------------------------------------------------------
-
     function hitTest(px, py, dragged) {
-        const viaButton = anchorItem.workspaceAt ? anchorItem.workspaceAt(windowLayer, px, py) : null;
-        if (viaButton) {
-            if (viaButton.id === dragged.wsId) {
+        const buttonWs = anchorItem.workspaceAt ? anchorItem.workspaceAt(windowLayer, px, py) : null;
+        if (buttonWs) {
+            const key = HyprState.keyOf(buttonWs);
+            if (key === dragged.wsId || !layout.byId[key]) {
                 return null;
             }
             return {
                 type: "move",
-                wsId: viaButton.id,
-                name: String(viaButton.name),
+                wsId: key,
+                name: String(buttonWs.name),
                 viaButton: true
             };
         }
@@ -473,7 +440,7 @@ Item {
                 continue;
             }
 
-            // topmost window under the pointer: floating ones first (most recently focused first)
+            // floating first, then most recently focused (focusHistoryId 0 = latest)
             let hit = null;
             let hitRect = null;
             let best = Infinity;
@@ -495,8 +462,8 @@ Item {
             }
 
             const sameWorkspace = e.wsId === dragged.wsId;
-            if (hit && !hit.floating && !hit.fullscreen && !dragged.floating) {
-                // across workspaces only the middle of a window swaps; its rim still means "move"
+            // Hyprland refuses to swap fullscreen windows
+            if (hit && !hit.floating && !hit.fullscreen && !dragged.floating && !dragged.fullscreen) {
                 if (sameWorkspace || contains(hitRect, px, py, 0.22)) {
                     return {
                         type: "swap",
@@ -508,7 +475,7 @@ Item {
             }
 
             if (sameWorkspace) {
-                return dragged.floating ? {
+                return dragged.floating && !dragged.fullscreen ? {
                     type: "reposition",
                     wsId: e.wsId
                 } : null;
@@ -541,15 +508,9 @@ Item {
         return "";
     }
 
-    // ---- dragging windows ----------------------------------------------------------------------
-
     function beginDrag(w, px, py) {
-        closeTimer.stop();
-        w.held = true;
         dragInfo = {
             address: w.address,
-            wsId: w.wsId,
-            floating: w.floating,
             offX: px - w.vx,
             offY: py - w.vy,
             origin: {
@@ -566,7 +527,11 @@ Item {
         w.vx = px - dragInfo.offX;
         w.vy = py - dragInfo.offY;
         pointer = Qt.point(px, py);
-        dropTarget = hitTest(px, py, w);
+        // a new object on every move would re-run every window's and card's bindings
+        const target = hitTest(px, py, w);
+        if (JSON.stringify(target) !== JSON.stringify(dropTarget)) {
+            dropTarget = target;
+        }
     }
 
     function endDrag(w, px, py, cancelled) {
@@ -577,18 +542,16 @@ Item {
 
         dragInfo = null;
         dropTarget = null;
-        w.held = false;
-        w.rebind(); // animates from wherever it was dropped to its (new) slot
+        w.rebind();
         finishInteraction();
     }
 
-    function setGeometry(index, values) {
+    function updateWindow(index, values) {
         if (index >= 0) {
             winModel.set(index, values);
         }
     }
 
-    // drop position of `w` mapped into workspace `e`, in global coords, kept on that monitor
     function dropGeometry(w, e, keepRealSize) {
         const m = e.mon;
         const gw = keepRealSize ? w.gw : w.vw / e.scale;
@@ -603,6 +566,19 @@ Item {
         };
     }
 
+    // a floating window keeps its size and relative spot on another monitor, kept on screen
+    function carriedGeometry(w, m) {
+        const from = layout.byId[w.wsId]?.mon ?? m;
+        const gw = Math.min(w.gw, m.width);
+        const gh = Math.min(w.gh, m.height);
+        return {
+            gx: m.x + clamp((w.gx - from.x) / from.width * m.width, 0, m.width - gw),
+            gy: m.y + clamp((w.gy - from.y) / from.height * m.height, 0, m.height - gh),
+            gw,
+            gh
+        };
+    }
+
     function commitDrop(w, t) {
         const index = indexOf(w.address);
         let epoch = 0;
@@ -611,23 +587,14 @@ Item {
             const other = indexOf(t.address);
             const a = winModel.get(index);
             const b = winModel.get(other);
-            const ga = {
-                wsId: a.wsId,
-                gx: a.gx,
-                gy: a.gy,
-                gw: a.gw,
-                gh: a.gh
-            };
-            const gb = {
-                wsId: b.wsId,
-                gx: b.gx,
-                gy: b.gy,
-                gw: b.gw,
-                gh: b.gh
-            };
-            // optimistic: trade places now, hyprland's answer will settle the details
-            setGeometry(index, gb);
-            setGeometry(other, ga);
+            const ga = Object.assign({
+                wsId: a.wsId
+            }, rectOf(a));
+            const gb = Object.assign({
+                wsId: b.wsId
+            }, rectOf(b));
+            updateWindow(index, gb);
+            updateWindow(other, ga);
             epoch = HyprState.swapWindows(w.address, t.address);
         } else if (t.type === "move" || t.type === "reposition") {
             const e = layout.byId[t.wsId];
@@ -636,8 +603,9 @@ Item {
             }
 
             let geo;
-            if (t.viaButton) {
-                // dropped on the taskbar: park it in the middle of that desk until hyprland answers
+            if (t.viaButton && w.floating) {
+                geo = carriedGeometry(w, e.mon);
+            } else if (t.viaButton) {
                 const m = e.mon;
                 geo = {
                     gx: m.x + m.width * 0.25,
@@ -649,17 +617,16 @@ Item {
                 geo = dropGeometry(w, e, w.floating);
             }
 
-            setGeometry(index, Object.assign({
+            updateWindow(index, Object.assign({
                 wsId: t.wsId
             }, geo));
 
-            const floatingPos = w.floating && !t.viaButton ? {
-                x: geo.gx,
-                y: geo.gy
-            } : null;
-
             if (t.type === "move") {
-                epoch = HyprState.moveToWorkspace(w.address, HyprState.workspaceSelector(t.wsId, workspaceName(t.wsId)), floatingPos);
+                const floatingPos = w.floating && !w.fullscreen ? {
+                    x: geo.gx,
+                    y: geo.gy
+                } : null;
+                epoch = HyprState.moveToWorkspace(w.address, HyprState.workspaceSelector(t.wsId), floatingPos);
             } else {
                 epoch = HyprState.moveFloating(w.address, geo.gx, geo.gy);
             }
@@ -670,10 +637,7 @@ Item {
         requiredEpoch = Math.max(requiredEpoch, epoch);
     }
 
-    // ---- resizing windows ----------------------------------------------------------------------
-
     function beginResize(w, edge, px, py) {
-        closeTimer.stop();
         const e = layout.byId[w.wsId];
         if (!e) {
             return;
@@ -687,38 +651,37 @@ Item {
             links.push({
                 index: indexOf(w.address),
                 address: w.address,
-                orig: {
-                    gx: w.gx,
-                    gy: w.gy,
-                    gw: w.gw,
-                    gh: w.gh
-                },
+                orig: rectOf(w),
                 l: hEdge === "l",
                 r: hEdge === "r",
                 t: vEdge === "t",
                 b: vEdge === "b"
             });
         } else {
-            // every tiled edge lying on the dragged divider moves with it, which is what
-            // hyprland will do once the split ratio changes
+            // hyprland moves every edge on this divider, but not aligned edges past a gap
             const tol = edgeTolerance;
             const lineX = hEdge === "l" ? w.gx : hEdge === "r" ? w.gx + w.gw : null;
             const lineY = vEdge === "t" ? w.gy : vEdge === "b" ? w.gy + w.gh : null;
 
-            for (const o of tiledNeighbours(w)) {
+            const touching = tiledWindowsOf(w).map(o => ({
+                        o,
+                        l: lineX !== null && Math.abs(o.gx - lineX) < tol,
+                        r: lineX !== null && Math.abs(o.gx + o.gw - lineX) < tol,
+                        t: lineY !== null && Math.abs(o.gy - lineY) < tol,
+                        b: lineY !== null && Math.abs(o.gy + o.gh - lineY) < tol
+                    }));
+            const onX = chained(touching.filter(c => c.l || c.r), c => [c.o.gy, c.o.gy + c.o.gh], [w.gy, w.gy + w.gh]);
+            const onY = chained(touching.filter(c => c.t || c.b), c => [c.o.gx, c.o.gx + c.o.gw], [w.gx, w.gx + w.gw]);
+
+            for (const c of touching) {
                 const link = {
-                    index: o.index,
-                    address: o.address,
-                    orig: {
-                        gx: o.gx,
-                        gy: o.gy,
-                        gw: o.gw,
-                        gh: o.gh
-                    },
-                    l: lineX !== null && Math.abs(o.gx - lineX) < tol,
-                    r: lineX !== null && Math.abs(o.gx + o.gw - lineX) < tol,
-                    t: lineY !== null && Math.abs(o.gy - lineY) < tol,
-                    b: lineY !== null && Math.abs(o.gy + o.gh - lineY) < tol
+                    index: c.o.index,
+                    address: c.o.address,
+                    orig: rectOf(c.o),
+                    l: c.l && onX.includes(c),
+                    r: c.r && onX.includes(c),
+                    t: c.t && onY.includes(c),
+                    b: c.b && onY.includes(c)
                 };
                 if (link.l || link.r || link.t || link.b) {
                     links.push(link);
@@ -726,9 +689,18 @@ Item {
             }
         }
 
+        const tiled = w.floating ? [] : tiledWindowsOf(w);
         resizeInfo = {
             address: w.address,
             floating: w.floating,
+            mon: e.mon,
+            layoutName: HyprState.workspaces.find(ws => ws.id === w.wsId)?.layout ?? "",
+            bounds: {
+                x0: Math.min(...tiled.map(o => o.gx)),
+                x1: Math.max(...tiled.map(o => o.gx + o.gw)),
+                y0: Math.min(...tiled.map(o => o.gy)),
+                y1: Math.max(...tiled.map(o => o.gy + o.gh))
+            },
             edge,
             hEdge,
             vEdge,
@@ -739,7 +711,25 @@ Item {
             dy: 0,
             links
         };
-        pointer = Qt.point(px, py);
+    }
+
+    function chained(candidates, spanOf, start) {
+        let lo = start[0], hi = start[1];
+        const chain = [];
+        let grew = true;
+        while (grew) {
+            grew = false;
+            for (const c of candidates) {
+                const span = spanOf(c);
+                if (!chain.includes(c) && Math.min(span[1], hi) - Math.max(span[0], lo) > 0) {
+                    chain.push(c);
+                    lo = Math.min(lo, span[0]);
+                    hi = Math.max(hi, span[1]);
+                    grew = true;
+                }
+            }
+        }
+        return chain;
     }
 
     function updateResize(px, py) {
@@ -750,6 +740,22 @@ Item {
 
         let dx = r.hEdge ? (px - r.startX) / r.scale : 0;
         let dy = r.vEdge ? (py - r.startY) / r.scale : 0;
+
+        if (r.floating) {
+            const l = r.links[0], m = r.mon;
+            if (l.r) {
+                dx = Math.min(dx, Math.max(0, m.x + m.width - l.orig.gx - l.orig.gw));
+            }
+            if (l.l) {
+                dx = Math.max(dx, Math.min(0, m.x - l.orig.gx));
+            }
+            if (l.b) {
+                dy = Math.min(dy, Math.max(0, m.y + m.height - l.orig.gy - l.orig.gh));
+            }
+            if (l.t) {
+                dy = Math.max(dy, Math.min(0, m.y - l.orig.gy));
+            }
+        }
 
         for (const l of r.links) {
             if (l.r) {
@@ -792,12 +798,33 @@ Item {
 
         r.dx = dx;
         r.dy = dy;
-        pointer = Qt.point(px, py);
     }
 
-    // The window whose split owns a divider is (almost always) the one with the longest edge
-    // along it; ties go to the window being dragged.
+    // a window reaching the far side of the workspace has no other divider on this axis, so a
+    // resize can only move this one; otherwise the longest edge usually owns the split
     function dividerOwner(r, axis) {
+        const tol = edgeTolerance, b = r.bounds;
+        const onDivider = r.links.filter(l => axis === "x" ? (l.l || l.r) : (l.t || l.b));
+        const before = l => axis === "x" ? l.r : l.b;
+
+        // master grows the window it's given and shrinks the ones after it
+        if (r.layoutName.includes("master")) {
+            const owner = onDivider.find(l => l.address === r.address && before(l)) ?? onDivider.find(before);
+            if (owner) {
+                return owner.address;
+            }
+        }
+
+        const outer = onDivider.filter(l => {
+            if (axis === "x") {
+                return l.r ? Math.abs(l.orig.gx - b.x0) < tol : Math.abs(l.orig.gx + l.orig.gw - b.x1) < tol;
+            }
+            return l.b ? Math.abs(l.orig.gy - b.y0) < tol : Math.abs(l.orig.gy + l.orig.gh - b.y1) < tol;
+        });
+        if (outer.length > 0) {
+            return (outer.find(before) ?? outer[0]).address;
+        }
+
         let best = null;
         let bestLength = -1;
         for (const l of r.links) {
@@ -858,10 +885,7 @@ Item {
         if (syncPending && HyprState.dataEpoch >= requiredEpoch) {
             sync();
         }
-        scheduleClose();
     }
-
-    // ---- simple actions ------------------------------------------------------------------------
 
     function focusWindow(address) {
         HyprState.focusWindow(address);
@@ -873,15 +897,14 @@ Item {
     }
 
     function activateWorkspace(wsId) {
-        HyprState.focusWorkspace(HyprState.workspaceSelector(wsId, workspaceName(wsId)));
+        HyprState.focusWorkspace(HyprState.workspaceSelector(wsId));
     }
 
     function createWorkspace() {
         HyprState.focusWorkspace("emptym");
     }
 
-    // ---- view ----------------------------------------------------------------------------------
-
+    // mapToItem() isn't tracked by bindings: read its inputs to re-evaluate
     readonly property real anchorCenterX: {
         anchorItem.x;
         anchorItem.width;
@@ -953,7 +976,6 @@ Item {
                 }
             }
 
-            // "+" slot: click for a fresh workspace, drop a window on it to send it to one
             Item {
                 id: newSlot
 
@@ -1011,7 +1033,6 @@ Item {
                 }
             }
 
-            // where the dragged window came from
             Rectangle {
                 visible: root.dragInfo !== null
                 x: root.dragInfo?.origin.x ?? 0

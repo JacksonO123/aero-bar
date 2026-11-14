@@ -1,19 +1,18 @@
 import QtQuick
 import QtQuick.Effects
 
-// A Windows 7 dialog: a glass frame with a caption and close button around a white client area.
-// Leave `shadowMargin` px around it free inside its window for the drop shadow.
 Item {
     id: root
 
     default property alias content: frame.content
     property string title: ""
-    property bool closable: true
-    property color contentColor: "white"
 
     signal closeClicked
 
-    // drop shadow
+    implicitHeight: frame.implicitHeight
+
+    Keys.onEscapePressed: closeClicked()
+
     Rectangle {
         anchors.fill: frame
         radius: frame.radius
@@ -35,7 +34,7 @@ Item {
         frameWidth: 8
         topFrameWidth: 30
         contentRadius: 2
-        contentColor: root.contentColor
+        contentColor: "white"
     }
 
     CaptionText {
@@ -48,7 +47,6 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: 6
         y: 1
-        visible: root.closable
         onClicked: root.closeClicked()
     }
 }

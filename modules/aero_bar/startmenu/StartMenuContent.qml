@@ -4,11 +4,6 @@ import QtQuick
 import "../components"
 import "../../../services"
 
-// The Windows 7 start menu, drawn in this shell's glass:
-//  left:  white panel with frequent programs / All Programs (folders) / search results,
-//         search box underneath
-//  right: the user tile hanging over the top edge, places + system links on the glass,
-//         and the Shut down split button
 Item {
     id: root
 
@@ -18,8 +13,14 @@ Item {
     property int selected: 0
     property string hoveredIcon: ""
     property bool powerMenuOpen: false
-    // the home list only shows a keyboard selection once the arrow keys are used
     property bool keyboardNav: false
+    property bool allProgramsBuilt: false
+
+    onModeChanged: {
+        if (mode === "all") {
+            allProgramsBuilt = true;
+        }
+    }
 
     readonly property alias maskFrame: frame
     readonly property alias maskTile: tile
@@ -59,23 +60,36 @@ Item {
         }
     }
 
+    function runQuery() {
+        StartMenuState.run(["sh", "-c", query]);
+    }
+
     function activateSelected() {
         if (mode === "search") {
             if (selected < results.length) {
                 StartMenuState.launch(results[selected]);
-            } else if (query.trim() !== "") {
-                StartMenuState.run(["sh", "-c", query]);
+            } else {
+                runQuery();
             }
-        } else if (mode === "home") {
+        } else if (mode === "home" && keyboardNav) {
             StartMenuState.launch(StartMenuState.frequentApps[selected]);
         }
     }
 
     function selectableCount() {
         if (mode === "search") {
-            return results.length + (query.trim() !== "" ? 1 : 0);
+            return results.length + 1; // + the Run row
         }
         return mode === "home" ? StartMenuState.frequentApps.length : 0;
+    }
+
+    // the next place's hover can arrive before this one's ends: clear only our icon
+    function showPlaceIcon(icon, hovered) {
+        if (hovered) {
+            hoveredIcon = icon;
+        } else if (hoveredIcon === icon) {
+            hoveredIcon = "";
+        }
     }
 
     Keys.onPressed: event => {
@@ -93,7 +107,9 @@ Item {
         } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
             const count = selectableCount();
             if (count > 0) {
-                selected = keyboardNav || mode === "search" ? (selected + (event.key === Qt.Key_Down ? 1 : -1) + count) % count : 0;
+                const step = event.key === Qt.Key_Down ? 1 : -1;
+                const revealOnly = !keyboardNav && mode !== "search";
+                selected = revealOnly ? 0 : (selected + step + count) % count;
                 keyboardNav = true;
             }
             event.accepted = true;
@@ -103,7 +119,6 @@ Item {
         }
     }
 
-    // a link on the glass column
     component Place: Win7Frame {
         id: place
 
@@ -114,6 +129,11 @@ Item {
 
         height: 28
         frameOpacity: hoverT
+        onClicked: mouse => {
+            if (mouse.button === Qt.LeftButton) {
+                StartMenuState.run(place.command);
+            }
+        }
 
         Win7Hover {
             radius: place.radius
@@ -135,7 +155,6 @@ Item {
         }
     }
 
-    // open/close: quick fade + rise, like Win7
     opacity: shown ? 1 : 0
     property real rise: shown ? 0 : 14
 
@@ -172,8 +191,6 @@ Item {
             sheenFade: 0.3
         }
 
-        // ---- left: white panel ---------------------------------------------------------------
-
         Rectangle {
             id: leftPanel
             x: root.pad
@@ -193,7 +210,6 @@ Item {
                 width: parent.width - 8
                 height: parent.height - 8 - allPrograms.height - 9
 
-                // frequent programs
                 Column {
                     width: parent.width
                     x: root.mode === "home" ? 0 : -width * 0.3
@@ -229,7 +245,6 @@ Item {
                     }
                 }
 
-                // All Programs: category folders
                 Item {
                     anchors.fill: parent
                     x: root.mode === "all" ? 0 : width * 0.5
@@ -273,7 +288,6 @@ Item {
                                     MenuItem {
                                         width: folder.width
                                         label: folder.modelData.name
-                                        sublabel: ""
                                         iconName: folder.expanded ? "folder-open" : "folder"
                                         iconSize: 20
                                         showArrow: true
@@ -298,7 +312,7 @@ Item {
                                             width: parent.width
 
                                             Repeater {
-                                                model: folder.modelData.entries
+                                                model: root.allProgramsBuilt ? folder.modelData.entries : []
 
                                                 MenuItem {
                                                     required property var modelData
@@ -317,19 +331,12 @@ Item {
                         }
                     }
 
-                    // slim Aero scroll thumb
-                    Rectangle {
+                    ScrollThumb {
                         anchors.right: parent.right
-                        width: 4
-                        radius: 2
-                        visible: allFlick.contentHeight > allFlick.height
-                        y: allFlick.visibleArea.yPosition * allFlick.height
-                        height: allFlick.visibleArea.heightRatio * allFlick.height
-                        color: Qt.rgba(0.3, 0.42, 0.55, 0.45)
+                        flickable: allFlick
                     }
                 }
 
-                // search results
                 Column {
                     width: parent.width
                     opacity: root.mode === "search" ? 1 : 0
@@ -379,12 +386,11 @@ Item {
                         iconName: "utilities-terminal"
                         iconSize: 20
                         selected: root.selected === root.results.length
-                        onActivated: StartMenuState.run(["sh", "-c", root.query])
+                        onActivated: root.runQuery()
                     }
                 }
             }
 
-            // Win7 separator above All Programs
             Rectangle {
                 x: 10
                 width: parent.width - 20
@@ -447,10 +453,8 @@ Item {
             y: root.frameH - root.pad - root.searchH
             width: root.leftW
             height: root.searchH
-            // Enter is handled once, by Keys.onPressed above (TextInput lets the key through)
+            // Enter is handled only by Keys.onPressed above (TextInput lets it through)
         }
-
-        // ---- right: places on the glass ----------------------------------------------------------
 
         Column {
             id: rightColumn
@@ -464,9 +468,8 @@ Item {
                 label: StartMenuState.displayName
                 icon: "user-home"
                 emphasised: true
-                command: ["sh", "-c", "xdg-open \"$HOME\""]
-                onHoveredChanged: root.hoveredIcon = hovered ? icon : ""
-                onClicked: StartMenuState.run(command)
+                command: StartMenuState.homeCommand
+                onHoveredChanged: root.showPlaceIcon(icon, hovered)
             }
 
             Repeater {
@@ -478,8 +481,7 @@ Item {
                     label: modelData.label
                     icon: modelData.icon
                     command: modelData.command
-                    onHoveredChanged: root.hoveredIcon = hovered ? icon : ""
-                    onClicked: StartMenuState.run(command)
+                    onHoveredChanged: root.showPlaceIcon(icon, hovered)
                 }
             }
 
@@ -504,29 +506,24 @@ Item {
                     label: modelData.label
                     icon: modelData.icon
                     command: modelData.command
-                    onHoveredChanged: root.hoveredIcon = hovered ? icon : ""
-                    onClicked: StartMenuState.run(command)
+                    onHoveredChanged: root.showPlaceIcon(icon, hovered)
                 }
             }
         }
 
-        // ---- Shut down split button ------------------------------------------------------------
-
         ShutdownButton {
-            id: powerRow
+            id: shutdownButton
             x: root.rightX + 8
-            // centred on the search box, like Win7
             y: root.frameH - root.pad - root.searchH + (root.searchH - height) / 2
             menuOpen: root.powerMenuOpen
-            onClicked: StartMenuState.run(StartMenuState.shutdownCommand)
+            onClicked: StartMenuState.run(StartMenuState.shutDown)
             onArrowClicked: root.powerMenuOpen = !root.powerMenuOpen
         }
 
-        // power options (Win7 context menu)
         Item {
             id: powerMenu
-            x: powerRow.x + powerRow.width - width
-            y: powerRow.y - height - 4
+            x: shutdownButton.x + shutdownButton.width - width
+            y: shutdownButton.y - height - 4
             width: 138
             height: powerColumn.height + 6
             opacity: root.powerMenuOpen ? 1 : 0
@@ -594,7 +591,7 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: StartMenuState.run(StartMenuState.systemLinks.find(l => l.label === "Control Panel")?.command ?? ["sh", "-c", "xdg-open \"$HOME\""])
+            onClicked: StartMenuState.run(() => AccountPicture.openDialog(StartMenuState.screen))
         }
     }
 }

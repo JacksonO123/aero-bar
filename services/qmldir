@@ -5,3 +5,16 @@ singleton Audio Audio.qml
 singleton HyprState HyprState.qml
 singleton StartMenuState StartMenuState.qml
 singleton Theme Theme.qml
+singleton Notifications Notifications.qml
+singleton NetState NetState.qml
+singleton LockState LockState.qml
+singleton AuthAgent AuthAgent.qml
+singleton Taskbar Taskbar.qml
+singleton Peek Peek.qml
+singleton Screens Screens.qml
+singleton GreeterState GreeterState.qml
+singleton Wallpaper Wallpaper.qml
+singleton AccountPicture AccountPicture.qml
+PictureFolder 1.0 PictureFolder.qml
+FileChooser 1.0 FileChooser.qml
+singleton SessionEnd SessionEnd.qml

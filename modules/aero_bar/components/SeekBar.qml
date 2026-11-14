@@ -1,6 +1,5 @@
 import QtQuick
 
-// Windows 7 style green progress bar (with the travelling highlight while playing). Seekable.
 Item {
     id: root
 
@@ -29,7 +28,14 @@ Item {
         anchors.fill: parent
         radius: 3
         border.width: 1
-        border.color: "#8b97a3"
+        border.color: seekMouse.enabled && (seekMouse.containsMouse || root.scrubbing) ? "#5794bf" : "#8b97a3"
+
+        Behavior on border.color {
+            ColorAnimation {
+                duration: 150
+                easing.type: Easing.OutQuad
+            }
+        }
 
         gradient: Gradient {
             GradientStop {
@@ -51,7 +57,7 @@ Item {
         width: Math.max(0, (parent.width - 2) * root.ratio)
         clip: true
 
-        // position only updates twice a second, so ease between updates
+        // position updates only twice a second, so ease between updates
         Behavior on width {
             enabled: !root.scrubbing
             NumberAnimation {
@@ -64,23 +70,10 @@ Item {
             height: parent.height
             radius: 2
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: "#c9f5c0"
-                }
-                GradientStop {
-                    position: 0.45
-                    color: "#6fd85d"
-                }
-                GradientStop {
-                    position: 0.46
-                    color: "#30b420"
-                }
-                GradientStop {
-                    position: 1.0
-                    color: "#56d046"
-                }
+            gradient: SplitGradient {
+                split: 0.45
+                splitEnd: 0.46
+                colors: ["#c9f5c0", "#6fd85d", "#30b420", "#56d046"]
             }
         }
 
@@ -117,9 +110,11 @@ Item {
     }
 
     MouseArea {
+        id: seekMouse
         anchors.fill: parent
         anchors.topMargin: -4
         anchors.bottomMargin: -4
+        hoverEnabled: true
         enabled: root.seekable && root.length > 0
         cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         preventStealing: true

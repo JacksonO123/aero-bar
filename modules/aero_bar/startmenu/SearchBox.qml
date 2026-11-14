@@ -1,6 +1,5 @@
 import QtQuick
 
-// "Search programs and files" field: white, slightly recessed, magnifier on the right.
 Item {
     id: root
 
@@ -56,7 +55,7 @@ Item {
         }
     }
 
-    // the asset carries its own reflection underneath; show the top half
+    // the asset has its reflection below: crop to the top half
     Image {
         anchors.right: parent.right
         anchors.rightMargin: 6
