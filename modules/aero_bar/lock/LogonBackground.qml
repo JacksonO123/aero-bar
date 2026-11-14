@@ -6,7 +6,7 @@ Canvas {
 
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()
-    // a hidden copy (the lock screen's shutdown view) shouldn't hold a full-screen image
+    // a hidden copy shouldn't hold a full-screen image
     onVisibleChanged: {
         if (visible) {
             requestPaint();

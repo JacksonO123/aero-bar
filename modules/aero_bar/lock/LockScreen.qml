@@ -41,10 +41,12 @@ Scope {
         WlSessionLockSurface {
             color: "black"
 
-            LockSurface {}
+            LockSurface {
+                shown: !SessionEnd.active
+            }
 
             // layer surfaces don't show over a session lock
-            SessionEndView {}
+            SessionEndLayer {}
         }
     }
 

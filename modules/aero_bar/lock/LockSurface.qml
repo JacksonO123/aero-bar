@@ -3,7 +3,6 @@ import "../../../services"
 
 LogonScreen {
     power: StartMenuState
-    shown: !SessionEnd.active
     onBackgroundClicked: signIn.focusInput()
     onShownChanged: {
         if (shown) {

@@ -10,9 +10,10 @@ Singleton {
 
     // "shutDown" | "restart" | "logOff": the last one started
     property string action: "shutDown"
-    property bool active: false
-    property bool blocked: false
-    property bool ending: false
+    // "" | "closing" | "blocked" | "ending"
+    property string phase: ""
+    readonly property bool active: phase !== ""
+    readonly property bool blocked: phase === "blocked"
 
     // only real windows: Hyprland also lists hidden X11 windows (never closed) and popups
     readonly property var windows: Taskbar.toplevels.filter(t => t.wayland)
@@ -25,44 +26,45 @@ Singleton {
         }
 
         action = kind;
-        active = true;
-        ending = false;
+        phase = "closing";
         HyprState.closeWindows(windows.map(Taskbar.hyprAddress));
         patience.restart();
         finishIfClosed();
     }
 
     function finishIfClosed() {
-        if (active && !ending && windows.length === 0) {
+        if (windows.length === 0) {
             finish();
         }
     }
 
     function finish() {
-        if (!active || ending) {
+        if (!active || phase === "ending") {
             return;
         }
 
-        ending = true;
-        blocked = false;
+        phase = "ending";
         patience.stop();
         farewell.start();
     }
 
     function cancel() {
-        if (ending) {
+        if (phase === "ending") {
             return;
         }
 
         patience.stop();
-        blocked = false;
-        active = false;
+        phase = "";
     }
 
     Timer {
         id: patience
         interval: 5000
-        onTriggered: root.blocked = true
+        onTriggered: {
+            if (root.phase === "closing") {
+                root.phase = "blocked";
+            }
+        }
     }
 
     // let "Shutting down…" show before the screens go
@@ -85,10 +87,7 @@ Singleton {
     Timer {
         id: stalled
         interval: 20000
-        onTriggered: {
-            root.ending = false;
-            root.active = false;
-        }
+        onTriggered: root.phase = ""
     }
 
     IpcHandler {

@@ -10,7 +10,7 @@ Variants {
         required property var modelData
 
         screen: modelData
-        visible: SessionEnd.active || view.opacity > 0.01
+        visible: layer.showing
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         anchors {
@@ -24,8 +24,8 @@ Variants {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: SessionEnd.active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-        SessionEndView {
-            id: view
+        SessionEndLayer {
+            id: layer
         }
     }
 }

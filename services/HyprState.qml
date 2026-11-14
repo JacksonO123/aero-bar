@@ -279,7 +279,7 @@ Singleton {
     }
 
     function closeWindow(address) {
-        return closeWindows([address]);
+        closeWindows([address]);
     }
 
     function closeWindows(addresses) {
