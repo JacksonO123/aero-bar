@@ -62,6 +62,18 @@ Item {
 
     onKeepOpenChanged: keepOpen ? closeTimer.stop() : closeTimer.restart()
 
+    // a module that goes away (the media module when the last player quits) takes its pane with
+    // it, even when pinned
+    Connections {
+        target: root.current
+
+        function onVisibleChanged() {
+            if (!root.current.visible) {
+                root.close();
+            }
+        }
+    }
+
     function paneFromOwner(owner) {
         if (owner === null) {
             return null;

@@ -1,18 +1,18 @@
 import QtQuick
+import "../../../services"
 import "../../../utils/colors.js" as ColorUtils
 
-// Media Player style transport: a silver capsule with prev/next, and a big glass play orb on top.
+// Media Player style transport for `player`: a silver capsule with prev/next, and a big glass
+// play orb on top.
 Item {
     id: root
 
-    property bool playing: false
-    property bool canPrevious: true
-    property bool canNext: true
-    property bool canToggle: true
+    required property var player
 
-    signal previous
-    signal next
-    signal toggle
+    readonly property bool playing: player?.isPlaying ?? false
+    readonly property bool canPrevious: player?.canGoPrevious ?? false
+    readonly property bool canNext: player?.canGoNext ?? false
+    readonly property bool canToggle: player?.canTogglePlaying ?? false
 
     readonly property real orbSize: 40
     readonly property real capsuleHeight: 26
@@ -117,7 +117,7 @@ Item {
         glyph: "prev"
         leftSide: true
         active: root.canPrevious
-        onActivated: root.previous()
+        onActivated: Media.previous(root.player)
     }
 
     CapsuleSegment {
@@ -128,7 +128,7 @@ Item {
         glyph: "next"
         leftSide: false
         active: root.canNext
-        onActivated: root.next()
+        onActivated: Media.next(root.player)
     }
 
     // silver bezel that seats the orb in the capsule
@@ -176,7 +176,7 @@ Item {
             hoverEnabled: true
             enabled: root.canToggle
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.toggle()
+            onClicked: Media.togglePlaying(root.player)
 
             containmentMask: QtObject {
                 function contains(point: point): bool {

@@ -53,16 +53,13 @@ Singleton {
     }
 
     readonly property bool hasPlayer: player !== null
-    readonly property string title: player ? (player.trackTitle || "Unknown Title") : ""
+    readonly property string title: titleOf(player)
     readonly property string artist: player?.trackArtist ?? ""
     readonly property string album: player?.trackAlbum ?? ""
     readonly property string artUrl: player?.trackArtUrl ?? ""
     readonly property string identity: player?.identity ?? ""
     readonly property bool isPlaying: player?.isPlaying ?? false
-    readonly property bool canToggle: player?.canTogglePlaying ?? false
-    readonly property bool canNext: player?.canGoNext ?? false
-    readonly property bool canPrevious: player?.canGoPrevious ?? false
-    readonly property bool canSeek: (player?.canSeek ?? false) && (player?.positionSupported ?? false)
+    readonly property bool canSeek: canSeekOf(player)
     readonly property real length: lengthOf(player)
 
     onPlayerChanged: {
@@ -107,26 +104,15 @@ Singleton {
         }
     }
 
-    // 3:07, or 1:02:07 past an hour
-    function formatTime(seconds) {
-        const s = Math.max(0, Math.floor(seconds));
-        const h = Math.floor(s / 3600);
-        const m = Math.floor((s % 3600) / 60);
-        const sec = String(s % 60).padStart(2, "0");
-        return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
-    }
-
-    function lengthOf(p) {
-        return (p?.lengthSupported ?? false) ? p.length : 0;
-    }
-
     function seek(seconds, p = player) {
-        if ((p?.canSeek ?? false) && (p?.positionSupported ?? false)) {
+        if (canSeekOf(p)) {
             p.position = Math.max(0, Math.min(lengthOf(p), seconds));
         }
     }
 
-    // the taskbar shows `p` (until another player starts playing)
+    // ---- which player the taskbar shows -------------------------------------------------------
+
+    // `p` (until another player starts playing)
     function show(p) {
         pinned = p;
     }
@@ -139,5 +125,28 @@ Singleton {
 
         const index = list.indexOf(player);
         show(list[(index + 1) % list.length]);
+    }
+
+    // ---- about any player ---------------------------------------------------------------------
+
+    function titleOf(p) {
+        return p ? (p.trackTitle || "Unknown Title") : "";
+    }
+
+    function lengthOf(p) {
+        return (p?.lengthSupported ?? false) ? p.length : 0;
+    }
+
+    function canSeekOf(p) {
+        return (p?.canSeek ?? false) && (p?.positionSupported ?? false);
+    }
+
+    // 3:07, or 1:02:07 past an hour
+    function formatTime(seconds) {
+        const s = Math.max(0, Math.floor(seconds));
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = String(s % 60).padStart(2, "0");
+        return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
     }
 }

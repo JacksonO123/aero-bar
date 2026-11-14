@@ -10,11 +10,20 @@ FlyoutPane {
     id: root
 
     required property var flyoutEl
-    readonly property bool showAll: flyoutEl.pinned
+
+    // the list (pinned) or the hover view. Follows the flyout's pinning only while this pane
+    // shows, a moment later, so it doesn't switch while fading out: when another module's pane
+    // is pinned over it, or when the list closes.
+    property bool showAll: false
+
+    // the hover view is on screen (it's hidden while the list is pinned)
+    readonly property bool hoverShown: active && !showAll
 
     readonly property var player: Media.player
     readonly property real position: player?.position ?? 0
     readonly property real length: Media.length
+    // the playing players whose progress is on screen
+    readonly property var polled: showAll ? Media.playing : (Media.isPlaying ? [player] : [])
 
     readonly property real artSize: 92
     readonly property real padding: 10
@@ -22,22 +31,22 @@ FlyoutPane {
     width: showAll ? 460 : 340
     height: (showAll ? sources.height : content.height) + padding * 2
 
-    // the players whose progress is on screen
-    readonly property var shownPlayers: showAll ? Media.players : [player]
+    Binding {
+        target: root
+        property: "showAll"
+        value: root.flyoutEl.pinned
+        when: root.active
+        delayed: true
+        restoreMode: Binding.RestoreNone
+    }
 
     // mpris position isn't reactive; poll it only while this pane is on screen
     Timer {
         interval: 500
         repeat: true
         triggeredOnStart: true
-        running: root.active && root.shownPlayers.some(p => p?.isPlaying)
-        onTriggered: {
-            for (const p of root.shownPlayers) {
-                if (p?.isPlaying) {
-                    p.positionChanged();
-                }
-            }
-        }
+        running: root.active && root.polled.length > 0
+        onTriggered: root.polled.forEach(p => p.positionChanged())
     }
 
     // ---- the player the taskbar shows (hover) --------------------------------------------------
@@ -102,7 +111,7 @@ FlyoutPane {
                     color: "#13263a"
                     font.pixelSize: 14
                     font.bold: true
-                    scrolling: root.active
+                    scrolling: root.hoverShown
                 }
 
                 ScrollingText {
@@ -110,7 +119,7 @@ FlyoutPane {
                     text: Media.artist
                     color: "#2f4559"
                     font.pixelSize: 12
-                    scrolling: root.active
+                    scrolling: root.hoverShown
                 }
 
                 ScrollingText {
@@ -119,7 +128,7 @@ FlyoutPane {
                     text: Media.album
                     color: "#6b7785"
                     font.pixelSize: 11
-                    scrolling: root.active
+                    scrolling: root.hoverShown
                 }
 
                 Item {
@@ -129,13 +138,7 @@ FlyoutPane {
 
                 TransportControls {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    playing: Media.isPlaying
-                    canPrevious: Media.canPrevious
-                    canNext: Media.canNext
-                    canToggle: Media.canToggle
-                    onPrevious: Media.previous()
-                    onNext: Media.next()
-                    onToggle: Media.togglePlaying()
+                    player: root.player
                 }
             }
         }
@@ -161,7 +164,7 @@ FlyoutPane {
                 position: root.position
                 length: root.length
                 seekable: Media.canSeek
-                playing: Media.isPlaying && root.active
+                playing: Media.isPlaying && root.hoverShown
                 onSeek: seconds => Media.seek(seconds)
             }
 
@@ -226,10 +229,11 @@ FlyoutPane {
                     width: scroller.width
                     spacing: 4
 
-                    // a ScriptModel keeps each player's row as players come and go
+                    // built when the list first shows; a ScriptModel keeps each player's row as
+                    // players come and go
                     Repeater {
                         model: ScriptModel {
-                            values: Media.players
+                            values: root.showAll ? Media.players : []
                         }
 
                         MediaSourceRow {

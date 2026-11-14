@@ -15,6 +15,8 @@ Item {
     readonly property bool current: player === Media.player
     readonly property bool playing: player?.isPlaying ?? false
     readonly property real length: Media.lengthOf(player)
+    // titles scroll while the pointer is over the row
+    readonly property bool scrolling: active && rowHover.hovered
 
     readonly property real artSize: 64
     readonly property real textX: 12 + artSize + 12
@@ -44,7 +46,6 @@ Item {
         y: 12
         width: row.artSize
         height: row.artSize
-        radius: 3
         source: row.player?.trackArtUrl ?? ""
     }
 
@@ -54,17 +55,22 @@ Item {
         width: controls.x - x - 10
         spacing: 1
 
-        // the app, and whether it's playing
+        // the app (cut short if it's long), and whether it's playing
         Row {
+            id: identityLine
+            width: parent.width
             spacing: 6
 
             Text {
+                width: Math.min(implicitWidth, identityLine.width - statusDot.width - statusText.width - identityLine.spacing * 2)
+                elide: Text.ElideRight
                 text: row.player?.identity ?? ""
                 color: "#6b7785"
                 font.pixelSize: 10
             }
 
             Rectangle {
+                id: statusDot
                 anchors.verticalCenter: parent.verticalCenter
                 width: 6
                 height: 6
@@ -75,6 +81,7 @@ Item {
             }
 
             Text {
+                id: statusText
                 text: row.playing ? "Playing" : "Paused"
                 color: row.playing ? "#2f7a22" : "#6b7785"
                 font.pixelSize: 10
@@ -83,11 +90,11 @@ Item {
 
         ScrollingText {
             width: parent.width
-            text: row.player?.trackTitle || "Unknown Title"
+            text: Media.titleOf(row.player)
             color: "#13263a"
             font.pixelSize: 13
             font.bold: true
-            scrolling: row.active && rowHover.hovered
+            scrolling: row.scrolling
         }
 
         ScrollingText {
@@ -96,7 +103,7 @@ Item {
             text: row.player?.trackArtist ?? ""
             color: "#2f4559"
             font.pixelSize: 11
-            scrolling: row.active && rowHover.hovered
+            scrolling: row.scrolling
         }
     }
 
@@ -105,13 +112,7 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: 10
         y: 10
-        playing: row.playing
-        canPrevious: row.player?.canGoPrevious ?? false
-        canNext: row.player?.canGoNext ?? false
-        canToggle: row.player?.canTogglePlaying ?? false
-        onPrevious: Media.previous(row.player)
-        onNext: Media.next(row.player)
-        onToggle: Media.togglePlaying(row.player)
+        player: row.player
     }
 
     // progress, under the title and the controls
@@ -124,9 +125,17 @@ Item {
         visible: row.length > 0
         position: row.player?.position ?? 0
         length: row.length
-        seekable: (row.player?.canSeek ?? false) && (row.player?.positionSupported ?? false)
+        seekable: Media.canSeekOf(row.player)
         playing: row.playing && row.active
         onSeek: seconds => Media.seek(seconds, row.player)
+    }
+
+    // room for the longest time this track shows, so the bar doesn't move as it plays and the
+    // bars of tracks under 100 minutes line up
+    TextMetrics {
+        id: timeSpace
+        font: time.font
+        text: row.length >= 3600 ? "0:00:00 / 0:00:00" : "00:00 / 00:00"
     }
 
     Text {
@@ -134,6 +143,8 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: 12
         anchors.verticalCenter: seekBar.verticalCenter
+        width: Math.ceil(timeSpace.advanceWidth)
+        horizontalAlignment: Text.AlignRight
         visible: row.length > 0
         text: Media.formatTime(seekBar.shownPosition) + " / " + Media.formatTime(row.length)
         color: "#4a5a6a"
