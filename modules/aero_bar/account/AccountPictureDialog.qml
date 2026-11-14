@@ -15,9 +15,9 @@ Variants {
         title: "Change Your Picture"
         dialogWidth: pictures.implicitWidth + 32 + 18
 
-        // the picture you'll have: the one clicked, else the one you have now (hidden screens
-        // don't follow the clicks)
-        readonly property string shown: (visible && AccountPicture.selection) || StartMenuState.picture
+        // the picture you'll have: the one clicked (or being kept), else the one you have now
+        // (hidden screens don't follow the clicks)
+        readonly property string shown: (visible && (AccountPicture.selection || AccountPicture.saving)) || StartMenuState.picture
 
         Item {
             id: body
@@ -83,8 +83,8 @@ Variants {
                 height: cellHeight * 3.5 + 12
                 // only while this screen shows the dialog (and fades it out)
                 images: window.visible ? AccountPicture.images : []
-                // the one clicked, else the one your picture is a copy of
-                selected: AccountPicture.selection || AccountPicture.source
+                // the one clicked (or being kept), else the one your picture is a copy of
+                selected: AccountPicture.selection || AccountPicture.saving || AccountPicture.source
                 onPicked: path => AccountPicture.select(path)
                 onChosen: path => {
                     AccountPicture.select(path);

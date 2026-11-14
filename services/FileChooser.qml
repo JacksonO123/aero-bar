@@ -12,7 +12,7 @@ Scope {
     readonly property bool available: tool !== ""
     readonly property bool isKdialog: tool.endsWith("kdialog")
     // it's open
-    readonly property bool busy: dialog.running
+    readonly property bool busy: dialog?.running ?? false
 
     signal chosen(string path)
 
@@ -24,10 +24,11 @@ Scope {
         open(isKdialog ? [tool, "--getexistingdirectory", start] : [tool, "--file-selection", "--directory", `--filename=${start}/`]);
     }
 
-    // `name` and `types` make the filter, e.g. "Pictures", ["png", "jpg"] (upper case too: GTK's
-    // patterns are case-sensitive, and cameras write IMG_0001.JPG)
+    // `name` and `types` make the filter, e.g. "Pictures", ["png", "jpg"], matching any case
+    // ("*.[pP][nN][gG]": GTK's patterns are case-sensitive, and cameras write IMG_0001.JPG)
     function chooseFile(start, name, types) {
-        const patterns = types.map(t => `*.${t} *.${t.toUpperCase()}`).join(" ");
+        const anyCase = type => type.split("").map(c => `[${c}${c.toUpperCase()}]`).join("");
+        const patterns = types.map(t => `*.${anyCase(t)}`).join(" ");
         open(isKdialog ? [tool, "--getopenfilename", start, `${name} (${patterns})`] : [tool, "--file-selection", `--filename=${start}/`, `--file-filter=${name} | ${patterns}`]);
     }
 

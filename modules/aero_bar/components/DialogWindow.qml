@@ -27,9 +27,11 @@ PanelWindow {
     color: "transparent"
 
     WlrLayershell.namespace: "aero-dialog"
-    WlrLayershell.layer: WlrLayer.Top
-    // (not while the service's file chooser is open: it needs the keyboard)
-    WlrLayershell.keyboardFocus: wanted && !(service.browsing ?? false) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    // while the service's file chooser is open, it goes under the windows and lets go of the
+    // keyboard, so the chooser can be seen and typed in
+    readonly property bool browsing: service.browsing ?? false
+    WlrLayershell.layer: browsing ? WlrLayer.Bottom : WlrLayer.Top
+    WlrLayershell.keyboardFocus: wanted && !browsing ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     onWantedChanged: {
         if (wanted) {

@@ -33,6 +33,8 @@ Singleton {
 
     // the picture clicked in the picker (or browsed for), "" if none yet
     property string selection: ""
+    // the picture being kept (Change Picture was clicked and its copy isn't made yet), else ""
+    property string saving: ""
 
     // the pictures to choose from, sorted by name
     readonly property var images: folder.images
@@ -60,8 +62,8 @@ Singleton {
     // copy still being made for an earlier choice is dropped)
     function save() {
         if (selection !== "") {
-            saved.source = selection;
             keeper.running = false;
+            saving = selection;
             keeper.command = ["sh", "-c", keepScript, "sh", selection, Quickshell.statePath("account-picture"), String(Date.now())];
             keeper.running = true;
         }
@@ -95,34 +97,44 @@ Singleton {
 
     // ---- keeping the picture --------------------------------------------------------------------
 
-    // copies $1 to $2-$3 (plus its extension), drops the older copies and prints the new one's
-    // path. With ImageMagick it's a PNG of at most 512 px, small enough for AccountsService (it
-    // refuses icons over 1 MB). AccountsService then stores a copy of its own for the login
-    // screen, which can't read your home directory (it would only note the path of a picture
-    // under /usr/share).
+    // copies $1 to $2-$3, drops the older copies and prints the copy's path and $1 (nothing if
+    // it fails). When ImageMagick can read it, the copy is a PNG of at most 512 px, small enough
+    // for AccountsService (it refuses icons over 1 MB); otherwise it's the picture as it is.
+    // AccountsService then stores a copy of its own for the login screen, which can't read your
+    // home directory (it would only note the path of a picture under /usr/share).
     readonly property string keepScript: `src=$1 prefix=$2 base=$2-$3
 mkdir -p "$(dirname "$base")" || exit 1
-if im=$(command -v magick || command -v convert); then
-    dest=$base.png; "$im" "$src[0]" -thumbnail '512x512>' "$dest" || exit 1
+if im=$(command -v magick || command -v convert) && "$im" "$src[0]" -thumbnail '512x512>' "$base.png" 2>/dev/null; then
+    dest=$base.png
 else
+    rm -f "$base.png"
     name=\${src##*/}
     case $name in *.*) dest=$base.\${name##*.} ;; *) dest=$base ;; esac
     cp "$src" "$dest" || exit 1
 fi
 for old in "$prefix"-*; do [ "$old" = "$dest" ] || rm -f "$old"; done
-echo "$dest"
+printf '%s\\n%s\\n' "$dest" "$src"
 command -v busctl >/dev/null && busctl call org.freedesktop.Accounts "/org/freedesktop/Accounts/User$(id -u)" org.freedesktop.Accounts.User SetIconFile s "$dest" >/dev/null 2>&1 &
 exit 0`
 
     Process {
         id: keeper
 
+        // the copy, and the picture it came from (the picker shows that one chosen)
         stdout: StdioCollector {
             onStreamFinished: {
-                const copy = text.trim();
-                if (copy !== "") {
+                const [copy, source] = text.split("\n");
+                if (copy && source) {
                     saved.picture = copy;
+                    saved.source = source;
                 }
+                root.saving = "";
+            }
+        }
+
+        onExited: code => {
+            if (code !== 0) {
+                root.saving = "";
             }
         }
     }

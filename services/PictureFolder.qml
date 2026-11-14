@@ -18,6 +18,13 @@ Scope {
     // the folder couldn't be read
     property bool missing: false
 
+    // a folder changed under a scan (one opened before the saved folder was read): scan that
+    onDirectoryChanged: {
+        if (scanning) {
+            scan();
+        }
+    }
+
     function scan() {
         images = [];
         missing = false;
@@ -40,12 +47,13 @@ Scope {
 
         stdout: StdioCollector {
             onStreamFinished: {
-                const [folder, ...paths] = text.split("\n");
                 // a scan stopped part way for a newer one (of another folder) gives what it found
                 // so far: wait for the newer one
-                if (folder !== root.directory) {
+                if (!text.startsWith(root.directory + "\n")) {
                     return;
                 }
+
+                const paths = text.slice(root.directory.length + 1).split("\n");
 
                 // Qt's localeCompare ignores options like `numeric`, so pad the numbers instead
                 const keyed = paths.filter(line => line !== "").map(path => ({
