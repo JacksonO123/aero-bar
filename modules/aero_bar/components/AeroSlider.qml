@@ -68,12 +68,13 @@ Item {
             radius: height / 2
 
             gradient: SplitGradient {
-                colors: [
-                    root.muted ? "#eceff1" : "#d6f7ff",
-                    root.muted ? "#bcc2c8" : "#62d0f8",
-                    root.muted ? "#9aa1a8" : "#1898e0",
-                    root.muted ? "#b5bbc1" : "#4ec2f3"
-                ]
+                colors: {
+                    const top = root.muted ? "#eceff1" : "#d6f7ff";
+                    const aboveSplit = root.muted ? "#bcc2c8" : "#62d0f8";
+                    const belowSplit = root.muted ? "#9aa1a8" : "#1898e0";
+                    const bottom = root.muted ? "#b5bbc1" : "#4ec2f3";
+                    return [top, aboveSplit, belowSplit, bottom];
+                }
             }
         }
     }
@@ -130,8 +131,12 @@ Item {
         onPressed: mouse => {
             const knobCenter = knob.x + root.knobSize / 2;
             if (Math.abs(mouse.x - knobCenter) <= root.knobSize / 2) {
+                // grabbing the knob changes nothing until it moves (keeps a value above maximum)
                 grabOffset = mouse.x - knobCenter;
                 root.glide = false;
+                root.dragValue = root.value;
+                root.dragging = true;
+                return;
             } else {
                 grabOffset = 0;
                 root.glide = true;

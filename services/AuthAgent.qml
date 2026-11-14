@@ -47,5 +47,10 @@ Singleton {
             root.wrongPassword = root.submitted;
             root.submitted = false;
         }
+
+        // switching identity cancels the check, which reports a failure
+        function onSelectedIdentityChanged() {
+            root.submitted = false;
+        }
     }
 }

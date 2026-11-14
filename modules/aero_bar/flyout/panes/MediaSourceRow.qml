@@ -101,6 +101,11 @@ Item {
         }
     }
 
+    // disabled controls let clicks through, which would switch the taskbar's player
+    MouseArea {
+        anchors.fill: controls
+    }
+
     TransportControls {
         id: controls
         anchors.right: parent.right

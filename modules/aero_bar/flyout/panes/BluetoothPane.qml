@@ -23,6 +23,9 @@ FlyoutPane {
         if (!adapter) {
             return "Plug in a Bluetooth adapter to use devices.";
         }
+        if (adapter.state === BluetoothAdapterState.Blocked) {
+            return "Blocked (rfkill unblock bluetooth)";
+        }
         return powered ? (adapter.name || "Adapter") + " is on" : "Turned off";
     }
 

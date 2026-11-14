@@ -12,10 +12,16 @@ hl.env("XDG_STATE_HOME", "/var/lib/aero-greeter")
 hl.env("XCURSOR_SIZE", "24")
 
 hl.config({
+    -- your keyboard layout, or passwords typed on another layout fail
+    input = {
+        kb_layout = "us",
+    },
     misc = {
-        disable_hyprland_logo    = true,
-        disable_splash_rendering = true,
-        force_default_wallpaper  = 0,
+        disable_hyprland_logo             = true,
+        disable_splash_rendering          = true,
+        force_default_wallpaper           = 0,
+        disable_watchdog_warning          = true,
+        disable_hyprland_guiutils_check   = true,
     },
     animations = {
         enabled = false,

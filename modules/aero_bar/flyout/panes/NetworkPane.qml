@@ -20,7 +20,7 @@ FlyoutPane {
     property var attempt: null
 
     readonly property real padding: 12
-    readonly property bool wifiOn: NetState.wifiDevice !== null && Networking.wifiEnabled
+    readonly property bool wifiOn: NetState.wifiDevice !== null && Networking.wifiEnabled && Networking.wifiHardwareEnabled
 
     width: 330
     height: content.height + padding * 2
@@ -92,11 +92,11 @@ FlyoutPane {
     }
 
     function wifiStatus(n) {
+        if (n.stateChanging) {
+            return n.state === ConnectionState.Disconnecting ? "Disconnecting…" : "Connecting…";
+        }
         if (n.connected) {
             return "Connected";
-        }
-        if (n.stateChanging) {
-            return "Connecting…";
         }
         if (n.known) {
             return "Saved network";
@@ -107,6 +107,13 @@ FlyoutPane {
     Connections {
         target: root.attempt
         ignoreUnknownSignals: true
+
+        // later drops report the old failure reason again
+        function onConnectedChanged() {
+            if (root.attempt?.connected) {
+                root.attempt = null;
+            }
+        }
 
         function onConnectionFailed(reason) {
             root.select(root.attempt);
@@ -237,7 +244,7 @@ FlyoutPane {
         }
 
         Text {
-            visible: NetState.wifiDevice !== null && !Networking.wifiEnabled
+            visible: NetState.wifiDevice !== null && !root.wifiOn
             text: Networking.wifiHardwareEnabled ? "Wi-Fi is turned off." : "Wi-Fi is switched off on this computer."
             color: "#6b7785"
             font.pixelSize: 12
@@ -403,6 +410,7 @@ FlyoutPane {
                                         enabled: !net.n.stateChanging
                                         onClicked: {
                                             if (net.n.connected) {
+                                                root.attempt = null;
                                                 net.n.disconnect();
                                             } else if (root.askKey) {
                                                 root.submitKey();

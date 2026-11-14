@@ -33,6 +33,7 @@ Singleton {
     function openDialog(screenName) {
         preview = "";
         dialogScreen = screenName || Screens.focused;
+        refreshActive();
         // before dialogOpen, so the grid doesn't build tiles for a stale list
         folder.scan();
         dialogOpen = true;
@@ -47,14 +48,17 @@ Singleton {
     function save() {
         if (preview !== "") {
             saved.current = preview;
+            refreshActive();
         }
         preview = "";
         dialogOpen = false;
     }
 
+    // back to what hyprpaper showed when the picker opened (current can be stale or unset)
     function cancel() {
-        if (preview !== "" && preview !== current && current !== "") {
-            apply(current);
+        const before = active[screen] || active[""] || current;
+        if (preview !== "" && before !== "" && preview !== before) {
+            apply(before);
         }
         preview = "";
         dialogOpen = false;

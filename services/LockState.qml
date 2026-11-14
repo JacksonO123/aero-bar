@@ -18,6 +18,7 @@ Singleton {
     property string pending: ""
     // respond() leaves pam.responseRequired set until PAM's next message
     property bool checking: false
+    property string pamNote: ""
     readonly property bool busy: (pam.active && !pam.responseRequired) || checking || pending !== ""
 
     function lock() {
@@ -100,8 +101,12 @@ Singleton {
             root.checking = false;
             if (responseRequired && root.pending !== "") {
                 root.respond();
-            } else if (messageIsError) {
-                root.error = message;
+            } else if (!responseRequired) {
+                // e.g. pam_faillock's lockout: more useful than "incorrect"
+                root.pamNote = root.pamNote ? `${root.pamNote} ${message}` : message;
+                if (messageIsError) {
+                    root.error = message;
+                }
             }
         }
 
@@ -114,10 +119,11 @@ Singleton {
             } else if (result === PamResult.MaxTries) {
                 root.error = "Too many attempts. Wait a moment and try again.";
             } else if (result === PamResult.Failed) {
-                root.error = "The password is incorrect. Try again.";
+                root.error = root.pamNote || "The password is incorrect. Try again.";
             } else {
-                root.error = "Couldn't check the password.";
+                root.error = root.pamNote || "Couldn't check the password.";
             }
+            root.pamNote = "";
         }
     }
 

@@ -93,13 +93,28 @@ Singleton {
     }
 
     function clearPopups() {
+        const shown = [];
+        for (let i = 0; i < popupModel.count; i++) {
+            shown.push(popupModel.get(i).nid);
+        }
         deadlines = {};
         popupModel.clear();
+        shown.map(find).filter(n => n?.transient).forEach(n => n.expire());
+    }
+
+    function hasPopup(id) {
+        for (let i = 0; i < popupModel.count; i++) {
+            if (popupModel.get(i).nid === id) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // takes n, not an id: a new one isn't in list until its handler returns
     function countDown(n) {
-        if (n && n.urgency !== NotificationUrgency.Critical) {
+        // a timeout of 0 means never expire
+        if (n && n.urgency !== NotificationUrgency.Critical && n.expireTimeout !== 0) {
             // expireTimeout is in ms, despite the docs saying seconds
             deadlines[n.id] = Date.now() + (n.expireTimeout > 0 ? n.expireTimeout : Constants.NOTIFICATION_TIMEOUT);
         }
@@ -165,6 +180,17 @@ Singleton {
     }
 
     function announce(n) {
+        const urgent = n.urgency === NotificationUrgency.Critical;
+        const balloon = !centerOpen && (!doNotDisturb || urgent);
+
+        // transient ones only live as balloons; still being announced, so expire() can't close
+        // them: drop the bookkeeping here
+        if (n.transient && !balloon) {
+            delete times[n.id];
+            n.expire();
+            return;
+        }
+
         if (centerOpen) {
             return;
         }
@@ -173,18 +199,27 @@ Singleton {
             unreadIds = unreadIds.concat([n.id]);
         }
 
-        const urgent = n.urgency === NotificationUrgency.Critical;
-        if (doNotDisturb && !urgent) {
+        if (!balloon) {
             return;
         }
 
-        dropPopup(n.id);
-        popupModel.append({
-            nid: n.id
-        });
-        countDown(n);
+        // a replacement (progress updates) keeps its balloon, and a hovered one stays held
+        if (!hasPopup(n.id)) {
+            popupModel.append({
+                nid: n.id
+            });
+            countDown(n);
+        } else if (n.id in deadlines) {
+            delete deadlines[n.id];
+            countDown(n);
+        }
+
         while (popupModel.count > Constants.MAX_NOTIFICATION_POPUPS) {
+            const oldest = find(popupModel.get(0).nid);
             dropPopup(popupModel.get(0).nid);
+            if (oldest?.transient) {
+                oldest.expire();
+            }
         }
     }
 

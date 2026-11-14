@@ -76,6 +76,9 @@ FlyoutPane {
                         HyprState.closeWindow(address);
                         return;
                     }
+                    if (mouse.button !== Qt.LeftButton) {
+                        return;
+                    }
                     HyprState.focusWindow(address, true);
                     root.flyoutEl.close();
                 }
