@@ -12,3 +12,4 @@ singleton AuthAgent AuthAgent.qml
 singleton Taskbar Taskbar.qml
 singleton Peek Peek.qml
 singleton Screens Screens.qml
+singleton GreeterState GreeterState.qml
