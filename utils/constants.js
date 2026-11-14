@@ -39,6 +39,15 @@ const BLUETOOTH_SETTINGS_CMD = ["blueman-manager"];
 // PAM service (a file in /etc/pam.d) the lock screen checks passwords with
 const LOCK_PAM_CONFIG = "login";
 
+// ---- desktop background ---------------------------------------------------------------------
+
+// where the Desktop Background picker looks for pictures until you choose another folder
+// (a leading ~ is your home directory)
+const WALLPAPER_DIR = "~/Pictures/Wallpapers";
+
+// your script that sets the wallpaper; it gets the picture's path as its last argument
+const WALLPAPER_SET_CMD = ["~/.local/bin/set-wallpaper"];
+
 // ---- other ----------------------------------------------------------------------------------
 
 // "no workspace" for workspace ids (hover / highlight state)

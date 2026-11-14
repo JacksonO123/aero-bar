@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import "../utils/path.js" as PathUtils
+import "../utils/constants.js" as Constants
 
 // The desktop background, like Win7's "Desktop Background" page: pictures from a folder of your
 // choice, set with your own script. Clicking a picture applies it straight away (as a preview);
@@ -14,13 +15,19 @@ import "../utils/path.js" as PathUtils
 Singleton {
     id: root
 
-    // your script that sets the wallpaper; it gets the picture's path as its last argument
-    property var setCommand: [PathUtils.pathRelativeToHome(".local/bin/set-wallpaper")]
+    // set in utils/constants.js: the script that sets the wallpaper, and the folder to look in
+    // until you choose another one
+    readonly property var setCommand: Constants.WALLPAPER_SET_CMD.map(expandHome)
+    readonly property string defaultDirectory: expandHome(Constants.WALLPAPER_DIR)
+
+    function expandHome(path) {
+        return path.startsWith("~") ? PathUtils.pathRelativeToHome(path.slice(1)) : path;
+    }
 
     // ---- saved ------------------------------------------------------------------------------
 
-    // (`saved` can be gone while the shell is being torn down)
-    readonly property string directory: saved?.directory ?? ""
+    // the folder you chose, else the default (`saved` can be gone while the shell is torn down)
+    readonly property string directory: saved?.directory || defaultDirectory
     // the picture last saved (the one to go back to on Cancel)
     readonly property string current: saved?.current ?? ""
 
@@ -78,9 +85,10 @@ Singleton {
         Quickshell.execDetached(setCommand.concat([path]));
     }
 
+    // an empty path goes back to the default folder
     function setDirectory(path) {
-        const dir = path.trim().replace(/\/+$/, "") || "/";
-        saved.directory = dir.startsWith("~") ? PathUtils.pathRelativeToHome(dir.slice(1)) : dir;
+        const dir = path.trim();
+        saved.directory = dir === "" ? "" : expandHome(dir.replace(/\/+$/, "") || "/");
         scan();
     }
 
@@ -154,7 +162,8 @@ Singleton {
         adapter: JsonAdapter {
             id: saved
 
-            property string directory: PathUtils.pathRelativeToHome("Pictures/Wallpapers")
+            // "" while you haven't chosen a folder: the default from constants.js applies
+            property string directory: ""
             property string current: ""
         }
     }

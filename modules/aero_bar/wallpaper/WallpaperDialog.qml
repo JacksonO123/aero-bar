@@ -9,6 +9,104 @@ import "../../../services"
 Variants {
     model: Quickshell.screens
 
+    // a little glass screen showing the chosen picture (top right of the dialog)
+    component ScreenPreview: Item {
+        id: preview
+
+        property string path: ""
+
+        width: 96
+        height: 66
+
+        // the bezel
+        Rectangle {
+            id: bezel
+            width: parent.width
+            height: 60
+            radius: 4
+            gradient: Gradient {
+                GradientStop {
+                    position: 0
+                    color: "#5b6875"
+                }
+                GradientStop {
+                    position: 1
+                    color: "#1d242b"
+                }
+            }
+
+            // the picture, or a plain Aero sky before one is chosen
+            Rectangle {
+                id: screenArea
+                anchors.fill: parent
+                anchors.margins: 4
+                gradient: Gradient {
+                    GradientStop {
+                        position: 0
+                        color: "#3d79c2"
+                    }
+                    GradientStop {
+                        position: 1
+                        color: "#a8d6f5"
+                    }
+                }
+
+                Image {
+                    anchors.fill: parent
+                    source: preview.path !== "" ? "file://" + preview.path : ""
+                    sourceSize: Qt.size(width * 2, height * 2)
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    mipmap: true
+                }
+            }
+
+            // glass over the screen's top half
+            Rectangle {
+                x: screenArea.x
+                y: screenArea.y
+                width: screenArea.width
+                height: screenArea.height * 0.46
+                gradient: Gradient {
+                    GradientStop {
+                        position: 0
+                        color: Qt.rgba(1, 1, 1, 0.3)
+                    }
+                    GradientStop {
+                        position: 1
+                        color: Qt.rgba(1, 1, 1, 0.06)
+                    }
+                }
+            }
+
+            Bevel {
+                anchors.fill: parent
+                radius: 4
+                outerColor: "#10161b"
+                innerColor: Qt.rgba(1, 1, 1, 0.22)
+            }
+        }
+
+        // the stand
+        Rectangle {
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: bezel.height
+            width: 26
+            height: 5
+            radius: 1
+            gradient: Gradient {
+                GradientStop {
+                    position: 0
+                    color: "#3b454f"
+                }
+                GradientStop {
+                    position: 1
+                    color: "#7d8994"
+                }
+            }
+        }
+    }
+
     PanelWindow {
         id: window
 
@@ -66,28 +164,58 @@ Variants {
                 width: parent.width
                 height: footer.y + footer.height
 
-                Text {
-                    id: heading
-                    x: 20
-                    y: 16
-                    text: "Choose your desktop background"
-                    color: "#1e3c78"
-                    font.pixelSize: 15
-                }
+                // a soft Aero band along the top, with the chosen picture on its little screen
+                Rectangle {
+                    id: band
+                    width: parent.width
+                    height: 86
+                    gradient: Gradient {
+                        GradientStop {
+                            position: 0
+                            color: "#ffffff"
+                        }
+                        GradientStop {
+                            position: 1
+                            color: "#e4eef9"
+                        }
+                    }
 
-                Text {
-                    id: hint
-                    x: 20
-                    y: heading.y + heading.height + 6
-                    text: "Click a picture to make it your desktop background."
-                    color: "#333"
-                    font.pixelSize: 12
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        height: 1
+                        color: "#c5d5e8"
+                    }
+
+                    Text {
+                        id: heading
+                        x: 20
+                        y: 20
+                        text: "Choose your desktop background"
+                        color: "#1e3c78"
+                        font.pixelSize: 15
+                    }
+
+                    Text {
+                        x: 20
+                        y: heading.y + heading.height + 6
+                        text: "Click a picture to make it your desktop background."
+                        color: "#333"
+                        font.pixelSize: 12
+                    }
+
+                    ScreenPreview {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 24
+                        anchors.verticalCenter: parent.verticalCenter
+                        path: Wallpaper.selected
+                    }
                 }
 
                 Row {
                     id: location
                     x: 20
-                    y: hint.y + hint.height + 14
+                    y: band.height + 14
                     spacing: 8
 
                     Text {
@@ -102,7 +230,7 @@ Variants {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 452
                         text: Wallpaper.directory
-                        placeholder: "Folder with your pictures"
+                        placeholder: "Your pictures folder (leave empty for the default)"
                         onAccepted: Wallpaper.setDirectory(text)
                     }
 
@@ -121,9 +249,20 @@ Variants {
                     y: location.y + location.height + 12
                     width: parent.width - 32
                     height: 372
-                    color: "white"
+                    radius: 3
                     border.width: 1
-                    border.color: "#828790"
+                    border.color: "#9fb4ca"
+                    // white, with a faint inset along the top like a Win7 text box
+                    gradient: Gradient {
+                        GradientStop {
+                            position: 0
+                            color: "#eef3f8"
+                        }
+                        GradientStop {
+                            position: 0.03
+                            color: "#ffffff"
+                        }
+                    }
 
                     GridView {
                         id: grid

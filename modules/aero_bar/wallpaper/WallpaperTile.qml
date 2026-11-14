@@ -1,8 +1,9 @@
 import QtQuick
 import "../components"
 
-// One picture in the Desktop Background picker: a framed thumbnail that hot-tracks under the
-// pointer, with Win7's blue selection and a ticked box when it's the chosen one.
+// One picture in the Desktop Background picker: a framed thumbnail with a soft shadow and a
+// touch of gloss, hot-tracking under the pointer, with Win7's blue selection and a ticked box
+// when it's the chosen one.
 Item {
     id: root
 
@@ -17,8 +18,28 @@ Item {
     RowHighlight {
         anchors.fill: parent
         anchors.margins: 1
+        glass: true
         hot: mouse.containsMouse
         selected: root.selected
+    }
+
+    // a soft shadow under the frame
+    component Shadow: Rectangle {
+        property real offset: 1
+        x: 8
+        y: 8 + offset
+        width: parent.width - 16
+        height: parent.height - 16
+    }
+
+    Shadow {
+        offset: 2
+        color: Qt.rgba(0, 0.05, 0.12, 0.06)
+    }
+
+    Shadow {
+        offset: 1
+        color: Qt.rgba(0, 0.05, 0.12, 0.14)
     }
 
     // the thumbnail, in a thin frame
@@ -33,6 +54,7 @@ Item {
         border.color: "#a3acb6"
 
         Image {
+            id: picture
             anchors.fill: parent
             anchors.margins: 2
             source: root.path !== "" ? "file://" + root.path : ""
@@ -45,6 +67,24 @@ Item {
             Behavior on opacity {
                 NumberAnimation {
                     duration: 200
+                }
+            }
+        }
+
+        // a light two-tone gloss over the top of the picture
+        Rectangle {
+            x: picture.x
+            y: picture.y
+            width: picture.width
+            height: picture.height * 0.46
+            gradient: Gradient {
+                GradientStop {
+                    position: 0
+                    color: Qt.rgba(1, 1, 1, 0.22)
+                }
+                GradientStop {
+                    position: 1
+                    color: Qt.rgba(1, 1, 1, 0.05)
                 }
             }
         }
