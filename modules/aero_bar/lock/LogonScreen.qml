@@ -8,13 +8,18 @@ Item {
 
     default property alias content: center.data
     property alias controls: controlsRow.data
-    required property var power
+    // anything with sleep(), restart() and shutDown(); null hides the power button
+    property var power: null
+    property bool clockShown: true
+    property bool shown: true
+    property bool entered: false
 
     signal backgroundClicked
 
     anchors.fill: parent
-    opacity: 0
-    Component.onCompleted: opacity = 1
+    opacity: shown && entered ? 1 : 0
+    visible: opacity > 0
+    Component.onCompleted: entered = true
 
     Behavior on opacity {
         NumberAnimation {
@@ -47,6 +52,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 40
         spacing: 2
+        visible: root.clockShown
 
         CaptionText {
             text: Qt.formatTime(Clock.date, Constants.TIME_FORMAT)
@@ -79,6 +85,7 @@ Item {
 
     GlassOrb {
         id: powerButton
+        visible: root.power !== null
         anchors.right: parent.right
         anchors.rightMargin: 48
         anchors.bottom: parent.bottom
@@ -113,15 +120,15 @@ Item {
         actions: [
             {
                 label: "Sleep",
-                command: root.power.sleep
+                command: root.power?.sleep
             },
             {
                 label: "Restart",
-                command: root.power.restart
+                command: root.power?.restart
             },
             {
                 label: "Shut down",
-                command: root.power.shutDown
+                command: root.power?.shutDown
             }
         ]
     }

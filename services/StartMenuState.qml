@@ -78,9 +78,7 @@ Singleton {
     }
 
     function logOff() {
-        HyprState.dispatch({
-            op: "exit"
-        });
+        SessionEnd.start("logOff");
     }
 
     function sleep() {
@@ -88,11 +86,11 @@ Singleton {
     }
 
     function restart() {
-        Quickshell.execDetached(["systemctl", "reboot"]);
+        SessionEnd.start("restart");
     }
 
     function shutDown() {
-        Quickshell.execDetached(["systemctl", "poweroff"]);
+        SessionEnd.start("shutDown");
     }
 
     property var powerActions: [

@@ -12,6 +12,7 @@ import "modules/aero_bar/polkit"
 import "modules/aero_bar/peek"
 import "modules/aero_bar/wallpaper"
 import "modules/aero_bar/account"
+import "modules/aero_bar/session"
 
 ShellRoot {
     Bar {}
@@ -19,6 +20,7 @@ ShellRoot {
     ThemeDialog {}
     WallpaperDialog {}
     AccountPictureDialog {}
+    SessionEndScreen {}
     VolumeOsd {}
     NotificationPopups {}
     LockScreen {}

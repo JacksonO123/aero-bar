@@ -17,3 +17,4 @@ singleton Wallpaper Wallpaper.qml
 singleton AccountPicture AccountPicture.qml
 PictureFolder 1.0 PictureFolder.qml
 FileChooser 1.0 FileChooser.qml
+singleton SessionEnd SessionEnd.qml
