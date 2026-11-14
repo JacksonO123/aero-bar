@@ -1,5 +1,4 @@
 import QtQuick
-import "../../../utils/colors.js" as ColorUtils
 
 // The Frutiger Aero action button, for a page's main action (Save changes, Change Picture): a
 // glossy aqua capsule in a soft halo that breathes while it waits, brightening under the pointer
@@ -58,8 +57,6 @@ Item {
         anchors.fill: parent
         radius: height / 2
         color: "#3cc4ff"
-        spread: 10
-        grow: 2
         opacity: root.enabled ? 0.45 + root.breath * 0.25 + root.hoverT * 0.3 : 0
     }
 
@@ -71,11 +68,11 @@ Item {
         radius: height / 2
         gradient: SplitGradient {
             colors: {
-                const rest = ["#8ddfff", "#2aa9ef", "#0680d1", "#2fbcf3"];
-                const hot = ["#b0edff", "#4cc6ff", "#1199e8", "#5ad6ff"];
-                const press = ["#62c3ee", "#1787cf", "#045f9f", "#1b96d6"];
-                const shade = i => ColorUtils.interpolateColors(ColorUtils.interpolateColors(rest[i], hot[i], root.hoverT), press[i], root.pressedT);
-                return [shade(0), shade(1), shade(2), shade(3)];
+                const top = hp.shade("#8ddfff", "#b0edff", "#62c3ee");
+                const aboveSplit = hp.shade("#2aa9ef", "#4cc6ff", "#1787cf");
+                const belowSplit = hp.shade("#0680d1", "#1199e8", "#045f9f");
+                const bottom = hp.shade("#2fbcf3", "#5ad6ff", "#1b96d6");
+                return [top, aboveSplit, belowSplit, bottom];
             }
         }
     }
@@ -165,7 +162,7 @@ Item {
     Bevel {
         anchors.fill: parent
         radius: height / 2
-        outerColor: ColorUtils.interpolateColors("#0a5d9c", "#064577", root.pressedT)
+        outerColor: hp.shade("#0a5d9c", "#0a5d9c", "#064577")
         innerColor: Qt.rgba(1, 1, 1, 0.5 - root.pressedT * 0.3)
         outlineOnTop: true
     }

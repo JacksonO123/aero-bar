@@ -9,7 +9,7 @@ Item {
 
     property color color: "#46c4ff"
     property real radius: 0
-    property int spread: 12
+    property int spread: 10
     property real grow: 2
 
     // room around the shape for the blur to spread into

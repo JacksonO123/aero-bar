@@ -76,7 +76,6 @@ Variants {
                 id: pictures
                 x: 16
                 y: band.height + 16
-                width: parent.width - 32
                 columns: 6
                 cellWidth: 100
                 cellHeight: 100
@@ -84,7 +83,8 @@ Variants {
                 height: cellHeight * 3.5 + 12
                 // only while this screen shows the dialog (and fades it out)
                 images: window.visible ? AccountPicture.images : []
-                selected: window.shown
+                // the one clicked, else the one your picture is a copy of
+                selected: AccountPicture.selection || AccountPicture.source
                 onPicked: path => AccountPicture.select(path)
                 onChosen: path => {
                     AccountPicture.select(path);

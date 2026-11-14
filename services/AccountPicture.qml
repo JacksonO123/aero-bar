@@ -19,8 +19,10 @@ Singleton {
     readonly property string directory: PathUtils.expandHome(Constants.ACCOUNT_PICTURES_DIR)
 
     // the copy of the picture you chose, "" until you choose one (the start menu shows ~/.face
-    // or AccountsService's picture then). `saved` can be gone while the shell is torn down.
+    // or AccountsService's picture then), and the picture it's a copy of (the picker shows that
+    // one chosen). `saved` can be gone while the shell is torn down.
     readonly property string picture: saved?.picture ?? ""
+    readonly property string source: saved?.source ?? ""
 
     // ---- the picker -------------------------------------------------------------------------
 
@@ -54,10 +56,13 @@ Singleton {
         selection = path;
     }
 
-    // "Change Picture": keep a copy (named anew each time, so the pictures showing it reload)
+    // "Change Picture": keep a copy (named anew each time, so the pictures showing it reload; a
+    // copy still being made for an earlier choice is dropped)
     function save() {
         if (selection !== "") {
-            keeper.command = ["sh", "-c", keepScript, "sh", selection, Quickshell.statePath(`account-picture-${Date.now()}`)];
+            saved.source = selection;
+            keeper.running = false;
+            keeper.command = ["sh", "-c", keepScript, "sh", selection, Quickshell.statePath("account-picture"), String(Date.now())];
             keeper.running = true;
         }
         selection = "";
@@ -90,24 +95,23 @@ Singleton {
 
     // ---- keeping the picture --------------------------------------------------------------------
 
-    // copies $1 to $2 (plus its extension), drops the older copies and prints the new one's path.
-    // With ImageMagick it's a PNG of at most 512 px, small enough for AccountsService (it refuses
-    // icons over 1 MB). AccountsService then stores a copy of its own for the login screen, which
-    // can't read your home directory (it would only note the path of a picture under /usr/share).
-    readonly property string keepScript: `src=$1 base=$2
+    // copies $1 to $2-$3 (plus its extension), drops the older copies and prints the new one's
+    // path. With ImageMagick it's a PNG of at most 512 px, small enough for AccountsService (it
+    // refuses icons over 1 MB). AccountsService then stores a copy of its own for the login
+    // screen, which can't read your home directory (it would only note the path of a picture
+    // under /usr/share).
+    readonly property string keepScript: `src=$1 prefix=$2 base=$2-$3
 mkdir -p "$(dirname "$base")" || exit 1
-if command -v magick >/dev/null; then
-    dest=$base.png; magick "$src[0]" -thumbnail '512x512>' "$dest" || exit 1
-elif command -v convert >/dev/null; then
-    dest=$base.png; convert "$src[0]" -thumbnail '512x512>' "$dest" || exit 1
+if im=$(command -v magick || command -v convert); then
+    dest=$base.png; "$im" "$src[0]" -thumbnail '512x512>' "$dest" || exit 1
 else
     name=\${src##*/}
     case $name in *.*) dest=$base.\${name##*.} ;; *) dest=$base ;; esac
     cp "$src" "$dest" || exit 1
 fi
-for old in "\${base%-*}"-*; do [ "$old" = "$dest" ] || rm -f "$old"; done
+for old in "$prefix"-*; do [ "$old" = "$dest" ] || rm -f "$old"; done
 echo "$dest"
-command -v busctl >/dev/null && busctl call org.freedesktop.Accounts "/org/freedesktop/Accounts/User$(id -u)" org.freedesktop.Accounts.User SetIconFile s "$dest" >/dev/null 2>&1
+command -v busctl >/dev/null && busctl call org.freedesktop.Accounts "/org/freedesktop/Accounts/User$(id -u)" org.freedesktop.Accounts.User SetIconFile s "$dest" >/dev/null 2>&1 &
 exit 0`
 
     Process {
@@ -131,6 +135,7 @@ exit 0`
             id: saved
 
             property string picture: ""
+            property string source: ""
         }
     }
 

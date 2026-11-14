@@ -199,7 +199,6 @@ Variants {
                 id: pictures
                 x: 16
                 y: location.y + location.height + 12
-                width: parent.width - 32
                 height: 372
                 cellWidth: 166
                 cellHeight: 118

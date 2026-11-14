@@ -1,8 +1,8 @@
 .pragma library
 
-// Frutiger Aero light for a Canvas: soft ribbons sweeping up to the right, and out-of-focus
-// bubbles. Paint them with ctx.globalCompositeOperation = "lighter" so they glow. Colours are
-// "r,g,b" strings; positions and sizes are fractions of the canvas (w by h).
+// Frutiger Aero light for a Canvas: soft ribbons sweeping up to the right, out-of-focus bubbles
+// and glassy ones. Paint ribbons and soft bubbles with ctx.globalCompositeOperation = "lighter"
+// so they glow. Colours are "r,g,b" strings; positions are fractions of the canvas (w by h).
 
 // a ribbon from the left edge at height y0 to the right edge at y1, `thick` tall, bowing by
 // `bend`, brightest (`alpha`) along its middle in `core`, fading to `edge` at its sides

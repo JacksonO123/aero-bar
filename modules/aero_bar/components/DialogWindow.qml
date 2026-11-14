@@ -3,10 +3,9 @@ import Quickshell.Wayland
 import QtQuick
 
 // A Win7 dialog in its own window on one screen (Window Color, Desktop Background, Change Your
-// Picture): the glass
-// AeroWindow fades and drops in while `service.dialogOpen` and the service's screen is this one.
-// Enter saves; Esc and the close button cancel. `service` has dialogOpen, screen, save() and
-// cancel().
+// Picture): the glass AeroWindow fades and drops in while `service.dialogOpen` and the service's
+// screen is this one. Enter saves; Esc and the close button cancel. `service` has dialogOpen,
+// screen, save() and cancel(), and `browsing` if it opens a file chooser.
 PanelWindow {
     id: window
 

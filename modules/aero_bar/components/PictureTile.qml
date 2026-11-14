@@ -39,7 +39,6 @@ Item {
             active: root.selected
 
             sourceComponent: SoftGlow {
-                color: "#46c4ff"
                 spread: 9
                 grow: 3
                 opacity: 0.8
