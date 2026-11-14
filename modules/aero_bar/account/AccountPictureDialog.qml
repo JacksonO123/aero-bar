@@ -12,7 +12,7 @@ Variants {
         title: "Change Your Picture"
         dialogWidth: pictures.implicitWidth + 32 + 18
 
-        readonly property string shown: (visible && (AccountPicture.selection || AccountPicture.saving)) || StartMenuState.picture
+        readonly property string shown: (visible && AccountPicture.chosen) || StartMenuState.picture
 
         Item {
             id: body
@@ -75,7 +75,7 @@ Variants {
                 // half a row peeks out, so it's clear the list scrolls
                 height: cellHeight * 3.5 + 12
                 images: window.visible ? AccountPicture.images : []
-                selected: AccountPicture.selection || AccountPicture.saving || AccountPicture.source
+                selected: AccountPicture.chosen || AccountPicture.source
                 onPicked: path => AccountPicture.select(path)
                 onChosen: path => {
                     AccountPicture.select(path);

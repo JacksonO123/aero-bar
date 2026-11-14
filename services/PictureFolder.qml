@@ -41,11 +41,12 @@ Scope {
         stdout: StdioCollector {
             onStreamFinished: {
                 // a scan killed for a newer one still reports its partial output: skip it
-                if (!text.startsWith(root.directory + "\n")) {
+                const header = root.directory + "\n";
+                if (!text.startsWith(header)) {
                     return;
                 }
 
-                const paths = text.slice(root.directory.length + 1).split("\n");
+                const paths = text.slice(header.length).split("\n");
 
                 // Qt's localeCompare ignores `numeric`, so pad the numbers instead
                 const keyed = paths.filter(line => line !== "").map(path => ({

@@ -47,7 +47,6 @@ Item {
             property: "x"
             from: 0
             to: -root.overflow
-            // 30 px/s
             duration: Math.max(400, root.overflow / 30 * 1000)
             easing.type: Easing.InOutSine
         }

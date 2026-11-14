@@ -394,7 +394,7 @@ Singleton {
             }
         }
 
-        // stdout may finish after exit; the watchdog stops waiting if it never does
+        // recovers if parse() throws before finishRun()
         onExited: {
             if (root.awaitingParse) {
                 watchdog.restart();

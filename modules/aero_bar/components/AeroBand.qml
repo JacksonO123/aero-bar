@@ -22,11 +22,7 @@ Canvas {
         ctx.fillStyle = sky;
         ctx.fillRect(0, 0, w, h);
 
-        const pool = ctx.createRadialGradient(w * 0.87, h * 0.5, 0, w * 0.87, h * 0.5, w * 0.2);
-        pool.addColorStop(0, "rgba(255,255,255,0.7)");
-        pool.addColorStop(1, "rgba(255,255,255,0)");
-        ctx.fillStyle = pool;
-        ctx.fillRect(0, 0, w, h);
+        Aurora.bubble(ctx, w, h, 0.87, 0.5, w * 0.2, 0.7, "255,255,255");
 
         ctx.globalCompositeOperation = "lighter";
         const ribbon = (y0, y1, thick, bend, alpha) => Aurora.ribbon(ctx, w, h, y0, y1, thick, bend, alpha, "120,200,255", "160,220,255");

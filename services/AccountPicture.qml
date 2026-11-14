@@ -22,6 +22,7 @@ Singleton {
 
     property string selection: ""
     property string saving: ""
+    readonly property string chosen: selection || saving
 
     readonly property var images: folder.images
     readonly property bool scanning: folder.scanning
@@ -78,7 +79,7 @@ Singleton {
 
     // at most 512 px: AccountsService refuses icons over 1 MB
     readonly property string keepScript: `src=$1 prefix=$2 base=$2-$3
-mkdir -p "$(dirname "$base")" || exit 1
+mkdir -p "\${base%/*}" || exit 1
 if im=$(command -v magick || command -v convert) && "$im" "$src[0]" -thumbnail '512x512>' "$base.png" 2>/dev/null; then
     dest=$base.png
 else
@@ -89,8 +90,7 @@ else
 fi
 for old in "$prefix"-*; do [ "$old" = "$dest" ] || rm -f "$old"; done
 printf '%s\\n%s\\n' "$dest" "$src"
-command -v busctl >/dev/null && busctl call org.freedesktop.Accounts "/org/freedesktop/Accounts/User$(id -u)" org.freedesktop.Accounts.User SetIconFile s "$dest" >/dev/null 2>&1 &
-exit 0`
+command -v busctl >/dev/null && busctl call org.freedesktop.Accounts "/org/freedesktop/Accounts/User$(id -u)" org.freedesktop.Accounts.User SetIconFile s "$dest" >/dev/null 2>&1 &`
 
     Process {
         id: keeper
@@ -102,12 +102,6 @@ exit 0`
                     saved.picture = copy;
                     saved.source = source;
                 }
-                root.saving = "";
-            }
-        }
-
-        onExited: code => {
-            if (code !== 0) {
                 root.saving = "";
             }
         }

@@ -22,8 +22,7 @@ Scope {
 
     // GTK patterns are case-sensitive (cameras write .JPG): match any case
     function chooseFile(start, name, types) {
-        const anyCase = type => type.split("").map(c => `[${c}${c.toUpperCase()}]`).join("");
-        const patterns = types.map(t => `*.${anyCase(t)}`).join(" ");
+        const patterns = types.map(t => `*.${t.replace(/./g, c => `[${c}${c.toUpperCase()}]`)}`).join(" ");
         open(isKdialog ? [tool, "--getopenfilename", start, `${name} (${patterns})`] : [tool, "--file-selection", `--filename=${start}/`, `--file-filter=${name} | ${patterns}`]);
     }
 
