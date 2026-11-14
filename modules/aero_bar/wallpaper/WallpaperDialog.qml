@@ -175,6 +175,9 @@ Variants {
                     text: Wallpaper.directory
                     placeholder: "Your pictures folder (leave empty for the default)"
                     onAccepted: Wallpaper.setDirectory(text)
+                    // TextInput lets Return through to the dialog, which would save and close
+                    Keys.onReturnPressed: event => event.accepted = true
+                    Keys.onEnterPressed: event => event.accepted = true
                 }
 
                 PushButton {

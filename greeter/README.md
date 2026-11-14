@@ -2,7 +2,7 @@
 
 The Windows 7 logon screen for signing in, built from the same parts as the lock screen. It
 replaces SDDM: [greetd](https://sr.ht/~kennylevinsen/greetd/) starts a small Hyprland as the
-`greeter` user, which runs this Quickshell config (`qs -p .../greeter`). After you sign in it
+`greeter` user, which runs this Quickshell config (`qs -p .../greeter.qml`). After you sign in it
 shows "Welcome", hands the session over to greetd and exits.
 
 - More than one account: pick yours from the tiles ("Switch User" goes back).

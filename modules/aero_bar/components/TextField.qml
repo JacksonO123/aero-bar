@@ -12,6 +12,11 @@ Item {
 
     signal accepted
 
+    // unlike assigning text, keeps a binding on `text`
+    function clear() {
+        input.clear();
+    }
+
     function focusInput() {
         input.forceActiveFocus();
     }

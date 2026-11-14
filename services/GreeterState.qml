@@ -96,14 +96,15 @@ Singleton {
             root.checking = false;
             root.pending = "";
             root.awaitingResponse = false;
+            // no restart here: greetd's reply to Quickshell's cancel would read as a login;
+            // submit() starts a new session
             root.error = "The user name or password is incorrect.";
-            // greetd ends the session after a failure; restart once it has
-            Qt.callLater(root.startSession);
         }
 
         function onError(message) {
             root.checking = false;
             root.pending = "";
+            root.welcome = false;
             root.error = message || "Couldn't sign in.";
         }
 
@@ -130,7 +131,8 @@ Singleton {
             return;
         }
         const environment = ["XDG_SESSION_TYPE=wayland", `XDG_SESSION_DESKTOP=${s.id}`, `XDG_CURRENT_DESKTOP=${s.desktopNames || s.id}`];
-        Greetd.launch(["sh", "-c", s.command], environment, true);
+        // greetd runs the argv joined with spaces through sh -c
+        Greetd.launch([s.command], environment, true);
     }
 
     function sleep() {

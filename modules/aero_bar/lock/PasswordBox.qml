@@ -33,7 +33,7 @@ Item {
             placeholder: "Password"
             echoMode: TextInput.Password
             onAccepted: root.submitted()
-            Keys.onEscapePressed: text = ""
+            Keys.onEscapePressed: clear()
         }
 
         GlassOrb {

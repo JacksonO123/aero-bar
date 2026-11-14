@@ -23,5 +23,5 @@ hl.config({
 })
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd("qs -p /usr/local/share/aero-bar/greeter; hyprctl dispatch 'hl.dsp.exit()'")
+    hl.exec_cmd("qs -p /usr/local/share/aero-bar/greeter.qml; hyprctl dispatch 'hl.dsp.exit()'")
 end)
