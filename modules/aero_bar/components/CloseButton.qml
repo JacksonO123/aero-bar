@@ -1,49 +1,37 @@
 import QtQuick
 
-// The red Windows 7 caption close button. It hangs from the top edge of a glass frame.
 Item {
     id: root
 
     signal clicked
 
-    property real hoverT: mouse.containsMouse ? 1 : 0
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
 
     implicitWidth: 43
     implicitHeight: 19
 
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 150
-            easing.type: Easing.OutQuad
-        }
+    HoverPress {
+        id: hp
+        hovered: mouse.containsMouse
+        pressed: mouse.pressed
     }
 
     component Face: Rectangle {
-        property var stops: []
+        id: face
+
+        property var colors: []
 
         anchors.fill: parent
         radius: 4
-        gradient: Gradient {
-            GradientStop {
-                position: 0
-                color: stops[0]
-            }
-            GradientStop {
-                position: 0.45
-                color: stops[1]
-            }
-            GradientStop {
-                position: 0.5
-                color: stops[2]
-            }
-            GradientStop {
-                position: 1
-                color: stops[3]
-            }
+        gradient: SplitGradient {
+            split: 0.45
+            splitEnd: 0.5
+            colors: face.colors
         }
     }
 
-    // square top corners: it is attached to the frame's top edge
+    // square top corners: it hangs from the frame's top edge
     Item {
         anchors.fill: parent
         clip: true
@@ -54,35 +42,25 @@ Item {
             y: -4
 
             Face {
-                stops: ["#e9a99a", "#d8705a", "#c0391c", "#d9733f"]
+                colors: ["#e9a99a", "#d8705a", "#c0391c", "#d9733f"]
             }
             Face {
-                stops: ["#f7c4b6", "#ef8c70", "#e8401a", "#f59a5e"]
+                colors: ["#f7c4b6", "#ef8c70", "#e8401a", "#f59a5e"]
                 opacity: root.hoverT
             }
             Face {
-                stops: ["#c97060", "#b0402a", "#8e1d06", "#c45a2c"]
-                opacity: mouse.pressed ? 1 : 0
+                colors: ["#c97060", "#b0402a", "#8e1d06", "#c45a2c"]
+                opacity: root.pressedT
             }
-            Rectangle {
+            Bevel {
                 anchors.fill: parent
                 radius: 4
-                color: "transparent"
-                border.width: 1
-                border.color: Qt.rgba(0.25, 0, 0, 0.75)
-            }
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 1
-                radius: 3
-                color: "transparent"
-                border.width: 1
-                border.color: Qt.rgba(1, 1, 1, 0.45 + 0.2 * root.hoverT)
+                outerColor: Qt.rgba(0.25, 0, 0, 0.75)
+                innerColor: Qt.rgba(1, 1, 1, 0.45 + 0.2 * root.hoverT)
             }
         }
     }
 
-    // the cross, white with a dark outline
     Canvas {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: mouse.pressed ? 1 : 0

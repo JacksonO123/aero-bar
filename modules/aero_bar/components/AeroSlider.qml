@@ -1,6 +1,5 @@
 import QtQuick
 
-// Recessed glass groove with an aqua fill; the knob is a glass orb that shows the value.
 Item {
     id: root
 
@@ -12,8 +11,6 @@ Item {
     property real wheelStep: 0.02
 
     signal moved(real value)
-    signal interactionStarted
-    signal interactionEnded
 
     property bool dragging: false
     property real dragValue: 0
@@ -70,22 +67,13 @@ Item {
             height: parent.height
             radius: height / 2
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: root.muted ? "#eceff1" : "#d6f7ff"
-                }
-                GradientStop {
-                    position: 0.5
-                    color: root.muted ? "#bcc2c8" : "#62d0f8"
-                }
-                GradientStop {
-                    position: 0.51
-                    color: root.muted ? "#9aa1a8" : "#1898e0"
-                }
-                GradientStop {
-                    position: 1.0
-                    color: root.muted ? "#b5bbc1" : "#4ec2f3"
+            gradient: SplitGradient {
+                colors: {
+                    const top = root.muted ? "#eceff1" : "#d6f7ff";
+                    const aboveSplit = root.muted ? "#bcc2c8" : "#62d0f8";
+                    const belowSplit = root.muted ? "#9aa1a8" : "#1898e0";
+                    const bottom = root.muted ? "#b5bbc1" : "#4ec2f3";
+                    return [top, aboveSplit, belowSplit, bottom];
                 }
             }
         }
@@ -96,9 +84,9 @@ Item {
         size: root.knobSize
         x: root.ratio * root.travel
         anchors.verticalCenter: parent.verticalCenter
-        hoverT: mouse.containsMouse ? 1 : 0
+        hoverT: mouseArea.containsMouse ? 1 : 0
         pressedT: root.dragging ? 1 : 0
-        scale: root.dragging ? 1.12 : (mouse.containsMouse ? 1.04 : 1)
+        scale: root.dragging ? 1.12 : (mouseArea.containsMouse ? 1.04 : 1)
 
         lightColor: root.muted ? "#f4f6f8" : "#a6f2ff"
         baseColor: root.muted ? "#98a2ac" : "#1f7ad8"
@@ -132,7 +120,7 @@ Item {
     }
 
     MouseArea {
-        id: mouse
+        id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
         preventStealing: true
@@ -143,10 +131,13 @@ Item {
         onPressed: mouse => {
             const knobCenter = knob.x + root.knobSize / 2;
             if (Math.abs(mouse.x - knobCenter) <= root.knobSize / 2) {
+                // grabbing the knob changes nothing until it moves (keeps a value above maximum)
                 grabOffset = mouse.x - knobCenter;
                 root.glide = false;
+                root.dragValue = root.value;
+                root.dragging = true;
+                return;
             } else {
-                // clicked the groove: let the knob glide over before it starts tracking
                 grabOffset = 0;
                 root.glide = true;
                 glideTimer.restart();
@@ -154,7 +145,6 @@ Item {
 
             root.dragValue = root.valueAt(mouse.x - grabOffset);
             root.dragging = true;
-            root.interactionStarted();
             root.moved(root.dragValue);
         }
 
@@ -166,19 +156,13 @@ Item {
             root.moved(root.dragValue);
         }
 
-        onReleased: {
-            root.dragging = false;
-            root.interactionEnded();
-        }
-
-        onCanceled: {
-            root.dragging = false;
-            root.interactionEnded();
-        }
+        onReleased: root.dragging = false
+        onCanceled: root.dragging = false
 
         onWheel: wheel => {
             const steps = wheel.angleDelta.y / 120;
-            root.moved(Math.max(0, Math.min(root.maximum, root.value + steps * root.wheelStep)));
+            // a value above `maximum` (set elsewhere) scrolls down instead of being cut
+            root.moved(Math.max(0, Math.min(Math.max(root.maximum, root.value), root.value + steps * root.wheelStep)));
         }
     }
 

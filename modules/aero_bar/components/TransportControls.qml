@@ -1,17 +1,15 @@
 import QtQuick
+import "../../../services"
 
-// Media Player style transport: a silver capsule with prev/next, and a big glass play orb on top.
 Item {
     id: root
 
-    property bool playing: false
-    property bool canPrevious: true
-    property bool canNext: true
-    property bool canToggle: true
+    required property var player
 
-    signal previous
-    signal next
-    signal toggle
+    readonly property bool playing: player?.isPlaying ?? false
+    readonly property bool canPrevious: player?.canGoPrevious ?? false
+    readonly property bool canNext: player?.canGoNext ?? false
+    readonly property bool canToggle: player?.canTogglePlaying ?? false
 
     readonly property real orbSize: 40
     readonly property real capsuleHeight: 26
@@ -23,11 +21,15 @@ Item {
         id: segment
 
         property string glyph: "prev"
-        property bool leftSide: true
         property bool active: true
         signal activated
 
         opacity: active ? 1 : 0.4
+
+        HoverPress {
+            id: hp
+            pressed: segmentMouse.pressed
+        }
 
         Rectangle {
             anchors.fill: parent
@@ -35,22 +37,13 @@ Item {
             radius: height / 2
             opacity: segmentMouse.containsMouse ? 1 : 0
 
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.0
-                    color: segmentMouse.pressed ? "#cfe9fa" : "#eef8ff"
-                }
-                GradientStop {
-                    position: 0.5
-                    color: segmentMouse.pressed ? "#9fd2f2" : "#cbe9fc"
-                }
-                GradientStop {
-                    position: 0.51
-                    color: segmentMouse.pressed ? "#79bfea" : "#a9dcfa"
-                }
-                GradientStop {
-                    position: 1.0
-                    color: segmentMouse.pressed ? "#a6d6f3" : "#d4eefd"
+            gradient: SplitGradient {
+                colors: {
+                    const top = hp.shade("#eef8ff", "#eef8ff", "#cfe9fa");
+                    const aboveSplit = hp.shade("#cbe9fc", "#cbe9fc", "#9fd2f2");
+                    const belowSplit = hp.shade("#a9dcfa", "#a9dcfa", "#79bfea");
+                    const bottom = hp.shade("#d4eefd", "#d4eefd", "#a6d6f3");
+                    return [top, aboveSplit, belowSplit, bottom];
                 }
             }
 
@@ -63,7 +56,7 @@ Item {
 
         MediaGlyph {
             anchors.verticalCenter: parent.verticalCenter
-            x: segment.leftSide ? 12 : parent.width - width - 12
+            x: segment.glyph === "prev" ? 12 : parent.width - width - 12
             width: 13
             height: 11
             kind: segment.glyph
@@ -90,23 +83,10 @@ Item {
         border.width: 1
         border.color: "#7b8794"
 
-        gradient: Gradient {
-            GradientStop {
-                position: 0.0
-                color: "#fdfdfd"
-            }
-            GradientStop {
-                position: 0.49
-                color: "#e6e9ec"
-            }
-            GradientStop {
-                position: 0.5
-                color: "#d1d6db"
-            }
-            GradientStop {
-                position: 1.0
-                color: "#eceff2"
-            }
+        gradient: SplitGradient {
+            split: 0.49
+            splitEnd: 0.5
+            colors: ["#fdfdfd", "#e6e9ec", "#d1d6db", "#eceff2"]
         }
 
         Rectangle {
@@ -125,9 +105,8 @@ Item {
         width: capsule.width / 2
         height: capsule.height
         glyph: "prev"
-        leftSide: true
         active: root.canPrevious
-        onActivated: root.previous()
+        onActivated: Media.previous(root.player)
     }
 
     CapsuleSegment {
@@ -136,12 +115,10 @@ Item {
         width: capsule.width / 2
         height: capsule.height
         glyph: "next"
-        leftSide: false
         active: root.canNext
-        onActivated: root.next()
+        onActivated: Media.next(root.player)
     }
 
-    // silver bezel that seats the orb in the capsule
     Rectangle {
         anchors.centerIn: parent
         width: root.orbSize + 6
@@ -186,7 +163,7 @@ Item {
             hoverEnabled: true
             enabled: root.canToggle
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.toggle()
+            onClicked: Media.togglePlaying(root.player)
 
             containmentMask: QtObject {
                 function contains(point: point): bool {

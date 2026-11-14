@@ -4,8 +4,6 @@ import "../flyout"
 import "../../../services"
 import "../../../utils/constants.js" as Constants
 
-// Speaker icon. Hover for the volume flyout, scroll to change volume,
-// left click to mute, right click to open the mixer.
 Win7Frame {
     id: root
 
@@ -18,7 +16,6 @@ Win7Frame {
     anchors.bottomMargin: 4
     frameOpacity: hoverT
 
-    // a HoverHandler in the content would sit under Win7Frame's MouseArea and never fire
     onHoveredChanged: hovered ? flyoutEl.hover(root) : flyoutEl.unhover()
 
     onClicked: mouse => {

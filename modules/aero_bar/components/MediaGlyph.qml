@@ -1,6 +1,5 @@
 import QtQuick
 
-// Crisp transport glyphs (play / pause / prev / next) drawn in a unit box.
 Canvas {
     id: root
 
@@ -12,6 +11,7 @@ Canvas {
     onKindChanged: requestPaint()
     onColorChanged: requestPaint()
     onShadowColorChanged: requestPaint()
+    onShadowChanged: requestPaint()
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()
 

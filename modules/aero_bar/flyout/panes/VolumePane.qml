@@ -1,20 +1,15 @@
 import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire
+import ".."
 import "../../components"
 import "../../../../services"
 import "../../../../utils/constants.js" as Constants
 
-// Windows 7 volume flyout, Aero'd up:
-//  - output device card (glossy speaker), click to pick another output
-//  - master slider with the orb knob and a live peak meter underneath
-//  - per-application volume for everything currently playing
-Item {
+FlyoutPane {
     id: root
 
-    property bool shown: false
-    // the flyout is held open while a slider is being dragged
-    property var flyoutEl: null
+    required property var flyoutEl
     property bool devicesOpen: false
 
     readonly property real padding: 12
@@ -22,37 +17,35 @@ Item {
 
     readonly property var nodes: Pipewire.nodes.values
     readonly property var sinks: nodes.filter(n => n.audio && n.isSink && !n.isStream)
-    readonly property var streams: nodes.filter(n => n.audio && n.isStream && !n.isSink).slice(0, 6)
+    // playing apps are sink streams in Pipewire
+    readonly property var streams: nodes.filter(n => n.audio && n.isStream && n.isSink).slice(0, 6)
 
     width: 326
     height: content.height + padding * 2 - 2
 
-    onShownChanged: {
-        if (!shown) {
+    onActiveChanged: {
+        if (!root.active) {
             devicesOpen = false;
         }
     }
 
-    // stream volumes/properties are only valid while bound; only bother while visible
+    OpenCounter {
+        target: Audio
+        counter: "panesOpen"
+        when: root.active
+    }
+
+    // Pipewire node properties are only valid while tracked
     PwObjectTracker {
-        objects: root.shown ? root.streams.concat(root.sinks) : []
+        objects: root.active ? root.streams.concat(root.sinks) : []
     }
 
     PwNodePeakMonitor {
         id: peaks
         node: Audio.sink
-        enabled: root.shown && Audio.sink !== null
+        enabled: root.active && Audio.sink !== null
     }
 
-    function hold() {
-        root.flyoutEl?.hold();
-    }
-
-    function release() {
-        root.flyoutEl?.release();
-    }
-
-    // light-blue Win7 hot-track highlight
     component HotTrack: Rectangle {
         property bool hot: false
         radius: 3
@@ -82,8 +75,7 @@ Item {
         id: row
 
         property var node: null
-        signal dragStarted
-        signal dragEnded
+        readonly property bool dragging: slider.dragging
 
         readonly property var props: node?.properties ?? ({})
         readonly property string appName: props["application.name"] || node?.description || node?.name || "Unknown"
@@ -102,7 +94,6 @@ Item {
         }
 
         ImageIcon {
-            id: appIcon
             x: 6
             anchors.verticalCenter: parent.verticalCenter
             size: 24
@@ -136,6 +127,7 @@ Item {
         }
 
         AeroSlider {
+            id: slider
             x: 134
             width: row.width - x - 34
             anchors.verticalCenter: parent.verticalCenter
@@ -143,16 +135,7 @@ Item {
             trackHeight: 6
             value: row.node?.audio?.volume ?? 0
             muted: row.muted
-            onMoved: value => {
-                if (row.node?.audio) {
-                    if (row.node.audio.muted && value > 0) {
-                        row.node.audio.muted = false;
-                    }
-                    row.node.audio.volume = value;
-                }
-            }
-            onInteractionStarted: row.dragStarted()
-            onInteractionEnded: row.dragEnded()
+            onMoved: value => Audio.setNodeVolume(row.node, value)
         }
 
         LightButton {
@@ -162,11 +145,7 @@ Item {
             width: 26
             height: 24
             checked: row.muted
-            onClicked: {
-                if (row.node?.audio) {
-                    row.node.audio.muted = !row.node.audio.muted;
-                }
-            }
+            onClicked: Audio.toggleNodeMute(row.node)
 
             SpeakerGlyph {
                 anchors.centerIn: parent
@@ -187,7 +166,6 @@ Item {
         width: root.innerWidth
         spacing: 6
 
-        // ---- output device
         Item {
             id: deviceCard
             width: parent.width
@@ -262,7 +240,6 @@ Item {
             }
         }
 
-        // ---- device picker (slides open under the card)
         Item {
             width: parent.width
             height: root.devicesOpen ? deviceList.implicitHeight : 0
@@ -281,7 +258,9 @@ Item {
                 width: parent.width
 
                 Repeater {
-                    model: root.sinks
+                    model: ScriptModel {
+                        values: root.sinks
+                    }
 
                     Item {
                         id: sinkRow
@@ -297,12 +276,14 @@ Item {
                             hot: sinkMouse.containsMouse
                         }
 
-                        // radio orb
-                        GlassOrb {
+                        Loader {
                             x: 28
                             anchors.verticalCenter: parent.verticalCenter
-                            size: 12
-                            visible: sinkRow.current
+                            active: sinkRow.current
+
+                            sourceComponent: GlassOrb {
+                                size: 12
+                            }
                         }
 
                         Rectangle {
@@ -320,7 +301,7 @@ Item {
                             x: 48
                             width: parent.width - x - 8
                             anchors.verticalCenter: parent.verticalCenter
-                            text: sinkRow.modelData.description || sinkRow.modelData.nickname || sinkRow.modelData.name
+                            text: Audio.nameOf(sinkRow.modelData)
                             elide: Text.ElideRight
                             color: "#1e2f40"
                             font.pixelSize: 11
@@ -342,7 +323,6 @@ Item {
             }
         }
 
-        // ---- master volume
         Row {
             spacing: 10
 
@@ -365,7 +345,6 @@ Item {
             }
 
             Column {
-                id: masterColumn
                 width: content.width - 44
                 spacing: 1
 
@@ -377,8 +356,12 @@ Item {
                     maximum: Audio.maxVolume
                     muted: Audio.muted
                     onMoved: value => Audio.setVolume(value)
-                    onInteractionStarted: root.hold()
-                    onInteractionEnded: root.release()
+
+                    OpenCounter {
+                        target: root.flyoutEl
+                        counter: "holdCount"
+                        when: master.dragging
+                    }
                 }
 
                 PeakMeter {
@@ -391,7 +374,6 @@ Item {
             }
         }
 
-        // ---- applications
         SectionHeader {
             width: parent.width
             visible: root.streams.length > 0
@@ -399,14 +381,21 @@ Item {
         }
 
         Repeater {
-            model: root.streams
+            model: ScriptModel {
+                values: root.streams
+            }
 
             StreamRow {
+                id: streamRow
                 required property var modelData
                 width: content.width
                 node: modelData
-                onDragStarted: root.hold()
-                onDragEnded: root.release()
+
+                OpenCounter {
+                    target: root.flyoutEl
+                    counter: "holdCount"
+                    when: streamRow.dragging
+                }
             }
         }
 
@@ -414,21 +403,13 @@ Item {
             width: parent.width
             height: 16
 
-            Text {
+            LinkText {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Mixer"
-                color: mixerMouse.containsMouse ? "#3399ff" : "#0066cc"
+                restColor: "#0066cc"
                 font.pixelSize: 11
-                font.underline: mixerMouse.containsMouse
-
-                MouseArea {
-                    id: mixerMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Quickshell.execDetached(Constants.VOLUME_MIXER_CMD)
-                }
+                onClicked: Quickshell.execDetached(Constants.VOLUME_MIXER_CMD)
             }
         }
     }

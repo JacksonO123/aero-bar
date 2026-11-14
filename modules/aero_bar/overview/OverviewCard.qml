@@ -1,16 +1,15 @@
 import QtQuick
 import Quickshell.Widgets
 import "../components"
+import "../../../utils/constants.js" as Constants
+import "../../../utils/aurora.js" as Aurora
 
-// One workspace: a label and a miniature Aero desktop (sky gradient, aurora ribbons, taskbar).
 Item {
     id: card
 
     required property var overview
-    required property int index
     required property int wsId
     required property string name
-    required property int monitorId
 
     readonly property var entry: overview.layout.byId[wsId] ?? null
     readonly property real headerH: overview.headerH
@@ -32,32 +31,25 @@ Item {
     height: entry ? entry.deskH + headerH : 0
     opacity: entry ? 1 : 0
 
+    component Glide: NumberAnimation {
+        duration: 280
+        easing.type: Easing.OutCubic
+    }
+
     Behavior on x {
-        NumberAnimation {
-            duration: 280
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on y {
-        NumberAnimation {
-            duration: 280
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on width {
-        NumberAnimation {
-            duration: 280
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on height {
-        NumberAnimation {
-            duration: 280
-            easing.type: Easing.OutCubic
-        }
+        Glide {}
     }
 
     Behavior on hoverT {
@@ -102,7 +94,6 @@ Item {
         width: card.width
         height: card.height - card.headerH
 
-        // active workspace halo
         Rectangle {
             anchors.fill: parent
             anchors.margins: -3
@@ -155,11 +146,7 @@ Item {
                         return;
                     }
 
-                    const glow = ctx.createRadialGradient(w * 0.2, h * 0.1, 0, w * 0.2, h * 0.1, w * 0.6);
-                    glow.addColorStop(0, Qt.rgba(1, 1, 1, 0.35));
-                    glow.addColorStop(1, Qt.rgba(1, 1, 1, 0));
-                    ctx.fillStyle = glow;
-                    ctx.fillRect(0, 0, w, h);
+                    Aurora.bubble(ctx, w, h, 0.2, 0.1, w * 0.6, 0.35, "255,255,255");
 
                     const ribbon = (y0, y1, y2, thickness, color) => {
                         const g = ctx.createLinearGradient(0, 0, w, 0);
@@ -181,7 +168,6 @@ Item {
                 }
             }
 
-            // reserved areas (bars) drawn as tiny taskbars
             Rectangle {
                 visible: card.reserved[3] > 0
                 anchors.left: parent.left
@@ -189,18 +175,12 @@ Item {
                 anchors.bottom: parent.bottom
                 height: Math.max(2, card.reserved[3] * card.s)
 
-                gradient: Gradient {
-                    GradientStop {
-                        position: 0.0
-                        color: Qt.rgba(0.75, 0.75, 0.75, 0.9)
-                    }
-                    GradientStop {
-                        position: 0.5
-                        color: Qt.rgba(0.2, 0.2, 0.2, 0.85)
-                    }
-                    GradientStop {
-                        position: 0.51
-                        color: Qt.rgba(0.06, 0.06, 0.06, 0.85)
+                gradient: SplitGradient {
+                    colors: {
+                        const top = Qt.rgba(0.75, 0.75, 0.75, 0.9);
+                        const aboveSplit = Qt.rgba(0.2, 0.2, 0.2, 0.85);
+                        const belowSplit = Qt.rgba(0.06, 0.06, 0.06, 0.85);
+                        return [top, aboveSplit, belowSplit, belowSplit];
                     }
                 }
 
@@ -248,21 +228,11 @@ Item {
             }
         }
 
-        Rectangle {
+        Bevel {
             anchors.fill: parent
             radius: 3
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(0, 0, 0, 0.7)
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: 2
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.3 + 0.25 * card.hoverT)
+            outerColor: Qt.rgba(0, 0, 0, 0.7)
+            innerColor: Qt.rgba(1, 1, 1, 0.3 + 0.25 * card.hoverT)
         }
 
         Rectangle {
@@ -283,7 +253,7 @@ Item {
             if (hovered) {
                 card.overview.hoveredWorkspaceId = card.wsId;
             } else if (card.overview.hoveredWorkspaceId === card.wsId) {
-                card.overview.hoveredWorkspaceId = -99999;
+                card.overview.hoveredWorkspaceId = Constants.NO_WORKSPACE;
             }
         }
     }

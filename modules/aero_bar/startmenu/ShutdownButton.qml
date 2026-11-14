@@ -1,10 +1,6 @@
 import QtQuick
-import QtQuick.Effects
 import "../components"
 
-// The Windows 7 "Shut down ▸" split button: one dark glass shell split into a label half and an
-// arrow half. Each half glows pale blue from below on hover and darkens when pressed; the arrow
-// half stays pressed while its menu is open.
 Item {
     id: root
 
@@ -13,15 +9,14 @@ Item {
     property real arrowWidth: 20
     property real radius: 3
 
+    readonly property real mainWidth: width - arrowWidth
+
     signal clicked
     signal arrowClicked
 
     implicitWidth: labelText.implicitWidth + 30 + arrowWidth
     implicitHeight: 23
 
-    readonly property real mainWidth: width - arrowWidth
-
-    // one half's hover / pressed glow, drawn in the full button shape and clipped to the half
     component SegmentGlow: Canvas {
         id: glow
 
@@ -29,11 +24,23 @@ Item {
         property real offsetX: 0
         property real radius: 3
         property bool pressed: false
+        property bool lit: false
+
+        opacity: lit ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 160
+                easing.type: Easing.OutQuad
+            }
+        }
 
         onPressedChanged: requestPaint()
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
         onFullWidthChanged: requestPaint()
+        onOffsetXChanged: requestPaint()
+        onRadiusChanged: requestPaint()
 
         onPaint: {
             const ctx = getContext("2d");
@@ -75,50 +82,31 @@ Item {
         }
     }
 
-    // ---- shell ---------------------------------------------------------------------------------
-
     Rectangle {
         anchors.fill: parent
         radius: root.radius
         border.width: 1
         border.color: Qt.rgba(0, 0, 0, 0.7)
 
-        gradient: Gradient {
-            GradientStop {
-                position: 0.0
-                color: Qt.rgba(1, 1, 1, 0.24)
-            }
-            GradientStop {
-                position: 0.46
-                color: Qt.rgba(1, 1, 1, 0.1)
-            }
-            GradientStop {
-                position: 0.47
-                color: Qt.rgba(0, 0, 0, 0.14)
-            }
-            GradientStop {
-                position: 1.0
-                color: Qt.rgba(1, 1, 1, 0.08)
-            }
+        gradient: SplitGradient {
+            split: 0.46
+            splitEnd: 0.47
+            colors: [
+                Qt.rgba(1, 1, 1, 0.24),
+                Qt.rgba(1, 1, 1, 0.1),
+                Qt.rgba(0, 0, 0, 0.14),
+                Qt.rgba(1, 1, 1, 0.08)
+            ]
         }
     }
 
     SegmentGlow {
-        x: 0
         width: root.mainWidth
         height: root.height
         fullWidth: root.width
-        offsetX: 0
         radius: root.radius
         pressed: mainMouse.pressed
-        opacity: mainMouse.containsMouse || mainMouse.pressed ? 1 : 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 160
-                easing.type: Easing.OutQuad
-            }
-        }
+        lit: mainMouse.containsMouse || mainMouse.pressed
     }
 
     SegmentGlow {
@@ -129,17 +117,9 @@ Item {
         offsetX: root.mainWidth
         radius: root.radius
         pressed: arrowMouse.pressed || root.menuOpen
-        opacity: arrowMouse.containsMouse || arrowMouse.pressed || root.menuOpen ? 1 : 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 160
-                easing.type: Easing.OutQuad
-            }
-        }
+        lit: arrowMouse.containsMouse || pressed
     }
 
-    // inner highlight: bright along the top, faint elsewhere
     Rectangle {
         anchors.fill: parent
         anchors.margins: 1
@@ -163,7 +143,6 @@ Item {
         color: Qt.rgba(1, 1, 1, 0.5)
     }
 
-    // split: a dark groove with a light edge
     Rectangle {
         x: root.mainWidth - 1
         y: 2
@@ -180,33 +159,13 @@ Item {
         color: Qt.rgba(1, 1, 1, 0.22)
     }
 
-    // ---- content -------------------------------------------------------------------------------
-
-    // Win7 caption glow: a blurred dark copy behind the (unlayered, crisp) white label
-    Text {
-        x: labelText.x
-        y: labelText.y
-        text: root.label
-        color: "black"
-        opacity: 0.75
-        font: labelText.font
-
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            blurEnabled: true
-            blur: 0.5
-            blurMax: 6
-        }
-    }
-
-    Text {
+    CaptionText {
         id: labelText
         x: (root.mainWidth - width) / 2
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: mainMouse.pressed ? 1 : 0
         text: root.label
-        color: "white"
-        font.pixelSize: 12
+        glow: 0.75
     }
 
     MediaGlyph {

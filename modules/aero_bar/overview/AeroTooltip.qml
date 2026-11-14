@@ -1,6 +1,5 @@
 import QtQuick
 
-// Windows 7 tooltip: pale gradient, thin grey border, soft shadow.
 Item {
     id: root
 

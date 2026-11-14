@@ -67,6 +67,15 @@ Win7Frame {
         pressedT: trayItem.pressedT
     }
 
+    WheelHandler {
+        onWheel: event => trayItem.trayItemData.scroll(event.angleDelta.y, false)
+    }
+
+    WheelHandler {
+        orientation: Qt.Horizontal
+        onWheel: event => trayItem.trayItemData.scroll(event.angleDelta.x, true)
+    }
+
     QsMenuAnchor {
         id: menu
         menu: trayItem.trayItemData.menu

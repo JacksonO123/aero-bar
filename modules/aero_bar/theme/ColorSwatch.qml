@@ -1,7 +1,6 @@
 import QtQuick
+import "../components"
 
-// One colour tile in the picker: the colour behind a glossy glass face, with Win7's blue
-// selection frame when it is the current colour.
 Item {
     id: root
 
@@ -13,14 +12,12 @@ Item {
     implicitWidth: 52
     implicitHeight: 52
 
-    // selection / hover highlight
-    Rectangle {
+    RowHighlight {
         anchors.fill: parent
         radius: 4
-        visible: root.selected || mouse.containsMouse
-        color: root.selected ? "#dcebfc" : "#eef6fd"
-        border.width: 1
-        border.color: root.selected ? "#7da2ce" : "#b8d6fb"
+        hot: mouse.containsMouse
+        selected: root.selected
+        hotColor: "#eef6fd"
     }
 
     Rectangle {
@@ -41,7 +38,7 @@ Item {
             }
         }
 
-        // the colour, a little stronger than its glass so pale ones still read
+        // stronger than its glass alpha so pale colours still read
         Rectangle {
             anchors.fill: parent
             anchors.margins: 1
@@ -49,7 +46,6 @@ Item {
             color: Qt.rgba(root.color.r, root.color.g, root.color.b, Math.min(1, root.color.a * 1.7))
         }
 
-        // gloss
         Rectangle {
             x: 1
             y: 1

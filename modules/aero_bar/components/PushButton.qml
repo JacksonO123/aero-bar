@@ -1,7 +1,6 @@
 import QtQuick
+import "../../../utils/colors.js" as ColorUtils
 
-// A Windows 7 push button: grey glass that turns pale blue under the pointer. `isDefault` marks
-// the button Enter presses, which pulses slowly blue like Win7's default button.
 Item {
     id: root
 
@@ -13,22 +12,24 @@ Item {
     readonly property bool hovered: mouse.containsMouse
     readonly property bool pressed: mouse.pressed && mouse.containsMouse
 
-    property real hoverT: hovered ? 1 : 0
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
     property real pulse: 0
+
+    HoverPress {
+        id: hp
+        hovered: root.hovered
+        pressed: root.pressed
+        hoverDuration: 160
+    }
 
     implicitWidth: Math.max(78, label.implicitWidth + 26)
     implicitHeight: 24
     opacity: enabled ? 1 : 0.6
 
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 160
-            easing.type: Easing.OutQuad
-        }
-    }
-
+    // dialogs stay loaded while hidden, so only pulse while the window is up
     SequentialAnimation on pulse {
-        running: root.isDefault && root.enabled && root.visible && !root.hovered
+        running: root.isDefault && root.enabled && root.visible && (root.Window.window?.visible ?? false) && !root.hovered
         loops: Animation.Infinite
         alwaysRunToEnd: true
 
@@ -45,60 +46,39 @@ Item {
     }
 
     component Face: Rectangle {
-        property var stops: []
+        id: face
+
+        property var colors: []
 
         anchors.fill: parent
         radius: 3
-        gradient: Gradient {
-            GradientStop {
-                position: 0
-                color: stops[0]
-            }
-            GradientStop {
-                position: 0.48
-                color: stops[1]
-            }
-            GradientStop {
-                position: 0.5
-                color: stops[2]
-            }
-            GradientStop {
-                position: 1
-                color: stops[3]
-            }
+        gradient: SplitGradient {
+            split: 0.48
+            splitEnd: 0.5
+            colors: face.colors
         }
     }
 
     Face {
-        stops: ["#f2f2f2", "#ebebeb", "#dddddd", "#cfcfcf"]
+        colors: ["#f2f2f2", "#ebebeb", "#dddddd", "#cfcfcf"]
     }
 
     Face {
-        stops: ["#eaf6fd", "#d9f0fc", "#bee6fd", "#a7d9f5"]
+        colors: ["#eaf6fd", "#d9f0fc", "#bee6fd", "#a7d9f5"]
         opacity: Math.max(root.hoverT, root.isDefault ? root.pulse * 0.75 : 0)
     }
 
     Face {
-        stops: ["#e5f4fc", "#c4e5f6", "#98d1ef", "#68b3db"]
-        opacity: root.pressed ? 1 : 0
+        colors: ["#e5f4fc", "#c4e5f6", "#98d1ef", "#68b3db"]
+        opacity: root.pressedT
     }
 
-    // inner highlight, then the outline
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: 2
-        color: "transparent"
-        border.width: 1
-        border.color: root.pressed ? Qt.rgba(0, 0.1, 0.25, 0.25) : Qt.rgba(1, 1, 1, 0.8)
-    }
-
-    Rectangle {
+    Bevel {
         anchors.fill: parent
         radius: 3
-        color: "transparent"
-        border.width: 1
-        border.color: root.pressed ? "#2c628b" : (root.hovered || root.isDefault) ? "#3c7fb1" : "#707070"
+        outerColor: hp.shade(root.isDefault ? "#3c7fb1" : "#707070", "#3c7fb1", "#2c628b")
+        innerColor: ColorUtils.interpolateColors(Qt.rgba(1, 1, 1, 0.8), Qt.rgba(0, 0.1, 0.25, 0.25), root.pressedT)
+        outlineOnTop: true
     }
 
     Text {

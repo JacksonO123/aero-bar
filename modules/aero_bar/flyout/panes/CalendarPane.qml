@@ -1,14 +1,13 @@
 import QtQuick
 import Quickshell
+import ".."
 import "../../components"
 import "../../../../services"
+import "../../../../utils/constants.js" as Constants
 
-// Windows 7 clock flyout: long date, month calendar and a glass analog clock. The expand button
-// (or clicking the month title) zooms out to the whole year; clicking a month zooms back in.
-Item {
+FlyoutPane {
     id: root
 
-    property bool shown: false
     property bool expanded: false
     property int viewYear: 2000
     property int viewMonth: 0
@@ -24,20 +23,18 @@ Item {
     readonly property real padding: 12
     readonly property real cellW: 30
     readonly property real cellH: 24
-    readonly property color linkColor: "#1c5ea8"
 
     width: Math.max(header.implicitWidth, expanded ? yearView.width : monthView.width) + padding * 2
     height: padding + header.height + 10 + (expanded ? yearView.height : monthView.height) + padding
 
     function resetView() {
         expanded = false;
-        slideDirection = 0;
         viewYear = todayYear;
         viewMonth = todayMonth;
     }
 
-    onShownChanged: {
-        if (shown) {
+    onActiveChanged: {
+        if (root.active) {
             resetView();
         }
     }
@@ -53,7 +50,6 @@ Item {
     }
 
     function shiftYear(delta) {
-        slideDirection = delta;
         viewYear += delta;
         yearSlide.restart();
     }
@@ -79,6 +75,9 @@ Item {
         return cells;
     }
 
+    readonly property var dayAbbreviations: dayNames(2)
+    readonly property var dayLetters: dayNames(1)
+
     function dayNames(length) {
         const names = [];
         for (let i = 0; i < 7; i++) {
@@ -102,10 +101,8 @@ Item {
     SystemClock {
         id: secondsClock
         precision: SystemClock.Seconds
-        enabled: root.shown
+        enabled: root.active
     }
-
-    // ---- building blocks ------------------------------------------------------------------
 
     component NavArrow: Item {
         id: arrow
@@ -149,6 +146,12 @@ Item {
             rotation: arrow.pointsLeft ? 180 : 0
             color: arrowMouse.containsMouse ? "#1f6fc5" : "#4d6377"
             shadow: false
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 120
+                }
+            }
         }
 
         MouseArea {
@@ -160,7 +163,6 @@ Item {
         }
     }
 
-    // year/month toggle: a little grid of months, or a single month
     component ZoomButton: LightButton {
         id: zoom
 
@@ -219,7 +221,8 @@ Item {
             anchors.fill: parent
             anchors.margins: 1
             radius: 3
-            visible: cellHover.hovered && !cell.isToday && cell.inMonth
+            opacity: cellHover.hovered && !cell.isToday && cell.inMonth ? 1 : 0
+            visible: opacity > 0
             border.width: 1
             border.color: "#b8d6fb"
 
@@ -233,12 +236,21 @@ Item {
                     color: "#e1f0fb"
                 }
             }
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 110
+                }
+            }
         }
 
-        GlassOrb {
+        Loader {
             anchors.centerIn: parent
-            visible: cell.isToday
-            size: Math.min(cell.width, cell.height) + 1
+            active: cell.isToday
+
+            sourceComponent: GlassOrb {
+                size: Math.min(cell.width, cell.height) + 1
+            }
         }
 
         Text {
@@ -334,10 +346,13 @@ Item {
                     width: 20
                     height: 14
 
-                    GlassOrb {
+                    Loader {
                         anchors.centerIn: parent
-                        visible: miniDay.modelData.isToday
-                        size: 15
+                        active: miniDay.modelData.isToday
+
+                        sourceComponent: GlassOrb {
+                            size: 15
+                        }
                     }
 
                     Text {
@@ -360,8 +375,6 @@ Item {
         }
     }
 
-    // ---- header: long date, like the Win7 flyout ----------------------------------------------
-
     Item {
         id: header
         x: root.padding
@@ -370,22 +383,14 @@ Item {
         implicitWidth: longDate.implicitWidth + weekLabel.implicitWidth + 24
         height: 30
 
-        Text {
+        LinkText {
             id: longDate
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: -2
             text: root.today.toLocaleDateString(Qt.locale(), Locale.LongFormat)
-            color: longDateMouse.containsMouse ? "#3399ff" : root.linkColor
             font.pixelSize: 15
-            font.underline: longDateMouse.containsMouse && !root.viewingToday
-
-            MouseArea {
-                id: longDateMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.resetView()
-            }
+            underlineOnHover: !root.viewingToday
+            onClicked: root.resetView()
         }
 
         Text {
@@ -397,7 +402,6 @@ Item {
             font.pixelSize: 11
         }
 
-        // Win7 separator: a line that fades out at both ends
         Rectangle {
             anchors.bottom: parent.bottom
             width: parent.width
@@ -424,8 +428,6 @@ Item {
             }
         }
     }
-
-    // ---- month view ---------------------------------------------------------------------------
 
     Row {
         id: monthView
@@ -465,13 +467,18 @@ Item {
                 }
 
                 Text {
-                    id: monthTitle
                     anchors.centerIn: parent
                     anchors.horizontalCenterOffset: -12
                     text: `${root.monthName(root.viewMonth)} ${root.viewYear}`
                     color: monthTitleMouse.containsMouse ? "#1f6fc5" : "#1e2f40"
                     font.pixelSize: 13
                     font.bold: true
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 120
+                        }
+                    }
 
                     MouseArea {
                         id: monthTitleMouse
@@ -502,7 +509,7 @@ Item {
 
             Row {
                 Repeater {
-                    model: root.dayNames(2)
+                    model: root.dayAbbreviations
 
                     Text {
                         required property var modelData
@@ -563,21 +570,12 @@ Item {
                 width: 7 * root.cellW
                 height: 16
 
-                Text {
+                LinkText {
                     anchors.horizontalCenter: parent.horizontalCenter
                     visible: !root.viewingToday
                     text: "Go to today"
-                    color: todayMouse.containsMouse ? "#3399ff" : root.linkColor
                     font.pixelSize: 11
-                    font.underline: todayMouse.containsMouse
-
-                    MouseArea {
-                        id: todayMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.resetView()
-                    }
+                    onClicked: root.resetView()
                 }
             }
         }
@@ -593,7 +591,7 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatTime(secondsClock.date, "h:mm:ss AP")
+                text: Qt.formatTime(secondsClock.date, Constants.TIME_FORMAT_SECONDS)
                 color: "#1e2f40"
                 font.pixelSize: 15
             }
@@ -606,8 +604,6 @@ Item {
             }
         }
     }
-
-    // ---- year view ----------------------------------------------------------------------------
 
     Column {
         id: yearView
@@ -680,21 +676,19 @@ Item {
                     required property int index
                     title: root.monthName(index)
                     cells: root.monthCells(root.viewYear, index)
-                    letters: root.dayNames(1)
+                    letters: root.dayLetters
                     current: root.viewYear === root.todayYear && index === root.todayMonth
                     onPicked: root.openMonth(index)
                 }
             }
 
-            ParallelAnimation {
+            NumberAnimation {
                 id: yearSlide
-                NumberAnimation {
-                    target: yearGrid
-                    property: "opacity"
-                    from: 0.2
-                    to: 1
-                    duration: 240
-                }
+                target: yearGrid
+                property: "opacity"
+                from: 0.2
+                to: 1
+                duration: 240
             }
         }
     }

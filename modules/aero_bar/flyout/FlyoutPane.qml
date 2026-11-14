@@ -3,14 +3,17 @@ import QtQuick
 Item {
     id: root
 
-    required property Item owner
-    readonly property bool active: owner === parent.activeOwner
+    property Item owner: null
+
+    // read on Flyout.show(); a later change applies on the next show
+    property bool glass: false
+
+    property bool wantsKeyboard: false
+
+    readonly property bool active: owner !== null && owner === parent.activeOwner
 
     opacity: active ? 1 : 0
     visible: opacity > 0
-
-    width: childrenRect.width
-    height: childrenRect.height
 
     Behavior on opacity {
         NumberAnimation {

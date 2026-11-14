@@ -1,7 +1,5 @@
 import QtQuick
-import "../../../utils/colors.js" as ColorUtils
 
-// Windows 7 push button for light surfaces (flyout content): grey two-tone, blue when hot.
 Item {
     id: root
 
@@ -11,49 +9,30 @@ Item {
     property real radius: 3
     property bool checked: false
 
-    property real hoverT: mouse.containsMouse ? 1 : 0
-    property real pressedT: mouse.pressed || checked ? 1 : 0
+    readonly property alias hoverT: hp.hoverT
+    readonly property alias pressedT: hp.pressedT
 
-    Behavior on hoverT {
-        NumberAnimation {
-            duration: 150
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    Behavior on pressedT {
-        NumberAnimation {
-            duration: 80
-            easing.type: Easing.OutQuad
-        }
-    }
-
-    function mix(normal, hot, pressed) {
-        return ColorUtils.interpolateColors(ColorUtils.interpolateColors(normal, hot, hoverT), pressed, pressedT);
+    HoverPress {
+        id: hp
+        hovered: mouse.containsMouse
+        pressed: mouse.pressed || root.checked
     }
 
     Rectangle {
         anchors.fill: parent
         radius: root.radius
         border.width: 1
-        border.color: root.mix("#707070", "#3c7fb1", "#2c628b")
+        border.color: hp.shade("#707070", "#3c7fb1", "#2c628b")
 
-        gradient: Gradient {
-            GradientStop {
-                position: 0.0
-                color: root.mix("#f2f2f2", "#eaf6fd", "#e5f4fc")
-            }
-            GradientStop {
-                position: 0.49
-                color: root.mix("#ebebeb", "#d9f0fc", "#c4e5f6")
-            }
-            GradientStop {
-                position: 0.5
-                color: root.mix("#dddddd", "#bee6fd", "#98d1ef")
-            }
-            GradientStop {
-                position: 1.0
-                color: root.mix("#cfcfcf", "#a7d9f5", "#68b3db")
+        gradient: SplitGradient {
+            split: 0.49
+            splitEnd: 0.5
+            colors: {
+                const top = hp.shade("#f2f2f2", "#eaf6fd", "#e5f4fc");
+                const aboveSplit = hp.shade("#ebebeb", "#d9f0fc", "#c4e5f6");
+                const belowSplit = hp.shade("#dddddd", "#bee6fd", "#98d1ef");
+                const bottom = hp.shade("#cfcfcf", "#a7d9f5", "#68b3db");
+                return [top, aboveSplit, belowSplit, bottom];
             }
         }
     }

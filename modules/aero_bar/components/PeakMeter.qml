@@ -1,7 +1,5 @@
 import QtQuick
 
-// Win7 style segmented level meter. `level` is a linear 0..1 peak; it is shown on a dB scale with
-// fast attack, slow release and a short peak-hold marker.
 Item {
     id: root
 
@@ -21,6 +19,13 @@ Item {
     readonly property real segmentWidth: (width - (segments - 1) * gap) / segments
     readonly property int lit: Math.round(shown * segments)
     readonly property int held: Math.round(hold * segments)
+
+    readonly property var palettes: ({
+            unlit: ["#eef1f4", "#dde2e7", "#d3d9df", "#e6eaee"],
+            dimmed: ["#d9dee3", "#b3bac1", "#9da5ad", "#b8bfc6"],
+            hot: ["#ffe7a6", "#f7b73a", "#e0901a", "#f2ad33"],
+            lit: ["#c9f7bd", "#5fd34e", "#2fb51f", "#4fcd40"]
+        })
 
     onTargetChanged: {
         if (target > shown) {
@@ -56,6 +61,8 @@ Item {
             model: root.segments
 
             Rectangle {
+                id: segment
+
                 required property int index
                 readonly property bool on: index < root.lit || index === root.held - 1
                 readonly property bool hot: index >= root.segments * 0.86
@@ -66,23 +73,8 @@ Item {
                 border.width: 1
                 border.color: on ? (hot ? "#a8640f" : "#2d8a1f") : "#b9c3cd"
 
-                gradient: Gradient {
-                    GradientStop {
-                        position: 0
-                        color: !on ? "#eef1f4" : root.dimmed ? "#d9dee3" : hot ? "#ffe7a6" : "#c9f7bd"
-                    }
-                    GradientStop {
-                        position: 0.5
-                        color: !on ? "#dde2e7" : root.dimmed ? "#b3bac1" : hot ? "#f7b73a" : "#5fd34e"
-                    }
-                    GradientStop {
-                        position: 0.51
-                        color: !on ? "#d3d9df" : root.dimmed ? "#9da5ad" : hot ? "#e0901a" : "#2fb51f"
-                    }
-                    GradientStop {
-                        position: 1
-                        color: !on ? "#e6eaee" : root.dimmed ? "#b8bfc6" : hot ? "#f2ad33" : "#4fcd40"
-                    }
+                gradient: SplitGradient {
+                    colors: root.palettes[!segment.on ? "unlit" : root.dimmed ? "dimmed" : segment.hot ? "hot" : "lit"]
                 }
             }
         }

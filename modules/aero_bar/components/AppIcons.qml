@@ -2,11 +2,14 @@ pragma ComponentBehavior: Bound
 
 import Quickshell
 import QtQuick
+import "../flyout"
+import "../../../services"
 import "../../../utils/constants.js" as Constants
 
 Row {
     id: root
     required property var apps
+    required property Flyout flyoutEl
     spacing: 2
     height: Constants.BAR_HEIGHT
     anchors.top: parent.top
@@ -20,15 +23,75 @@ Row {
 
             required property var modelData
 
+            readonly property bool isAppButton: true
+            readonly property var app: modelData
+            readonly property var windows: Taskbar.windowsFor(modelData)
+            readonly property bool running: windows.length > 0
+            // the wayland state clears when focus moves to an empty workspace; the IPC one doesn't
+            readonly property bool active: windows.some(t => t.wayland?.activated)
+
             anchors.top: parent.top
             anchors.topMargin: -1
             implicitHeight: Constants.BAR_HEIGHT + 1
             implicitWidth: Constants.ICON_BUTTON_WIDTH
-            onClicked: Quickshell.execDetached(entry.modelData.cmd)
-            frameOpacity: entry.hoverT
+            frameOpacity: Math.max(entry.hoverT, running ? (active ? 0.9 : 0.6) : 0)
+
+            function focusNext() {
+                const i = windows.findIndex(t => t.wayland?.activated);
+                const next = windows[(i + 1) % windows.length];
+                HyprState.focusWindow(Taskbar.hyprAddress(next), true);
+            }
+
+            onClicked: mouse => {
+                showTimer.stop();
+                if (mouse.button === Qt.RightButton) {
+                    root.flyoutEl.toggle(entry);
+                    return;
+                }
+                root.flyoutEl.close();
+                if (mouse.button === Qt.MiddleButton || !running) {
+                    Quickshell.execDetached(entry.modelData.cmd);
+                } else {
+                    focusNext();
+                }
+            }
+
+            onHoveredChanged: {
+                if (hovered) {
+                    if (root.flyoutEl.current?.isAppButton) {
+                        root.flyoutEl.hover(entry);
+                    } else {
+                        showTimer.restart();
+                    }
+                } else {
+                    showTimer.stop();
+                    root.flyoutEl.unhover();
+                }
+            }
+
+            Timer {
+                id: showTimer
+                interval: Constants.THUMBNAIL_DELAY
+                onTriggered: {
+                    if (entry.hovered) {
+                        root.flyoutEl.hover(entry);
+                    }
+                }
+            }
+
+            Rectangle {
+                visible: entry.windows.length > 1
+                x: parent.width - 3
+                y: 4
+                width: 3
+                height: parent.height - 8
+                radius: 2
+                color: Qt.rgba(1, 1, 1, 0.12)
+                border.width: 1
+                border.color: Qt.rgba(1, 1, 1, 0.3)
+            }
 
             Image {
-                id: appImage
                 property int size: entry.modelData.size
 
                 anchors.centerIn: parent

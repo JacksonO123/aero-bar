@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
+import "../../../utils/path.js" as PathUtils
 
 IconImage {
     id: root
@@ -14,8 +15,11 @@ IconImage {
     asynchronous: true
 
     readonly property var entry: {
-        DesktopEntries.applications.values;
-        return wmClass.length > 0 ? DesktopEntries.heuristicLookup(wmClass) : null;
+        if (wmClass.length === 0) {
+            return null;
+        }
+        DesktopEntries.applications.values; // re-evaluate when the entry list changes
+        return DesktopEntries.heuristicLookup(wmClass);
     }
 
     source: {
@@ -25,9 +29,8 @@ IconImage {
                 continue;
             }
 
-            // desktop files may point straight at an image file
             if (name.startsWith("/")) {
-                return "file://" + name;
+                return PathUtils.fileUrl(name);
             }
 
             const path = Quickshell.iconPath(name, true);

@@ -4,7 +4,6 @@ import "../../../utils/constants.js" as Constants
 Rectangle {
     id: root
     signal clicked
-    // lit while the start menu is open
     property bool active: false
 
     property real padding: 2
@@ -33,7 +32,6 @@ Rectangle {
     }
 
     Image {
-        id: image
         anchors.fill: root
         source: Qt.resolvedUrl("../../../assets/arch-orb.png")
         sourceSize: Qt.size(width * 2, height * 2)
@@ -41,7 +39,6 @@ Rectangle {
     }
 
     Image {
-        id: imageBright
         anchors.fill: root
         source: Qt.resolvedUrl("../../../assets/arch-orb-bright.png")
         sourceSize: Qt.size(width * 2, height * 2)

@@ -1,0 +1,32 @@
+import Quickshell
+import Quickshell.Wayland
+import QtQuick
+import "../../../services"
+
+Variants {
+    model: Quickshell.screens
+
+    PanelWindow {
+        required property var modelData
+
+        screen: modelData
+        visible: layer.showing
+        color: "transparent"
+        exclusionMode: ExclusionMode.Ignore
+        anchors {
+            top: true
+            bottom: true
+            left: true
+            right: true
+        }
+
+        WlrLayershell.namespace: "aero-session-end"
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: SessionEnd.active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+
+        SessionEndLayer {
+            id: layer
+            screenName: modelData.name
+        }
+    }
+}
