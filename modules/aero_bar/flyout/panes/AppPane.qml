@@ -7,15 +7,11 @@ import "../../startmenu"
 import "../../../../services"
 import "../../../../utils/constants.js" as Constants
 
-// The pane for a hovered taskbar app. Hover: Win7 thumbnails of the app's windows on the glass
-// (or just its name when it isn't running); hovering a thumbnail Aero Peeks at that window.
-// Right-click (pinned): the jump list, with the app's own tasks, launch and close.
 FlyoutPane {
     id: root
 
     required property var flyoutEl
-    // the bar window's top-left corner in layout coordinates, so Aero Peek can keep this flyout
-    // uncovered
+    // bar window's top-left in Hyprland layout coordinates
     property point windowOrigin: Qt.point(0, 0)
 
     readonly property var app: owner?.app ?? null
@@ -26,14 +22,11 @@ FlyoutPane {
     readonly property real thumbW: 196
     readonly property real thumbH: 124
 
-    // one pane for every taskbar app: it follows whichever is hovered (or right-clicked)
     owner: flyoutEl.current?.isAppButton ? flyoutEl.current : null
     glass: !jump
 
     width: jump ? jumpList.width : windows.length > 0 ? thumbs.width + 12 : nameLabel.implicitWidth + 24
     height: jump ? jumpList.height : windows.length > 0 ? thumbs.height + 10 : 30
-
-    // ---- name only (not running) ---------------------------------------------------------------
 
     CaptionText {
         id: nameLabel
@@ -41,8 +34,6 @@ FlyoutPane {
         visible: !root.jump && root.windows.length === 0
         text: root.app?.name ?? root.entry?.name ?? ""
     }
-
-    // ---- thumbnails ----------------------------------------------------------------------------
 
     Row {
         id: thumbs
@@ -52,7 +43,7 @@ FlyoutPane {
         visible: !root.jump && root.windows.length > 0
 
         Repeater {
-            // keeps thumbnails (and their live captures) when other windows come and go
+            // ScriptModel keeps delegates (and live captures) as windows come and go
             model: ScriptModel {
                 values: root.jump ? [] : root.windows
             }
@@ -68,8 +59,6 @@ FlyoutPane {
                 height: root.thumbH + 28
                 frameOpacity: Math.max(hoverT, toplevel.activated ? 0.5 : 0)
 
-                // a thumbnail going away (flyout closed, jump list opened, its window closed, the
-                // screen unplugged) ends its peek
                 Component.onDestruction: Peek.hide(toplevel)
 
                 onHoveredChanged: {
@@ -143,11 +132,10 @@ FlyoutPane {
                     }
                 }
 
-                // above the thumbnail's click area, or the click would focus the window instead
+                // in overlay, above the click area, or the click would focus the window
                 overlay: SmallClose {
                     x: thumb.width - 21
                     y: 5
-                    // fades in with the thumbnail's hover glow
                     opacity: thumb.hoverT
                     visible: opacity > 0
                     lit: true
@@ -156,8 +144,6 @@ FlyoutPane {
             }
         }
     }
-
-    // ---- jump list ------------------------------------------------------------------------------
 
     Column {
         id: jumpList

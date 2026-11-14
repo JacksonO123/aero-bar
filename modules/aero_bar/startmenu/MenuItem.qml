@@ -1,7 +1,6 @@
 import QtQuick
 import "../components"
 
-// Start menu entry on the white panel: icon + label, Win7 blue hot-track when hovered or selected.
 Item {
     id: root
 
@@ -88,7 +87,7 @@ Item {
         }
     }
 
-    // only built for rows that show it (All Programs has hundreds of rows without)
+    // a Loader: All Programs has hundreds of rows without an arrow
     Loader {
         anchors.right: parent.right
         anchors.rightMargin: 9

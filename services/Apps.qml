@@ -4,9 +4,7 @@ import Quickshell
 import QtQuick
 import "../utils/path.js" as PathUtils
 
-// Pinned taskbar apps. `appIds` are the window classes (`hyprctl clients`, matched
-// case-insensitively) that belong to the app: those windows show as thumbnails when hovering it,
-// and mark it as running.
+// appIds: window classes from `hyprctl clients`, matched case-insensitively
 Singleton {
     id: root
 

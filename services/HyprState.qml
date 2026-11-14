@@ -5,14 +5,8 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import QtQuick
 
-// Window/workspace/monitor geometry straight from `hyprctl -j`, plus a serialized dispatch queue.
-//
-// Snapshots are only refreshed on hyprland events while something holds a `retain()` (the
-// workspace overview, Aero Peek), so this costs nothing while neither is showing.
 Singleton {
     id: root
-
-    // ---- the latest snapshot ---------------------------------------------------------------
 
     property var clients: []
     property var workspaces: []
@@ -26,21 +20,15 @@ Singleton {
         return clients.find(c => c.address === address) ?? null;
     }
 
-    // `epoch` goes up every time a queued dispatch finishes. Each snapshot remembers the epoch it
-    // was started in (`dataEpoch`; `runEpoch` is the one of the snapshot in flight), so consumers
-    // that applied an optimistic change can ignore snapshots taken before hyprland performed it.
+    // epoch counts finished dispatches; snapshots record the epoch they started in
     property int epoch: 0
     property int dataEpoch: -1
     property int runEpoch: 0
 
-    // ---- who needs fresh snapshots ---------------------------------------------------------
-
     property int watchers: 0
     readonly property bool live: watchers > 0
 
-    // retains that also show window titles (the overview, with `titles`). Title-only events are
-    // skipped while there are none: Peek only needs geometry, and a terminal or player can
-    // retitle many times a second.
+    // without these, title events are skipped: apps can retitle many times a second
     property int titleWatchers: 0
 
     function retain(titles) {
@@ -62,15 +50,12 @@ Singleton {
         }
     }
 
-    // ---- taking snapshots ------------------------------------------------------------------
-
     property bool awaitingParse: false
     property bool refreshQueued: false
     // hyprctl --batch puts this between the replies
     readonly property string separator: "\n\n\n"
 
     function refresh() {
-        // covers any batched refresh still pending
         eventDebounce.stop();
         maxWait.stop();
 
@@ -98,7 +83,6 @@ Singleton {
         return String(workspaceName ?? "").startsWith("special");
     }
 
-    // a window the overview can show: mapped, visible, on a regular workspace, with geometry
     function isShownClient(c) {
         return c.mapped !== false && !c.hidden && c.workspace && c.workspace.id !== -1 && !isSpecial(c.workspace.name) && Array.isArray(c.at) && Array.isArray(c.size);
     }
@@ -129,8 +113,7 @@ Singleton {
                 })).sort((a, b) => a.id - b.id);
     }
 
-    // per workspace, least recently focused first, so the focused window is drawn last (on top);
-    // a missing focus history counts as old (99)
+    // least recently focused first, so the focused window draws on top
     function parseClients(raw) {
         return raw.filter(isShownClient).map(c => ({
                     address: c.address,
@@ -148,7 +131,6 @@ Singleton {
                 })).sort((a, b) => (a.wsId - b.wsId) || (b.focusHistoryId - a.focusHistoryId));
     }
 
-    // `text` is clients, workspaces, monitors and the active window, split by `separator`
     function parse(text) {
         const parts = text.split(separator);
         if (parts.length < 3) {
@@ -166,7 +148,7 @@ Singleton {
             return;
         }
 
-        // nothing focused (or no parsable active window) just means no focus
+        // an unparsable active window just means nothing is focused
         let rawActive = null;
         try {
             rawActive = JSON.parse(parts[3]);
@@ -180,17 +162,11 @@ Singleton {
         updated();
     }
 
-    // ---- dispatching ----------------------------------------------------------------------
-
-    // commands waiting for the one running to finish
     property var queue: []
 
-    // Hyprland's newer Lua config takes Lua dispatchers over IPC (`hl.dsp.*`) instead of the classic
-    // `movetoworkspacesilent ...` strings, so commands are described as ops and rendered for
-    // whichever config this hyprland is running. (`usingLua` only exists on quickshell >= 0.3.)
+    // Lua configs take hl.dsp.* over IPC; usingLua needs quickshell >= 0.3
     readonly property bool lua: Hyprland.usingLua ?? false
 
-    // Queues a command and returns the epoch that will be reached once it has run.
     function enqueue(argv) {
         queue.push(argv);
         const target = epoch + queue.length + (dispatcher.running ? 1 : 0);
@@ -264,8 +240,7 @@ Singleton {
         return "";
     }
 
-    // Runs ops as one IPC request. On the classic config `restoreCursor` puts the pointer back
-    // afterwards (focus changes warp it); the Lua path can't, so it doesn't.
+    // restoreCursor: focusing warps the pointer; classic config only
     function dispatch(ops, restoreCursor) {
         const list = Array.isArray(ops) ? ops : [ops];
 
@@ -276,7 +251,7 @@ Singleton {
 
         const batch = list.map(op => `dispatch ${renderClassic(op)}`).join(" ; ");
         if (restoreCursor) {
-            // the batch goes in as $1, so the shell never interprets workspace names etc.
+            // batch passed as $1 so the shell never interprets it
             return enqueue(["sh", "-c", 'pos=$(hyprctl cursorpos | tr -d ","); hyprctl --batch "$1 ; dispatch movecursor $pos"', "sh", batch]);
         }
         return enqueue(["hyprctl", "--batch", batch]);
@@ -362,8 +337,7 @@ Singleton {
         ]);
     }
 
-    // For tiled windows hyprland treats a resize delta as "move the split by this much"
-    // (dwindle split ratio / master factor), so dx/dy here are divider movements.
+    // for tiled windows hyprland turns a resize delta into a divider move
     function moveDividers(commands) {
         return dispatch(commands.map(c => ({
                     op: "resizeBy",
@@ -373,10 +347,7 @@ Singleton {
                 })));
     }
 
-    // swapping only operates on the focused window, so focus A, swap with B, then put focus back
-    // where it was (the window, or the active workspace if nothing was focused). If A was the
-    // focused window and went to another workspace, focus stays on the screen: on B, in A's old
-    // spot. The cursor, which focusing warps, is put back on the classic config.
+    // swapwindow acts on the focused window, so focus a first, then restore focus
     function swapWindows(a, b) {
         const ops = [
             {
@@ -412,11 +383,8 @@ Singleton {
         return dispatch(ops, true);
     }
 
-    // ---- processes -------------------------------------------------------------------------
-
     Process {
         id: snapshot
-        // one hyprctl call (and one socket round trip) for all four
         command: ["hyprctl", "--batch", "j/clients; j/workspaces; j/monitors; j/activewindow"]
 
         stdout: StdioCollector {
@@ -426,7 +394,7 @@ Singleton {
             }
         }
 
-        // the output can finish after the process exits; if it never does, stop waiting soon
+        // stdout may finish after exit; the watchdog stops waiting if it never does
         onExited: {
             if (root.awaitingParse) {
                 watchdog.restart();
@@ -449,7 +417,6 @@ Singleton {
 
         onExited: {
             root.epoch += 1;
-            // nobody reads a snapshot unless something holds a retain()
             if (root.live) {
                 root.scheduleRefresh();
             }
@@ -457,9 +424,7 @@ Singleton {
         }
     }
 
-    // One snapshot per burst of changes (events, finished dispatches): 50 ms after the last
-    // one, but never more than 200 ms after the first, so a steady stream of events (a
-    // terminal updating its title) can't postpone it indefinitely.
+    // maxWait caps the debounce so a stream of events can't postpone it forever
     function scheduleRefresh() {
         eventDebounce.restart();
         if (!maxWait.running) {

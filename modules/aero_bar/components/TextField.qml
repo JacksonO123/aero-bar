@@ -1,6 +1,5 @@
 import QtQuick
 
-// A Windows 7 text box: white, slightly recessed, blue border while focused.
 Item {
     id: root
 
@@ -8,7 +7,6 @@ Item {
     property alias echoMode: input.echoMode
     property string placeholder: ""
     property real fontSize: 12
-    // take the keyboard whenever it appears (or is created already showing)
     property bool autoFocus: false
     readonly property bool focused: input.activeFocus
 
@@ -79,7 +77,6 @@ Item {
 
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            // like Win7's cue banners, the hint stays until you type
             visible: input.text === ""
             text: root.placeholder
             color: "#8a8a8a"

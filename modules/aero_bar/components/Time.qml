@@ -1,13 +1,11 @@
 import QtQuick
 import "../../../utils/constants.js" as Constants
 
-// Clock in the corner. Click to pin the calendar flyout open.
 Win7Frame {
     id: root
 
     required property var date
     property real paddingRight: 4
-    // true while the calendar it opened is showing
     property bool active: false
 
     implicitWidth: Math.max(timeText.contentWidth, dateText.contentWidth) + paddingRight + 10

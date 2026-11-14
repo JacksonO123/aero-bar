@@ -1,8 +1,6 @@
 import QtQuick
 import "../../../utils/colors.js" as ColorUtils
 
-// A Windows 7 push button: grey glass that turns pale blue under the pointer. `isDefault` marks
-// the button Enter presses, which pulses slowly blue like Win7's default button.
 Item {
     id: root
 
@@ -29,7 +27,7 @@ Item {
     implicitHeight: 24
     opacity: enabled ? 1 : 0.6
 
-    // (dialogs stay loaded while hidden: only pulse while the window is up)
+    // dialogs stay loaded while hidden, so only pulse while the window is up
     SequentialAnimation on pulse {
         running: root.isDefault && root.enabled && root.visible && (root.Window.window?.visible ?? false) && !root.hovered
         loops: Animation.Infinite
@@ -75,7 +73,6 @@ Item {
         opacity: root.pressedT
     }
 
-    // the outline turns blue with the hover glow (the default button's stays blue)
     Bevel {
         anchors.fill: parent
         radius: 3

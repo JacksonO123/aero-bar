@@ -2,10 +2,6 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 
-// A Win7 dialog in its own window on one screen (Window Color, Desktop Background, Change Your
-// Picture): the glass AeroWindow fades and drops in while `service.dialogOpen` and the service's
-// screen is this one. Enter saves; Esc and the close button cancel. `service` has dialogOpen,
-// screen, save() and cancel(), and `browsing` if it opens a file chooser.
 PanelWindow {
     id: window
 
@@ -27,8 +23,7 @@ PanelWindow {
     color: "transparent"
 
     WlrLayershell.namespace: "aero-dialog"
-    // while the service's file chooser is open, it goes under the windows and lets go of the
-    // keyboard, so the chooser can be seen and typed in
+    // while browsing, step down and release the keyboard for the file chooser
     readonly property bool browsing: service.browsing ?? false
     WlrLayershell.layer: browsing ? WlrLayer.Bottom : WlrLayer.Top
     WlrLayershell.keyboardFocus: wanted && !browsing ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -39,8 +34,6 @@ PanelWindow {
         }
     }
 
-    // Win7's Personalization links: keep what's chosen here and open `other` (a service with
-    // openDialog()) on the same screen
     function switchTo(other) {
         service.save();
         other.openDialog(service.screen);

@@ -1,8 +1,6 @@
 import QtQuick
 import "../components"
 
-// A button on the logon screen ("Switch User"): clear glass with a white edge and white text,
-// brighter under the pointer, like Win7's.
 Item {
     id: root
 
@@ -31,7 +29,6 @@ Item {
         gradient: SplitGradient {
             split: 0.48
             splitEnd: 0.5
-            // clear glass, brighter under the pointer and a little darker pressed
             colors: {
                 const h = root.hoverT, p = root.pressedT;
                 const top = Qt.rgba(1, 1, 1, 0.3 + 0.15 * h - 0.15 * p);

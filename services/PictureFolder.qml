@@ -2,23 +2,18 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 
-// The pictures in a folder (and the folders below it, three deep), sorted by name. Reads the
-// folder on scan().
 Scope {
     id: root
 
     required property string directory
 
-    // the file types it finds (also the filter for picking a single picture)
     readonly property var types: ["jpg", "jpeg", "png", "webp", "bmp", "gif"]
 
-    // full paths, in natural order ("2.jpg" before "10.jpg")
     property var images: []
     property bool scanning: false
-    // the folder couldn't be read
     property bool missing: false
 
-    // a folder changed under a scan (one opened before the saved folder was read): scan that
+    // the saved folder can be read after a scan started: rescan
     onDirectoryChanged: {
         if (scanning) {
             scan();
@@ -33,8 +28,6 @@ Scope {
         scanner.running = true;
     }
 
-    // a script printing $1, then the pictures under it (exit status 3: the folder isn't there or
-    // can't be read)
     function findScript() {
         const names = types.map(t => `-iname "*.${t}"`).join(" -o ");
         return `test -d "$1" && test -r "$1" || exit 3; printf '%s\\n' "$1"; find -L "$1" -maxdepth 3 -type f \\( ${names} \\) 2>/dev/null`;
@@ -47,15 +40,14 @@ Scope {
 
         stdout: StdioCollector {
             onStreamFinished: {
-                // a scan stopped part way for a newer one (of another folder) gives what it found
-                // so far: wait for the newer one
+                // a scan killed for a newer one still reports its partial output: skip it
                 if (!text.startsWith(root.directory + "\n")) {
                     return;
                 }
 
                 const paths = text.slice(root.directory.length + 1).split("\n");
 
-                // Qt's localeCompare ignores options like `numeric`, so pad the numbers instead
+                // Qt's localeCompare ignores `numeric`, so pad the numbers instead
                 const keyed = paths.filter(line => line !== "").map(path => ({
                             path,
                             key: path.replace(/\d+/g, n => n.padStart(12, "0"))

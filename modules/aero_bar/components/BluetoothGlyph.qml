@@ -1,6 +1,5 @@
 import QtQuick
 
-// A small glossy blue orb with the Bluetooth rune; grey when Bluetooth is off.
 GlassOrb {
     id: root
 

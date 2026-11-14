@@ -3,12 +3,9 @@ import QtQuick
 import "../components"
 import "../../../services"
 
-// "Window Color and Appearance": pick the glass colour for the whole shell. Changes preview
-// live; Save keeps them, Cancel / Esc / close puts the old colour back.
 Variants {
     model: Quickshell.screens
 
-    // a labelled slider: the intensity and the colour mixer's three
     component SliderRow: Row {
         id: sliderRow
 
@@ -102,7 +99,6 @@ Variants {
                 onMoved: value => Theme.previewIntensity = Math.max(0.1, value)
             }
 
-            // color mixer, folded away like Win7's
             DisclosureToggle {
                 id: mixerToggle
                 x: 20
@@ -149,8 +145,6 @@ Variants {
                 y: mixer.y + mixer.height + 16
                 width: parent.width
 
-                // Win7's Personalization links: on to the wallpaper or your account picture
-                // (keeping the colour)
                 leading: Row {
                     spacing: 18
 

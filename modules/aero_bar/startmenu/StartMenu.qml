@@ -4,8 +4,7 @@ import Quickshell.Hyprland
 import QtQuick
 import "../../../services"
 
-// One start menu window per screen, shown on the screen it was opened from (see StartMenuState).
-// For blur behind it, add a hyprland layer rule for the "aero-start-menu" namespace.
+// blur needs a Hyprland layer rule for namespace "aero-start-menu"
 Variants {
     model: Quickshell.screens
 
@@ -17,7 +16,6 @@ Variants {
 
         readonly property bool wanted: StartMenuState.open && StartMenuState.screen === modelData.name
 
-        // stay mapped until the close animation has finished
         visible: wanted || menu.opacity > 0.01
 
         anchors {
@@ -28,7 +26,7 @@ Variants {
             left: 4
         }
 
-        // 0 = sit above the bar's exclusive zone instead of under it
+        // 0: reserve nothing, but stay clear of the bar's exclusive zone
         exclusiveZone: 0
         implicitWidth: menu.implicitWidth
         implicitHeight: menu.implicitHeight
@@ -45,8 +43,7 @@ Variants {
             }
         }
 
-        // clicking anywhere else closes it. Only once the window is mapped: a grab on an unmapped
-        // window is cleared straight away.
+        // only once mapped: a grab on an unmapped window is cleared at once
         HyprlandFocusGrab {
             windows: [window]
             active: window.wanted && window.visible

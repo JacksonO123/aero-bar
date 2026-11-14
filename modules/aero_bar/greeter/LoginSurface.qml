@@ -3,8 +3,6 @@ import "../components"
 import "../lock"
 import "../../../services"
 
-// The login screen: pick an account (when there is more than one), type its password, and
-// "Welcome" while the desktop session starts. The session to start is chosen bottom right.
 LogonScreen {
     id: root
 
@@ -17,8 +15,6 @@ LogonScreen {
         sessionMenu.visible = false;
         signIn.focusInput();
     }
-
-    // ---- the session to start -----------------------------------------------------------------
 
     controls: Item {
         visible: !GreeterState.welcome && GreeterState.session !== null
@@ -77,8 +73,6 @@ LogonScreen {
         }
     }
 
-    // ---- "Welcome" -----------------------------------------------------------------------------
-
     Row {
         anchors.horizontalCenter: parent.horizontalCenter
         visible: GreeterState.welcome
@@ -97,8 +91,6 @@ LogonScreen {
         }
     }
 
-    // ---- choosing an account -------------------------------------------------------------------
-
     Row {
         anchors.horizontalCenter: parent.horizontalCenter
         visible: root.choosing
@@ -116,8 +108,6 @@ LogonScreen {
         }
     }
 
-    // ---- signing in ----------------------------------------------------------------------------
-
     SignInBox {
         id: signIn
         anchors.horizontalCenter: parent.horizontalCenter
@@ -126,7 +116,7 @@ LogonScreen {
         name: GreeterState.user?.displayName ?? GreeterState.selectedUser
         message: GreeterState.error || GreeterState.info
         busy: GreeterState.busy
-        // PAM can ask for something other than a password (a code, a user name)
+        // PAM may ask for a code or a user name, not just a password
         placeholder: GreeterState.echoing ? GreeterState.prompt.replace(/:\s*$/, "") : "Password"
         echoMode: GreeterState.echoing ? TextInput.Normal : TextInput.Password
         text: GreeterState.typed

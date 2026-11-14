@@ -3,9 +3,6 @@ import QtQuick
 import "../components"
 import "../../../services"
 
-// "Change Your Picture": choose your account picture from the pictures in ACCOUNT_PICTURES_DIR
-// (the Windows 7 ones), or browse for another. Change Picture, Enter or a double-click keeps it;
-// Cancel, Esc or the close button leave the old one.
 Variants {
     model: Quickshell.screens
 
@@ -15,8 +12,6 @@ Variants {
         title: "Change Your Picture"
         dialogWidth: pictures.implicitWidth + 32 + 18
 
-        // the picture you'll have: the one clicked (or being kept), else the one you have now
-        // (hidden screens don't follow the clicks)
         readonly property string shown: (visible && (AccountPicture.selection || AccountPicture.saving)) || StartMenuState.picture
 
         Item {
@@ -24,7 +19,6 @@ Variants {
             width: parent.width
             height: footer.y + footer.height
 
-            // an Aero sky along the top, with the picture in its Win7 frame and your name
             AeroBand {
                 id: band
                 width: parent.width
@@ -71,7 +65,6 @@ Variants {
                 }
             }
 
-            // the pictures, in a white list box
             PictureList {
                 id: pictures
                 x: 16
@@ -79,11 +72,9 @@ Variants {
                 columns: 6
                 cellWidth: 100
                 cellHeight: 100
-                // three and a half rows, so it's clear there are more
+                // half a row peeks out, so it's clear the list scrolls
                 height: cellHeight * 3.5 + 12
-                // only while this screen shows the dialog (and fades it out)
                 images: window.visible ? AccountPicture.images : []
-                // the one clicked (or being kept), else the one your picture is a copy of
                 selected: AccountPicture.selection || AccountPicture.saving || AccountPicture.source
                 onPicked: path => AccountPicture.select(path)
                 onChosen: path => {
@@ -91,7 +82,6 @@ Variants {
                     AccountPicture.save();
                 }
 
-                // nothing to show yet, or nothing there
                 Text {
                     anchors.centerIn: parent
                     width: parent.width - 80

@@ -1,7 +1,5 @@
 import QtQuick
 
-// Win7 style segmented level meter. `level` is a linear 0..1 peak; it is shown on a dB scale with
-// fast attack, slow release and a short peak-hold marker.
 Item {
     id: root
 
@@ -22,8 +20,6 @@ Item {
     readonly property int lit: Math.round(shown * segments)
     readonly property int held: Math.round(hold * segments)
 
-    // each segment's two-tone glass (top, above and below the split, bottom): unlit, dimmed
-    // (muted), hot (the top of the scale) and lit
     readonly property var palettes: ({
             unlit: ["#eef1f4", "#dde2e7", "#d3d9df", "#e6eaee"],
             dimmed: ["#d9dee3", "#b3bac1", "#9da5ad", "#b8bfc6"],

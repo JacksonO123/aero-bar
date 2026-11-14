@@ -1,6 +1,5 @@
 import QtQuick
 
-// Windows 7 style green progress bar (with the travelling highlight while playing). Seekable.
 Item {
     id: root
 
@@ -29,7 +28,6 @@ Item {
         anchors.fill: parent
         radius: 3
         border.width: 1
-        // turns blue under the pointer (and while scrubbing), like a text box
         border.color: seekMouse.enabled && (seekMouse.containsMouse || root.scrubbing) ? "#5794bf" : "#8b97a3"
 
         Behavior on border.color {
@@ -59,7 +57,7 @@ Item {
         width: Math.max(0, (parent.width - 2) * root.ratio)
         clip: true
 
-        // position only updates twice a second, so ease between updates
+        // position updates only twice a second, so ease between updates
         Behavior on width {
             enabled: !root.scrubbing
             NumberAnimation {

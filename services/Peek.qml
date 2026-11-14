@@ -3,20 +3,13 @@ pragma Singleton
 import Quickshell
 import QtQuick
 
-// Aero Peek: while a taskbar thumbnail is hovered, show just that window and turn the others
-// into glass outlines (modules/aero_bar/peek).
 Singleton {
     id: root
 
-    // the Hyprland toplevel being peeked at, or null
     property var toplevel: null
-    // hyprctl-style address, to find its geometry in HyprState
     readonly property string address: Taskbar.hyprAddress(toplevel)
 
-    // the thumbnail flyout's frame that started the peek, and the top-left corner of its window
-    // in layout coordinates (like window positions). The overlay cuts a hole there: it is on the
-    // same (Top) layer and maps later, so it would otherwise cover the flyout. Kept until the
-    // veil has faded out.
+    // overlay maps later on the same layer, so it cuts a hole here for the flyout
     property Item clearItem: null
     property point clearOrigin: Qt.point(0, 0)
     readonly property rect clearRect: {
@@ -24,12 +17,11 @@ Singleton {
         if (!f) {
             return Qt.rect(0, 0, 0, 0);
         }
-        f.x, f.y, f.width, f.height; // follow the flyout as it resizes (mapToItem isn't tracked)
+        f.x, f.y, f.width, f.height; // mapToItem isn't tracked by bindings
         const p = f.mapToItem(null, 0, 0);
         return Qt.rect(clearOrigin.x + p.x, clearOrigin.y + p.y, f.width, f.height);
     }
 
-    // window positions come from HyprState, which only stays fresh while retained
     property bool holding: false
 
     function hold() {
@@ -39,8 +31,6 @@ Singleton {
         }
     }
 
-    // a thumbnail is hovered: start fetching window positions now, a peek may follow. Lets go
-    // again (after the grace period) if none does.
     function prepare() {
         hold();
         if (!toplevel) {
@@ -56,7 +46,6 @@ Singleton {
         clearOrigin = windowOrigin;
     }
 
-    // stop peeking at `t`, unless another window's peek has taken over already
     function hide(t) {
         if (t !== toplevel) {
             return;
@@ -67,8 +56,7 @@ Singleton {
         }
     }
 
-    // let go a little later, so sweeping across thumbnails takes one snapshot, not one each
-    // (and the veil has faded out by then)
+    // delayed: one snapshot covers a sweep across thumbnails; veil fades first
     Timer {
         id: releaseTimer
         interval: 1500

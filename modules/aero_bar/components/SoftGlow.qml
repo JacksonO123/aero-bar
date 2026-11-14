@@ -1,9 +1,6 @@
 import QtQuick
 import QtQuick.Effects
 
-// Frutiger Aero's halo: a soft coloured glow around a rounded rectangle the size of this item
-// (grown by `grow` px), spreading `spread` px outside it. Lay it under the thing that glows,
-// filling it.
 Item {
     id: root
 
@@ -12,7 +9,7 @@ Item {
     property int spread: 10
     property real grow: 2
 
-    // room around the shape for the blur to spread into
+    // the layer clips the blur, so give it room to spread
     Item {
         anchors.fill: parent
         anchors.margins: -root.spread

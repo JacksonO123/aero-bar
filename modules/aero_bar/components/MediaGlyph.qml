@@ -1,6 +1,5 @@
 import QtQuick
 
-// Crisp transport glyphs (play / pause / prev / next) drawn in a unit box.
 Canvas {
     id: root
 

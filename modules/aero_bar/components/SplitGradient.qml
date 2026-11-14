@@ -1,8 +1,5 @@
 import QtQuick
 
-// Aero's two-tone gloss: a vertical gradient with a hard step across the middle. `colors` are
-// the four stops (top, just above the step, just below it, bottom); `split` and `splitEnd` place
-// the step.
 Gradient {
     id: root
 

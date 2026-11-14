@@ -4,25 +4,19 @@ import ".."
 import "../../components"
 import "../../../../services"
 
-// The media flyout. Hover the taskbar's media module: what's playing in the player it shows.
-// Click it (the flyout is pinned): "Now Playing", every media source with its own controls.
 FlyoutPane {
     id: root
 
     required property var flyoutEl
 
-    // the list (pinned) or the hover view. Follows the flyout's pinning only while this pane
-    // shows, a moment later, so it doesn't switch while fading out: when another module's pane
-    // is pinned over it, or when the list closes.
+    // Flyout.toggle sets pinned before show(), so latch showAll a moment later
     property bool showAll: false
 
-    // the hover view is on screen (it's hidden while the list is pinned)
     readonly property bool hoverShown: active && !showAll
 
     readonly property var player: Media.player
     readonly property real position: player?.position ?? 0
     readonly property real length: Media.length
-    // the playing players whose progress is on screen
     readonly property var polled: showAll ? Media.playing : (Media.isPlaying ? [player] : [])
 
     readonly property real artSize: 92
@@ -40,7 +34,7 @@ FlyoutPane {
         restoreMode: Binding.RestoreNone
     }
 
-    // mpris position isn't reactive; poll it only while this pane is on screen
+    // MPRIS position isn't reactive: poll it
     Timer {
         interval: 500
         repeat: true
@@ -48,8 +42,6 @@ FlyoutPane {
         running: root.active && root.polled.length > 0
         onTriggered: root.polled.forEach(p => p.positionChanged())
     }
-
-    // ---- the player the taskbar shows (hover) --------------------------------------------------
 
     Column {
         id: content
@@ -178,8 +170,6 @@ FlyoutPane {
         }
     }
 
-    // ---- every media source (click) ------------------------------------------------------------
-
     Column {
         id: sources
         x: root.padding
@@ -214,7 +204,7 @@ FlyoutPane {
 
         Item {
             width: parent.width
-            // about three and a half rows, then it scrolls
+            // three and a half rows, then it scrolls
             height: Math.min(list.height, 350)
 
             Flickable {
@@ -229,8 +219,7 @@ FlyoutPane {
                     width: scroller.width
                     spacing: 4
 
-                    // only while the list shows (and fades out); a ScriptModel keeps each
-                    // player's row as players come and go
+                    // a ScriptModel keeps each player's row as players come and go
                     Repeater {
                         model: ScriptModel {
                             values: root.showAll ? Media.players : []

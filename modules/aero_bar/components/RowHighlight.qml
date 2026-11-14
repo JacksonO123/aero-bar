@@ -2,9 +2,6 @@ import QtQuick
 
 import "../../../utils/colors.js" as ColorUtils
 
-// Win7's hot-track behind a list row: pale blue under the pointer, a deeper blue when selected.
-// Fades in and out like the rest of the shell's hover states. `glass` gives it Explorer's glossy
-// look instead (a lighter top and a white inner edge), for tiles.
 Rectangle {
     id: root
 

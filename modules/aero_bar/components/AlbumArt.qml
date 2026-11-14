@@ -1,8 +1,6 @@
 import QtQuick
 import Quickshell.Widgets
 
-// Album art tile with a Win7 thumbnail frame and two-tone sheen. Crossfades between tracks and
-// falls back to the music orb when the player provides no art.
 Item {
     id: root
 
@@ -16,7 +14,6 @@ Item {
     onSourceChanged: load()
     Component.onCompleted: load()
 
-    // two images crossfade: the next track's art loads into the hidden one, then fades in
     component ArtImage: Image {
         anchors.fill: parent
         fillMode: Image.PreserveAspectCrop
@@ -41,7 +38,7 @@ Item {
         const next = current === imageA ? imageB : imageA;
         loading = next;
         next.source = source;
-        // the spare image may hold this URL already, so no status change is coming
+        // the spare image may already hold this URL: no statusChanged will fire
         imageStatusChanged(next);
     }
 
@@ -62,7 +59,6 @@ Item {
         }
     }
 
-    // no art: fade it out and let the music orb show
     function clear() {
         loading = null;
         if (current) {
@@ -97,7 +93,7 @@ Item {
                 }
             }
 
-            // the asset includes its own reflection underneath; crop to the top half
+            // the asset has its reflection underneath: crop to the top half
             Image {
                 anchors.centerIn: parent
                 width: parent.width * 0.8

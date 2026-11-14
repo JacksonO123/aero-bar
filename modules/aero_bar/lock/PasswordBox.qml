@@ -1,8 +1,6 @@
 import QtQuick
 import "../components"
 
-// The logon screen's password box with its round arrow button. While `busy` it shows
-// "Checking…" with the spinning circle instead.
 Item {
     id: root
 
@@ -27,7 +25,6 @@ Item {
 
         TextField {
             id: field
-            // also when it comes back after "Checking…"
             autoFocus: true
             width: 236
             height: 28

@@ -1,6 +1,5 @@
 import QtQuick
 
-// A Win7 blue link: brighter and underlined under the pointer.
 Text {
     id: root
 

@@ -1,6 +1,5 @@
 import QtQuick
 
-// Recessed glass groove with an aqua fill; the knob is a glass orb that shows the value.
 Item {
     id: root
 
@@ -134,7 +133,6 @@ Item {
                 grabOffset = mouse.x - knobCenter;
                 root.glide = false;
             } else {
-                // clicked the groove: let the knob glide over before it starts tracking
                 grabOffset = 0;
                 root.glide = true;
                 glideTimer.restart();
@@ -158,7 +156,7 @@ Item {
 
         onWheel: wheel => {
             const steps = wheel.angleDelta.y / 120;
-            // a value already above `maximum` (set elsewhere) can still be scrolled down, not cut
+            // a value above `maximum` (set elsewhere) scrolls down instead of being cut
             root.moved(Math.max(0, Math.min(Math.max(root.maximum, root.value), root.value + steps * root.wheelStep)));
         }
     }

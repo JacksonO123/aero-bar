@@ -1,6 +1,5 @@
 import QtQuick
 
-// Single line of text that elides normally and marquee-scrolls while `scrolling` is set.
 Item {
     id: root
 
@@ -9,7 +8,7 @@ Item {
     property alias color: label.color
     property bool scrolling: false
 
-    // measured separately: an elided Text can keep reporting its old (elided) implicitWidth
+    // via TextMetrics: an elided Text can report a stale (elided) implicitWidth
     readonly property real naturalWidth: Math.ceil(metrics.advanceWidth)
     readonly property real overflow: Math.max(0, naturalWidth - width)
 
@@ -48,7 +47,7 @@ Item {
             property: "x"
             from: 0
             to: -root.overflow
-            // 30 px a second
+            // 30 px/s
             duration: Math.max(400, root.overflow / 30 * 1000)
             easing.type: Easing.InOutSine
         }

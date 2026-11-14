@@ -4,11 +4,6 @@ import QtQuick
 import "../components"
 import "../../../services"
 
-// The Windows 7 start menu, drawn in this shell's glass:
-//  left:  white panel with frequent programs / All Programs (folders) / search results,
-//         search box underneath
-//  right: the user tile hanging over the top edge, places + system links on the glass,
-//         and the Shut down split button
 Item {
     id: root
 
@@ -18,10 +13,7 @@ Item {
     property int selected: 0
     property string hoveredIcon: ""
     property bool powerMenuOpen: false
-    // the home list only shows a keyboard selection once the arrow keys are used
     property bool keyboardNav: false
-    // All Programs builds its app rows the first time it's opened, not at startup (there's a
-    // menu per screen). The folders start collapsed, so their icons load before one is opened.
     property bool allProgramsBuilt: false
 
     onModeChanged: {
@@ -68,12 +60,10 @@ Item {
         }
     }
 
-    // the search text as a shell command (the "Run" row)
     function runQuery() {
         StartMenuState.run(["sh", "-c", query]);
     }
 
-    // (search mode always has a query: an empty one goes back home)
     function activateSelected() {
         if (mode === "search") {
             if (selected < results.length) {
@@ -82,7 +72,6 @@ Item {
                 runQuery();
             }
         } else if (mode === "home" && keyboardNav) {
-            // only a row the arrow keys highlighted
             StartMenuState.launch(StartMenuState.frequentApps[selected]);
         }
     }
@@ -94,8 +83,7 @@ Item {
         return mode === "home" ? StartMenuState.frequentApps.length : 0;
     }
 
-    // a place shows its icon on the user tile while hovered. Moving straight to the next place
-    // reports the new hover before the old one ends, so only clear our own icon.
+    // the next place's hover can arrive before this one's ends: clear only our icon
     function showPlaceIcon(icon, hovered) {
         if (hovered) {
             hoveredIcon = icon;
@@ -120,7 +108,6 @@ Item {
             const count = selectableCount();
             if (count > 0) {
                 const step = event.key === Qt.Key_Down ? 1 : -1;
-                // on the home list the first arrow press only reveals the selection
                 const revealOnly = !keyboardNav && mode !== "search";
                 selected = revealOnly ? 0 : (selected + step + count) % count;
                 keyboardNav = true;
@@ -132,7 +119,6 @@ Item {
         }
     }
 
-    // a link on the glass column
     component Place: Win7Frame {
         id: place
 
@@ -165,7 +151,6 @@ Item {
         }
     }
 
-    // open/close: quick fade + rise, like Win7
     opacity: shown ? 1 : 0
     property real rise: shown ? 0 : 14
 
@@ -202,8 +187,6 @@ Item {
             sheenFade: 0.3
         }
 
-        // ---- left: white panel ---------------------------------------------------------------
-
         Rectangle {
             id: leftPanel
             x: root.pad
@@ -223,7 +206,6 @@ Item {
                 width: parent.width - 8
                 height: parent.height - 8 - allPrograms.height - 9
 
-                // frequent programs
                 Column {
                     width: parent.width
                     x: root.mode === "home" ? 0 : -width * 0.3
@@ -259,7 +241,6 @@ Item {
                     }
                 }
 
-                // All Programs: category folders
                 Item {
                     anchors.fill: parent
                     x: root.mode === "all" ? 0 : width * 0.5
@@ -352,7 +333,6 @@ Item {
                     }
                 }
 
-                // search results
                 Column {
                     width: parent.width
                     opacity: root.mode === "search" ? 1 : 0
@@ -407,7 +387,6 @@ Item {
                 }
             }
 
-            // Win7 separator above All Programs
             Rectangle {
                 x: 10
                 width: parent.width - 20
@@ -470,10 +449,8 @@ Item {
             y: root.frameH - root.pad - root.searchH
             width: root.leftW
             height: root.searchH
-            // Enter is handled once, by Keys.onPressed above (TextInput lets the key through)
+            // Enter is handled only by Keys.onPressed above (TextInput lets it through)
         }
-
-        // ---- right: places on the glass ----------------------------------------------------------
 
         Column {
             id: rightColumn
@@ -530,19 +507,15 @@ Item {
             }
         }
 
-        // ---- Shut down split button ------------------------------------------------------------
-
         ShutdownButton {
             id: shutdownButton
             x: root.rightX + 8
-            // centred on the search box, like Win7
             y: root.frameH - root.pad - root.searchH + (root.searchH - height) / 2
             menuOpen: root.powerMenuOpen
             onClicked: StartMenuState.run(StartMenuState.shutDown)
             onArrowClicked: root.powerMenuOpen = !root.powerMenuOpen
         }
 
-        // power options (Win7 context menu)
         Item {
             id: powerMenu
             x: shutdownButton.x + shutdownButton.width - width
@@ -614,7 +587,6 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            // like Win7's User Accounts, for changing your picture
             onClicked: StartMenuState.run(() => AccountPicture.openDialog(StartMenuState.screen))
         }
     }

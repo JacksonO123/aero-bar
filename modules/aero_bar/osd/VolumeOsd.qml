@@ -5,9 +5,6 @@ import "../components"
 import "../../../services"
 import "../../../utils/constants.js" as Constants
 
-// A small glass pop-up above the taskbar showing the volume whenever it changes (media keys,
-// pactl, another app...). It stays away while a volume flyout is open, and ignores the jump that
-// comes with switching output devices. It never takes input.
 Scope {
     id: root
 
@@ -17,8 +14,7 @@ Scope {
     Component.onCompleted: lastSink = Audio.sink
 
     function poke() {
-        // at startup, and right after switching output device, the "changes" are just the new
-        // device's values arriving
+        // at startup or after a sink switch, the "changes" are the new sink's values
         if (Audio.sink !== lastSink) {
             lastSink = Audio.sink;
             settle.restart();
@@ -42,7 +38,7 @@ Scope {
             root.poke();
         }
 
-        // also when the new device has the same volume and mute (nothing else would poke)
+        // needed when the new sink has the same volume and mute
         function onSinkChanged() {
             root.poke();
         }
@@ -54,7 +50,6 @@ Scope {
         }
     }
 
-    // quiet period at startup and after the output device changes
     Timer {
         id: settle
         running: true
@@ -128,7 +123,6 @@ Scope {
                     muted: Audio.muted
                 }
 
-                // twenty glossy segments, 5% each
                 Row {
                     id: segments
                     x: 60

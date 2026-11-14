@@ -6,9 +6,6 @@ import "../flyout"
 import "../../../services"
 import "../../../utils/constants.js" as Constants
 
-// Pinned taskbar apps. Running ones get a glass button (with a stacked edge for several
-// windows). Hover for window thumbnails, click to launch / switch windows, middle-click for a
-// new window, right-click for the jump list.
 Row {
     id: root
     required property var apps
@@ -45,7 +42,6 @@ Row {
             }
 
             onClicked: mouse => {
-                // a click within the hover delay: no thumbnails popping up after it
                 showTimer.stop();
                 if (mouse.button === Qt.RightButton) {
                     root.flyoutEl.toggle(entry);
@@ -59,7 +55,6 @@ Row {
                 }
             }
 
-            // the first thumbnails wait a moment; once showing, they follow the pointer at once
             onHoveredChanged: {
                 if (hovered) {
                     if (root.flyoutEl.current?.isAppButton) {
@@ -83,7 +78,6 @@ Row {
                 }
             }
 
-            // a second window peeks out behind the button, like Win7's stacked taskbar buttons
             Rectangle {
                 visible: entry.windows.length > 1
                 x: parent.width - 3

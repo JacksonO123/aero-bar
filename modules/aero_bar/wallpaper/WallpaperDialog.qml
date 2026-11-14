@@ -4,13 +4,9 @@ import "../components"
 import "../../../services"
 import "../../../utils/path.js" as PathUtils
 
-// "Desktop Background": pick the wallpaper from a folder of pictures. Clicking one applies it
-// (through Wallpaper.setCommand); Save keeps it, Cancel / Esc / close puts the old one back.
 Variants {
     model: Quickshell.screens
 
-    // a little glass screen showing the chosen picture (top right of the dialog), standing on a
-    // glossy floor
     component ScreenPreview: Item {
         id: preview
 
@@ -24,7 +20,6 @@ Variants {
             width: parent.width
             height: 66
 
-            // the bezel
             Rectangle {
                 id: bezel
                 width: parent.width
@@ -41,7 +36,6 @@ Variants {
                     }
                 }
 
-                // the picture, or a plain Aero sky before one is chosen
                 Rectangle {
                     id: screenArea
                     anchors.fill: parent
@@ -67,7 +61,6 @@ Variants {
                     }
                 }
 
-                // glass over the screen's top half
                 Rectangle {
                     x: screenArea.x
                     y: screenArea.y
@@ -93,7 +86,6 @@ Variants {
                 }
             }
 
-            // the stand
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: bezel.height
@@ -133,7 +125,6 @@ Variants {
             width: parent.width
             height: footer.y + footer.height
 
-            // an Aero sky along the top, with the chosen picture on its little screen
             AeroBand {
                 id: band
                 width: parent.width
@@ -194,7 +185,6 @@ Variants {
                 }
             }
 
-            // the pictures, in a white list box
             PictureList {
                 id: pictures
                 x: 16
@@ -202,12 +192,10 @@ Variants {
                 height: 372
                 cellWidth: 166
                 cellHeight: 118
-                // only while this screen shows the dialog (and fades it out)
                 images: window.visible ? Wallpaper.images : []
                 selected: Wallpaper.selected
                 onPicked: path => Wallpaper.pick(path)
 
-                // nothing to show yet, or nothing there
                 Text {
                     anchors.centerIn: parent
                     visible: Wallpaper.images.length === 0
@@ -237,8 +225,6 @@ Variants {
                 y: count.y + count.height + 12
                 width: parent.width
 
-                // Win7's Personalization links: on to the glass colour or your account picture
-                // (keeping the background)
                 leading: Row {
                     spacing: 18
 

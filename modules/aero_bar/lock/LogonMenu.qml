@@ -1,7 +1,5 @@
 import QtQuick
 
-// The small light menu of the logon screen (power options, sessions). `actions` is a list of
-// { label, command, checked }; picking one hides the menu and runs its command.
 Rectangle {
     id: root
 
@@ -57,7 +55,6 @@ Rectangle {
                     }
                 }
 
-                // the current choice (sessions)
                 Rectangle {
                     x: 6
                     anchors.verticalCenter: parent.verticalCenter

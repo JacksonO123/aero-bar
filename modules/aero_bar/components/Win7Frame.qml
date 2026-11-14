@@ -5,10 +5,10 @@ Item {
     property int radius: 4
     signal clicked(var mouse)
     default property alias content: contentArea.data
-    // drawn above the frame's own click area, for controls that need their own clicks
+    // above the frame's MouseArea, for children that handle their own clicks
     property alias overlay: overlayArea.data
 
-    // from a HoverHandler, so the frame stays hovered over controls inside it (e.g. the overlay)
+    // a HoverHandler, not the MouseArea, so hover holds over controls inside
     readonly property bool hovered: hoverHandler.hovered
     readonly property alias hoverT: hp.hoverT
     readonly property alias pressedT: hp.pressedT

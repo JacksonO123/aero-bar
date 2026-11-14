@@ -1,7 +1,6 @@
 import QtQuick
 import Qt5Compat.GraphicalEffects
 
-// Mirrored, fading copy of `target`, meant to sit directly underneath it (glossy-floor reflection).
 Item {
     id: root
 
@@ -37,7 +36,7 @@ Item {
         }
     }
 
-    // flipped's local bottom ends up at the visual top, so that is where the mask is opaque
+    // the mask applies before the flip, so its opaque bottom shows at the top
     Rectangle {
         id: fade
         width: flipped.width

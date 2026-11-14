@@ -1,6 +1,5 @@
 import QtQuick
 
-// A blue glass shield with a gold rim and keyhole: "this needs an administrator".
 Canvas {
     implicitWidth: 46
     implicitHeight: 54
@@ -25,7 +24,6 @@ Canvas {
             ctx.closePath();
         };
 
-        // gold rim, with a soft shadow
         ctx.save();
         ctx.shadowColor = "rgba(0,20,60,0.45)";
         ctx.shadowBlur = 4;
@@ -38,7 +36,6 @@ Canvas {
         ctx.fill();
         ctx.restore();
 
-        // blue glass face
         ctx.save();
         ctx.translate(w * 0.5, h * 0.5);
         ctx.scale(0.84, 0.86);
@@ -60,7 +57,6 @@ Canvas {
         ctx.fill();
         ctx.restore();
 
-        // keyhole
         g = ctx.createLinearGradient(0, h * 0.35, 0, h * 0.75);
         g.addColorStop(0, "#fff3b8");
         g.addColorStop(1, "#e0a521");

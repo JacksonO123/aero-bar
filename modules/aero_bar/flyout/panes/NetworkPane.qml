@@ -6,26 +6,20 @@ import "../../components"
 import "../../../../services"
 import "../../../../utils/constants.js" as Constants
 
-// Win7's network flyout: what you're connected to, wired adapters, and the Wi-Fi networks in
-// range. Click a network to connect, disconnect or forget it; secured networks ask for their key.
 FlyoutPane {
     id: root
 
-    // the Wi-Fi key box
     wantsKeyboard: true
 
     property var selected: null
     property bool askKey: false
-    // the key being typed. Kept here, not in the row: a network that drops out of one scan and
-    // comes back gets a new row
+    // kept here, not in the row: a rescan can recreate the row
     property string key: ""
     property string error: ""
-    // the network last asked to connect. Its failure can arrive after it was deselected (or the
-    // flyout closed), and then selects it again to show why.
+    // apart from selected: its failure can arrive after it was deselected
     property var attempt: null
 
     readonly property real padding: 12
-    // there's a Wi-Fi adapter and it's switched on
     readonly property bool wifiOn: NetState.wifiDevice !== null && Networking.wifiEnabled
 
     width: 330
@@ -37,7 +31,6 @@ FlyoutPane {
         }
     }
 
-    // Wi-Fi scanning runs only while a network pane is open
     OpenCounter {
         target: NetState
         counter: "panesOpen"
@@ -45,7 +38,7 @@ FlyoutPane {
     }
 
     function select(n) {
-        // the key box goes first: shown in the newly selected row, it would take the focus
+        // askKey first: shown in the newly selected row, the key box would take focus
         askKey = false;
         key = "";
         error = "";
@@ -166,7 +159,6 @@ FlyoutPane {
             }
         }
 
-        // ---- wired ----
         SectionHeader {
             width: parent.width
             visible: NetState.wiredDevices.length > 0
@@ -220,7 +212,6 @@ FlyoutPane {
             }
         }
 
-        // ---- wireless ----
         Item {
             width: parent.width
             height: 18
@@ -270,7 +261,7 @@ FlyoutPane {
                 spacing: 1
 
                 Repeater {
-                    // keeps rows (and a key being typed) when scans re-sort the list
+                    // a ScriptModel keeps rows when scans re-sort the list
                     model: ScriptModel {
                         values: NetState.wifiNetworks
                     }
@@ -309,7 +300,6 @@ FlyoutPane {
                             elide: Text.ElideRight
                         }
 
-                        // padlock on secured networks
                         Canvas {
                             x: parent.width - 52
                             y: 8
@@ -345,7 +335,6 @@ FlyoutPane {
                             strength: net.n.signalStrength
                         }
 
-                        // only the selected row builds its details (and the key box)
                         Loader {
                             id: details
                             x: 8
@@ -370,11 +359,10 @@ FlyoutPane {
                                         width: 180
                                         placeholder: "Security key"
                                         echoMode: TextInput.Password
-                                        // focus when shown, also when a rescan recreated the row mid-typing
                                         autoFocus: true
                                         text: root.key
                                         onTextChanged: root.key = text
-                                        // (a hidden box can keep the focus: no Enter from it then)
+                                        // a hidden box can keep the focus: ignore its Enter
                                         onAccepted: {
                                             if (root.askKey) {
                                                 root.submitKey();

@@ -1,8 +1,5 @@
 import QtQuick
 
-// The Frutiger Aero action button, for a page's main action (Save changes, Change Picture): a
-// glossy aqua capsule in a soft halo that breathes while it waits, brightening under the pointer
-// with a shine sweeping across it, and white lettering.
 Item {
     id: root
 
@@ -33,7 +30,7 @@ Item {
         }
     }
 
-    // (dialogs stay loaded while hidden: only breathe while the window is up)
+    // dialogs stay loaded while hidden, so only breathe while the window is up
     SequentialAnimation on breath {
         running: root.enabled && root.visible && (root.Window.window?.visible ?? false) && !root.hovered
         loops: Animation.Infinite
@@ -51,8 +48,6 @@ Item {
         }
     }
 
-    // ---- the halo ------------------------------------------------------------------------------
-
     SoftGlow {
         anchors.fill: parent
         radius: height / 2
@@ -60,9 +55,6 @@ Item {
         opacity: root.enabled ? 0.45 + root.breath * 0.25 + root.hoverT * 0.3 : 0
     }
 
-    // ---- the capsule ---------------------------------------------------------------------------
-
-    // aqua glass, brighter under the pointer, deeper while pressed
     Rectangle {
         anchors.fill: parent
         radius: height / 2
@@ -77,7 +69,6 @@ Item {
         }
     }
 
-    // light caught along the bottom of the glass
     Rectangle {
         x: root.height * 0.4
         y: root.height * 0.5
@@ -96,7 +87,6 @@ Item {
         }
     }
 
-    // the gloss: a smaller capsule over the top half
     Rectangle {
         x: 3
         y: 1.5
@@ -115,7 +105,7 @@ Item {
         }
     }
 
-    // a shine that sweeps across as the pointer arrives (kept off the rounded ends)
+    // inset to keep the shine off the rounded ends
     Item {
         id: shineArea
         x: root.height * 0.35
@@ -166,8 +156,6 @@ Item {
         innerColor: Qt.rgba(1, 1, 1, 0.5 - root.pressedT * 0.3)
         outlineOnTop: true
     }
-
-    // ---- the lettering -------------------------------------------------------------------------
 
     Text {
         anchors.centerIn: label

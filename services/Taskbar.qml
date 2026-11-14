@@ -4,8 +4,6 @@ import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 
-// Which open windows belong to which pinned taskbar app (see Apps.appIds), from Hyprland's
-// toplevel list (event driven, no polling).
 Singleton {
     id: root
 
@@ -23,18 +21,16 @@ Singleton {
         return ids;
     }
 
-    // the app's windows, in Hyprland's order
     function windowsFor(app) {
         const ids = idsOf(app);
         return toplevels.filter(t => ids.includes(appIdOf(t).toLowerCase()));
     }
 
-    // "0x" + hex, as hyprctl and dispatchers write window addresses
+    // Quickshell addresses lack the "0x" prefix hyprctl and dispatchers use
     function hyprAddress(t) {
         return t?.address ? "0x" + t.address : "";
     }
 
-    // the same window? (hyprctl writes "0x…", Quickshell's toplevels plain hex)
     function sameAddress(a, b) {
         const na = normalizeAddress(a);
         return na !== "" && na === normalizeAddress(b);
@@ -44,7 +40,7 @@ Singleton {
         return String(v ?? "").toLowerCase().replace(/^0x/, "").replace(/^0+/, "");
     }
 
-    // a desktop entry by id, or the closest match (bindings look again when the entries reload)
+    // reading applications makes bindings re-evaluate when entries reload
     function entryById(id) {
         DesktopEntries.applications.values;
         return lookupEntry(id);

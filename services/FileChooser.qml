@@ -2,16 +2,12 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 
-// The desktop's own file chooser (zenity or kdialog, whichever is installed) for "Browse…".
-// check() looks for one; chooseFolder() / chooseFile() open it, and `chosen` gives the path.
 Scope {
     id: root
 
-    // the chooser found by check(), "" if there's none (hide "Browse…" then)
     property string tool: ""
     readonly property bool available: tool !== ""
     readonly property bool isKdialog: tool.endsWith("kdialog")
-    // it's open
     readonly property bool busy: dialog?.running ?? false
 
     signal chosen(string path)
@@ -24,8 +20,7 @@ Scope {
         open(isKdialog ? [tool, "--getexistingdirectory", start] : [tool, "--file-selection", "--directory", `--filename=${start}/`]);
     }
 
-    // `name` and `types` make the filter, e.g. "Pictures", ["png", "jpg"], matching any case
-    // ("*.[pP][nN][gG]": GTK's patterns are case-sensitive, and cameras write IMG_0001.JPG)
+    // GTK patterns are case-sensitive (cameras write .JPG): match any case
     function chooseFile(start, name, types) {
         const anyCase = type => type.split("").map(c => `[${c}${c.toUpperCase()}]`).join("");
         const patterns = types.map(t => `*.${anyCase(t)}`).join(" ");
@@ -51,7 +46,6 @@ Scope {
     Process {
         id: dialog
 
-        // prints the chosen path
         stdout: StdioCollector {
             onStreamFinished: {
                 const path = text.trim();

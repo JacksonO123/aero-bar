@@ -5,8 +5,6 @@ import ".."
 import "../../components"
 import "../../../../utils/constants.js" as Constants
 
-// Bluetooth flyout: turn the adapter on or off, connect paired devices, and "Add a device" to
-// search for new ones and pair them.
 FlyoutPane {
     id: root
 
@@ -18,8 +16,7 @@ FlyoutPane {
     readonly property var found: all.filter(d => !(d.paired || d.bonded || d.connected) && d.name !== "")
     readonly property real padding: 12
 
-    // a device being paired from "Add a device"; connect to it once it has paired. Kept here
-    // because its row moves from "Available" to "Devices" when pairing finishes.
+    // kept here, not on the row: the row moves to "Devices" once paired
     property var pairing: null
 
     function adapterStatus() {
@@ -125,7 +122,6 @@ FlyoutPane {
 
             LinkText {
                 anchors.verticalCenter: parent.verticalCenter
-                // fades in with the row's highlight
                 opacity: row.pairRow ? 0 : rowHighlight.opacity
                 visible: opacity > 0
                 text: "Remove"

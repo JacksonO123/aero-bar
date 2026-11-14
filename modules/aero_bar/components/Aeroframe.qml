@@ -16,10 +16,8 @@ Item {
     property real radius: 6
     property real contentRadius: 4
     property bool clipContent: true
-    // false: no inset content well, the whole frame is glass (e.g. the start menu)
     property bool showContentFrame: true
 
-    // follows the shell-wide colour picked in "Window Color and Appearance" (services/Theme.qml)
     property color glassColor: Theme.glassColor
 
     property color outlineColor: Qt.rgba(0, 0, 0, 0.6)
@@ -205,7 +203,6 @@ Item {
             anchors.fill: parent
             anchors.margins: 1
 
-            // (nothing to round off in a frame without content, like the start menu's backdrop)
             layer.enabled: root.clipContent && root.contentRadius > 1 && children.length > 0
             layer.effect: MultiEffect {
                 maskEnabled: true

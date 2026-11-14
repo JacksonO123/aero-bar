@@ -3,7 +3,6 @@ import Quickshell.Widgets
 import "../components"
 import "../../../utils/constants.js" as Constants
 
-// One workspace: a label and a miniature Aero desktop (sky gradient, aurora ribbons, taskbar).
 Item {
     id: card
 
@@ -31,7 +30,6 @@ Item {
     height: entry ? entry.deskH + headerH : 0
     opacity: entry ? 1 : 0
 
-    // the geometry follows layout changes with this
     component Glide: NumberAnimation {
         duration: 280
         easing.type: Easing.OutCubic
@@ -95,7 +93,6 @@ Item {
         width: card.width
         height: card.height - card.headerH
 
-        // active workspace halo
         Rectangle {
             anchors.fill: parent
             anchors.margins: -3
@@ -174,7 +171,6 @@ Item {
                 }
             }
 
-            // reserved areas (bars) drawn as tiny taskbars
             Rectangle {
                 visible: card.reserved[3] > 0
                 anchors.left: parent.left

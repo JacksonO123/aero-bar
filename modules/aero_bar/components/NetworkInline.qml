@@ -1,7 +1,6 @@
 import QtQuick
 import "../../../services"
 
-// Network icon in the taskbar. Click for the network flyout.
 FlyoutButton {
     NetworkGlyph {
         anchors.centerIn: parent

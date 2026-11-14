@@ -4,7 +4,6 @@ import "../../../utils/constants.js" as Constants
 Rectangle {
     id: root
     signal clicked
-    // lit while the start menu is open
     property bool active: false
 
     property real padding: 2

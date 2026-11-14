@@ -3,14 +3,12 @@ import Quickshell.Services.Notifications
 import "../components"
 import "../../../services"
 
-// A Windows 7 balloon tip for one notification. The newest one points its tail down at the
-// Action Center flag. Hovering keeps it up; clicking runs the notification's default action.
 Item {
     id: root
 
     property var notification: null
     property bool tail: false
-    // a HoverHandler stays hovered over the close and action buttons too
+    // not mouse.containsMouse: a HoverHandler stays hovered over the buttons
     readonly property bool hovered: hover.hovered
     readonly property real tailHeight: tail ? 10 : 0
     readonly property bool urgent: notification?.urgency === NotificationUrgency.Critical
@@ -21,7 +19,6 @@ Item {
     Canvas {
         id: shape
 
-        // room around the balloon for its drop shadow
         readonly property real pad: 10
         readonly property bool urgent: root.urgent
         readonly property real tailH: root.tailHeight
@@ -40,7 +37,7 @@ Item {
             const ctx = getContext("2d");
             ctx.reset();
             const p = pad, w = root.width, h = root.height - tailH, r = 6;
-            const tx = w - 34;   // tail tip, under the right end where the flag sits
+            const tx = w - 34;   // under the Action Center flag
             const outline = () => {
                 ctx.beginPath();
                 ctx.moveTo(p + r, p + 0.5);

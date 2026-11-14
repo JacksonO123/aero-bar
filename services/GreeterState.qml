@@ -5,50 +5,31 @@ import Quickshell.Io
 import Quickshell.Services.Greetd
 import QtQuick
 
-// The login screen (greeter/shell.qml, run by greetd) signing someone in: the accounts and
-// desktop sessions to choose from, and the conversation with greetd. Only the greeter uses
-// this; the bar never touches it.
 Singleton {
     id: root
 
-    // ---- who and what ---------------------------------------------------------------------
-
-    // [{ name, displayName, picture }]: the accounts that can log in
     property var users: []
-    // [{ id, name, command, desktopNames }]: /usr/share/wayland-sessions
     property var sessions: []
 
-    // the account being signed in ("" while the user tiles show)
     property string selectedUser: ""
     readonly property var user: users.find(u => u.name === selectedUser) ?? null
 
-    // the session to start: the one chosen (at first the last one used), else Hyprland, else
-    // the first
     property string sessionId: saved.lastSession
     readonly property var session: sessions.find(s => s.id === sessionId) ?? sessions.find(s => /hyprland/i.test(s.id)) ?? sessions[0] ?? null
 
-    // ---- signing in -------------------------------------------------------------------------
-
-    // the password box
     property string typed: ""
     property string error: ""
-    // a non-error message from PAM (e.g. "Place your finger on the reader")
     property string info: ""
 
-    // greetd is waiting for an answer to `prompt` (normally "Password:")
     property bool awaitingResponse: false
     property string prompt: ""
     property bool echoResponse: false
-    // the box shows what's typed (a code or a name, not a password)
     readonly property bool echoing: awaitingResponse && echoResponse
 
-    // a submitted password, held until greetd asks for it
     property string pending: ""
-    // an answer was sent and greetd hasn't replied yet
     property bool checking: false
     readonly property bool busy: checking || pending !== ""
 
-    // signed in: "Welcome" shows for a moment, then the session starts
     property bool welcome: false
 
     function selectUser(name) {
@@ -57,7 +38,7 @@ Singleton {
         typed = "";
         pending = "";
         selectedUser = name;
-        // greetd keeps the user of a running session: end it before starting another
+        // greetd keeps a running session's user: cancel it before starting another
         Greetd.cancelSession();
         if (name !== "") {
             startSession();
@@ -116,7 +97,7 @@ Singleton {
             root.pending = "";
             root.awaitingResponse = false;
             root.error = "The user name or password is incorrect.";
-            // greetd ends the session after a failure: start the next attempt once it has
+            // greetd ends the session after a failure; restart once it has
             Qt.callLater(root.startSession);
         }
 
@@ -130,7 +111,7 @@ Singleton {
             root.checking = false;
             root.welcome = true;
             saved.lastSession = root.session?.id ?? "";
-            // greetd wants the greeter gone soon after launching, so show "Welcome" first
+            // greetd wants the greeter gone soon after launch: show "Welcome" first
             welcomeTimer.start();
         }
     }
@@ -152,8 +133,6 @@ Singleton {
         Greetd.launch(["sh", "-c", s.command], environment, true);
     }
 
-    // ---- power ------------------------------------------------------------------------------
-
     function sleep() {
         Quickshell.execDetached(["systemctl", "suspend"]);
     }
@@ -165,8 +144,6 @@ Singleton {
     function shutDown() {
         Quickshell.execDetached(["systemctl", "poweroff"]);
     }
-
-    // ---- reading accounts and sessions ------------------------------------------------------
 
     function script(name) {
         return Qt.resolvedUrl("../greeter/" + name).toString().replace(/^file:\/\//, "");
@@ -187,7 +164,6 @@ Singleton {
                             displayName: displayName || name,
                             picture: picture ?? ""
                         }));
-                // one account: straight to its password, like Win7
                 if (root.users.length === 1) {
                     root.selectUser(root.users[0].name);
                 }
@@ -211,7 +187,6 @@ Singleton {
         }
     }
 
-    // the session used last time (in the greeter user's state directory)
     FileView {
         path: Quickshell.statePath("greeter.json")
         onAdapterUpdated: writeAdapter()

@@ -1,6 +1,5 @@
 import QtQuick
 
-// Windows 7 push button for light surfaces (flyout content): grey two-tone, blue when hot.
 Item {
     id: root
 
@@ -28,7 +27,6 @@ Item {
         gradient: SplitGradient {
             split: 0.49
             splitEnd: 0.5
-            // grey glass, blue when hot, deeper blue pressed
             colors: {
                 const top = hp.shade("#f2f2f2", "#eaf6fd", "#e5f4fc");
                 const aboveSplit = hp.shade("#ebebeb", "#d9f0fc", "#c4e5f6");

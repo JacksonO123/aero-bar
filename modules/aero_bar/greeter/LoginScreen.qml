@@ -4,17 +4,13 @@ import QtQuick
 import "../lock"
 import "../../../services"
 
-// The login screen on every monitor: the sign-in box on one (the one with the pointer when the
-// greeter started), just the background on the others.
 Variants {
     id: root
 
-    // the screen the sign-in box is on
     property string primary: ""
 
     model: Quickshell.screens
 
-    // (Screens.resolve falls back on the focused screen; this one falls back on the first)
     Component.onCompleted: {
         const focused = Screens.focused;
         primary = Quickshell.screens.some(s => s.name === focused) ? focused : Quickshell.screens[0]?.name ?? "";

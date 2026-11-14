@@ -9,13 +9,10 @@ RowLayout {
     id: root
     spacing: 8
 
-    // the overview opens after resting on the buttons, and lights up the button of whatever
-    // workspace is hovered / targeted in it
     readonly property bool hovered: hoverHandler.hovered
     property int highlightWorkspaceId: Constants.NO_WORKSPACE
     signal buttonClicked
 
-    // workspace whose button is under (px, py) of `item`, or null
     function workspaceAt(item, px, py) {
         for (let i = 0; i < workspaceButtonsRepeater.count; i++) {
             const button = workspaceButtonsRepeater.itemAt(i);

@@ -1,6 +1,4 @@
--- The login screen's own small Hyprland, which greetd starts as the "greeter" user. It runs the
--- Quickshell greeter and exits once the greeter has handed over to the session you signed in to.
--- (For Hyprland with a Lua config; hyprland.conf is the same for the classic config format.)
+-- greeter's Hyprland, run by greetd (Lua; hyprland.conf for the classic format)
 
 hl.monitor({
     output   = "",
@@ -9,7 +7,7 @@ hl.monitor({
     scale    = "auto",
 })
 
--- the greeter remembers the last session here (install.sh creates it)
+-- greeter state (last session); install.sh creates it
 hl.env("XDG_STATE_HOME", "/var/lib/aero-greeter")
 hl.env("XCURSOR_SIZE", "24")
 
@@ -19,7 +17,6 @@ hl.config({
         disable_splash_rendering = true,
         force_default_wallpaper  = 0,
     },
-    -- the greeter fades itself in
     animations = {
         enabled = false,
     },

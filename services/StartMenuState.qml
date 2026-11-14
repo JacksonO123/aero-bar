@@ -7,26 +7,16 @@ import QtQuick
 import "../utils/path.js" as PathUtils
 import "../utils/constants.js" as Constants
 
-// Everything the start menu needs that isn't drawing: which screen it is open on, the user,
-// launch history ("frequent programs"), search and the All Programs categories.
-//
-// Open it from hyprland with either of:
-//   bindr = SUPER, SUPER_L, global, quickshell:startmenu
-//   bind  = SUPER, D, exec, qs ipc call startmenu toggle
+// Hyprland: bindr = SUPER, SUPER_L, global, quickshell:startmenu
 Singleton {
     id: root
 
     property bool open: false
     property string screenName: ""
-    // the screen it actually shows on (screenName, or the focused one if that one is gone)
     readonly property string screen: Screens.resolve(screenName)
-    // when it last closed, so the orb click that closed it doesn't reopen it (see toggle())
     property double closedAt: 0
     readonly property int reopenGuard: 300 // ms
 
-    // ---- editable lists ------------------------------------------------------------------------
-
-    // shown (in this order) until there is enough launch history to fill the list
     property var defaultApps: ["google-chrome", "Alacritty", "org.kde.dolphin", "spotify", "code", "firefox", "steam", "discord"]
     property int maxFrequent: 9
 
@@ -71,7 +61,6 @@ Singleton {
         {
             label: "Personalization",
             icon: "preferences-desktop-color",
-            // a function runs in the shell instead of launching a program
             command: () => Theme.openDialog(root.screen)
         },
         {
@@ -81,11 +70,8 @@ Singleton {
         }
     ]
 
-    // the Control Panel place, and the user's name (top of the places), which opens their home
     property var controlPanelCommand: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
     property var homeCommand: ["sh", "-c", "xdg-open \"$HOME\""]
-
-    // ---- session actions (shared by the power menu and the lock screen) --------------------
 
     function lock() {
         LockState.lock();
@@ -98,7 +84,6 @@ Singleton {
     }
 
     function sleep() {
-        // like Win7, ask for the password when it wakes up: suspend once the lock is up
         LockState.lockThen(() => Quickshell.execDetached(["systemctl", "suspend"]));
     }
 
@@ -129,8 +114,6 @@ Singleton {
         }
     ]
 
-    // ---- open / close --------------------------------------------------------------------------
-
     function show(name) {
         screenName = name || Screens.focused;
         open = true;
@@ -147,7 +130,7 @@ Singleton {
         if (open) {
             close();
         } else if (Date.now() - closedAt > reopenGuard) {
-            // a click on the orb that just dismissed the menu (outside click) must not reopen it
+            // the orb click that just closed it (outside click) mustn't reopen it
             show(name);
         }
     }
@@ -174,18 +157,14 @@ Singleton {
         }
     }
 
-    // ---- the user ------------------------------------------------------------------------------
-
     property string userName: Quickshell.env("USER") ?? "user"
     property string fullName: ""
-    // the picture you chose in "Change Your Picture", else the one found below
     readonly property string picture: AccountPicture.picture || foundPicture
     property string foundPicture: ""
     readonly property string displayName: fullName || userName
 
     Process {
         running: true
-        // prints "name:<full name>" and "pic:<the first readable account picture>"
         command: ["sh", "-c", `echo "name:$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1)"
 for f in "$HOME/.face" "$HOME/.face.icon" "/var/lib/AccountsService/icons/$USER"; do
     if [ -r "$f" ] && [ -s "$f" ]; then echo "pic:$f"; break; fi
@@ -203,8 +182,6 @@ done`]
             }
         }
     }
-
-    // ---- launching + history -------------------------------------------------------------------
 
     FileView {
         id: historyFile
@@ -299,7 +276,7 @@ done`]
         return scored.sort((a, b) => b.score - a.score).slice(0, 10).map(s => s.entry);
     }
 
-    // desktop-entry category -> All Programs folder; an app goes in the first one it has
+    // key order matters: an app goes in the first of these it has
     readonly property var categoryNames: ({
             AudioVideo: "Multimedia",
             Audio: "Multimedia",

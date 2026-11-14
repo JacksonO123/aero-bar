@@ -6,14 +6,9 @@ import "../../components"
 import "../../../../services"
 import "../../../../utils/constants.js" as Constants
 
-// Windows 7 volume flyout, Aero'd up:
-//  - output device card (glossy speaker), click to pick another output
-//  - master slider with the orb knob and a live peak meter underneath
-//  - per-application volume for everything currently playing
 FlyoutPane {
     id: root
 
-    // the flyout is held open while a slider is being dragged
     required property var flyoutEl
     property bool devicesOpen: false
 
@@ -33,14 +28,13 @@ FlyoutPane {
         }
     }
 
-    // keeps the volume pop-up away while this is open
     OpenCounter {
         target: Audio
         counter: "panesOpen"
         when: root.active
     }
 
-    // stream volumes/properties are only valid while bound; only bother while visible
+    // Pipewire node properties are only valid while tracked
     PwObjectTracker {
         objects: root.active ? root.streams.concat(root.sinks) : []
     }
@@ -51,7 +45,6 @@ FlyoutPane {
         enabled: root.active && Audio.sink !== null
     }
 
-    // light-blue Win7 hot-track highlight
     component HotTrack: Rectangle {
         property bool hot: false
         radius: 3
@@ -172,7 +165,6 @@ FlyoutPane {
         width: root.innerWidth
         spacing: 6
 
-        // ---- output device
         Item {
             id: deviceCard
             width: parent.width
@@ -247,7 +239,6 @@ FlyoutPane {
             }
         }
 
-        // ---- device picker (slides open under the card)
         Item {
             width: parent.width
             height: root.devicesOpen ? deviceList.implicitHeight : 0
@@ -284,7 +275,6 @@ FlyoutPane {
                             hot: sinkMouse.containsMouse
                         }
 
-                        // radio orb, only built for the current device
                         Loader {
                             x: 28
                             anchors.verticalCenter: parent.verticalCenter
@@ -332,7 +322,6 @@ FlyoutPane {
             }
         }
 
-        // ---- master volume
         Row {
             spacing: 10
 
@@ -367,7 +356,6 @@ FlyoutPane {
                     muted: Audio.muted
                     onMoved: value => Audio.setVolume(value)
 
-                    // keep the flyout open while dragging, even off its edge
                     OpenCounter {
                         target: root.flyoutEl
                         counter: "holdCount"
@@ -385,7 +373,6 @@ FlyoutPane {
             }
         }
 
-        // ---- applications
         SectionHeader {
             width: parent.width
             visible: root.streams.length > 0
@@ -403,8 +390,6 @@ FlyoutPane {
                 width: content.width
                 node: modelData
 
-                // hold the flyout open while this row's slider is dragged; a row removed mid-drag
-                // (its stream ended) gives the hold back
                 OpenCounter {
                     target: root.flyoutEl
                     counter: "holdCount"

@@ -1,8 +1,6 @@
 import QtQuick
 import "../components"
 
-// One account on the login screen's "choose a user" row: its framed picture with the name
-// underneath. The frame lights up under the pointer.
 Item {
     id: root
 

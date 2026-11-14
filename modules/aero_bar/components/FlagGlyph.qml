@@ -1,7 +1,5 @@
 import QtQuick
 
-// The Action Center flag: a white glossy pennant on a pole. `quiet` (do not disturb) greys it
-// and adds a small moon.
 Canvas {
     id: root
 
@@ -31,20 +29,17 @@ Canvas {
             ctx.closePath();
         };
 
-        // shadow
         flag(1);
         ctx.fillStyle = "rgba(0,0,0,0.45)";
         ctx.fill();
         ctx.fillRect(w * 0.13, h * 0.08 + 1, w * 0.1, h * 0.86);
 
-        // pole
         const pole = ctx.createLinearGradient(w * 0.13, 0, w * 0.23, 0);
         pole.addColorStop(0, "#f4f6f8");
         pole.addColorStop(1, "#8a949e");
         ctx.fillStyle = pole;
         ctx.fillRect(w * 0.13, h * 0.08, w * 0.1, h * 0.86);
 
-        // pennant
         flag(0);
         const g = ctx.createLinearGradient(0, 0, 0, h * 0.6);
         if (quiet) {
@@ -61,7 +56,6 @@ Canvas {
         ctx.stroke();
 
         if (quiet) {
-            // crescent
             ctx.beginPath();
             ctx.arc(w * 0.74, h * 0.76, w * 0.2, 0, Math.PI * 2);
             ctx.fillStyle = "#ffe27a";

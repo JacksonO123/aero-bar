@@ -1,5 +1,4 @@
 #!/bin/sh
-# The Wayland desktop sessions, one per line: id<TAB>name<TAB>command<TAB>desktop names.
 for f in /usr/share/wayland-sessions/*.desktop /usr/local/share/wayland-sessions/*.desktop; do
     [ -r "$f" ] || continue
     grep -qE '^(Hidden|NoDisplay)=true' "$f" && continue

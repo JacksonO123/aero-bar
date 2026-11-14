@@ -1,14 +1,11 @@
 import QtQuick
 import "../components"
 
-// The middle of the logon screen while signing in (the lock screen, the login screen): the
-// account's framed picture, its name, the password box, and a message line under it.
 Column {
     id: root
 
     property string picture: ""
     property string name: ""
-    // an error or a hint from PAM, shown under the box
     property string message: ""
     property bool busy: false
 

@@ -1,6 +1,5 @@
 import QtQuick
 
-// The pale blue rule between sections of a flyout pane.
 Rectangle {
     property real alpha: 0.7
 

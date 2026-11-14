@@ -1,8 +1,6 @@
 import QtQuick
 
-// The slim Aero scroll thumb, showing only while `flickable` has more than fits. Place it
-// beside the flickable (as a sibling, not inside it: a Flickable scrolls its children) and
-// anchor it to the right edge.
+// a sibling of the flickable, not a child: a Flickable scrolls its children
 Rectangle {
     required property Flickable flickable
 

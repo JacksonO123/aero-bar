@@ -1,20 +1,18 @@
 import QtQuick
 
-// Win7's network icons: five rising signal bars for Wi-Fi, or a monitor with its cable for a
-// wired connection, with a red "not connected" or yellow "no internet" badge.
 Canvas {
     id: root
 
-    property string kind: "wired"     // "wired" | "wifi"
-    property real strength: 1          // wifi bars lit, 0..1
-    property string badge: ""          // "" | "warning" | "error"
-    property bool onGlass: true        // white on the taskbar, blue in a flyout
+    property string kind: "wired"
+    property real strength: 1
+    property string badge: "" // "" | "warning" | "error"
+    property bool onGlass: true
 
     implicitWidth: 20
     implicitHeight: 18
 
     onKindChanged: requestPaint()
-    // five bars: only repaint when the number lit changes, not on every 1% of signal
+    // repaint only when the number of lit bars changes, not on every 1% of signal
     readonly property int lit: badge === "error" ? 0 : Math.max(1, Math.ceil(strength * 5 - 0.001))
     onLitChanged: requestPaint()
     onOnGlassChanged: requestPaint()
@@ -48,7 +46,6 @@ Canvas {
                 ctx.fillRect(x, y, bw, bh);
             }
         } else {
-            // monitor
             const mx = w * 0.18, my = h * 0.06, mw = w * 0.78, mh = h * 0.62;
             ctx.fillStyle = onGlass ? "rgba(0,0,0,0.45)" : "rgba(0,0,0,0.2)";
             ctx.fillRect(mx + 0.5, my + 1, mw, mh);
@@ -63,11 +60,9 @@ Canvas {
             g.addColorStop(1, "#1557a8");
             ctx.fillStyle = g;
             ctx.fillRect(mx + w * 0.07, my + h * 0.08, mw - w * 0.14, mh - h * 0.16);
-            // stand
             ctx.fillStyle = onGlass ? "#d9dfe5" : "#8d98a4";
             ctx.fillRect(mx + mw * 0.4, my + mh, mw * 0.2, h * 0.12);
             ctx.fillRect(mx + mw * 0.22, my + mh + h * 0.12, mw * 0.56, h * 0.08);
-            // cable
             ctx.strokeStyle = onGlass ? "#ffffff" : "#5b6673";
             ctx.lineWidth = Math.max(1, w * 0.07);
             ctx.beginPath();

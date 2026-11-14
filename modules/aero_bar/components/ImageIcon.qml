@@ -18,7 +18,7 @@ IconImage {
         if (wmClass.length === 0) {
             return null;
         }
-        DesktopEntries.applications.values; // look again when the entry list changes
+        DesktopEntries.applications.values; // re-evaluate when the entry list changes
         return DesktopEntries.heuristicLookup(wmClass);
     }
 
@@ -29,7 +29,6 @@ IconImage {
                 continue;
             }
 
-            // desktop files may point straight at an image file
             if (name.startsWith("/")) {
                 return PathUtils.fileUrl(name);
             }

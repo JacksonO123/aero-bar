@@ -1,7 +1,5 @@
 import QtQuick
 
-// A glossy Aero orb (think the start orb / WMP play button). Children are drawn inside the orb,
-// underneath the top gloss so they pick up the same reflection.
 Item {
     id: root
 
@@ -33,7 +31,6 @@ Item {
         }
     }
 
-    // soft contact shadow
     Rectangle {
         x: -1
         y: 0
@@ -60,7 +57,6 @@ Item {
                 return;
             }
 
-            // light pools at the bottom like the glow coming through a glass marble
             const g = ctx.createRadialGradient(w / 2, h * 0.96, 0, w / 2, h * 0.96, h * 1.02);
             g.addColorStop(0.0, root.lightColor);
             g.addColorStop(0.45, root.baseColor);

@@ -2,9 +2,6 @@ import QtQuick
 import "../flyout"
 import "../../../services"
 
-// Now playing: album art thumbnail + title/artist, stacked like the clock. Hover: the player's
-// flyout. Left click: "Now Playing" with every media source (pinned, like the calendar),
-// middle click: play/pause, right click: raise the player.
 Win7Frame {
     id: root
 
@@ -52,7 +49,6 @@ Win7Frame {
             anchors.verticalCenter: parent.verticalCenter
             source: Media.artUrl
 
-            // a play mark while paused
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1

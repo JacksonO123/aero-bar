@@ -2,8 +2,6 @@ import QtQuick
 import "../../../services"
 import "../../../utils/colors.js" as ColorUtils
 
-// Media Player style transport for `player`: a silver capsule with prev/next, and a big glass
-// play orb on top.
 Item {
     id: root
 
@@ -46,7 +44,6 @@ Item {
             opacity: segmentMouse.containsMouse ? 1 : 0
 
             gradient: SplitGradient {
-                // pale blue glass, deeper while pressed
                 colors: {
                     const press = (rest, pressed) => ColorUtils.interpolateColors(rest, pressed, segment.pressedT);
                     const top = press("#eef8ff", "#cfe9fa");
@@ -131,7 +128,6 @@ Item {
         onActivated: Media.next(root.player)
     }
 
-    // silver bezel that seats the orb in the capsule
     Rectangle {
         anchors.centerIn: parent
         width: root.orbSize + 6

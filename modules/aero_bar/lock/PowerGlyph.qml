@@ -1,6 +1,5 @@
 import QtQuick
 
-// The power symbol, white with a soft shadow.
 Canvas {
     onWidthChanged: requestPaint()
     onPaint: {

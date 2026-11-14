@@ -3,8 +3,7 @@ import Quickshell.Wayland
 import QtQuick
 import "../../../services"
 
-// While polkit wants a password, every screen dims (like Win7's secure desktop) and the screen
-// that was focused shows the UAC dialog. For a blurred backdrop add a layer rule for "aero-auth".
+// for a blurred backdrop, add a Hyprland layer rule for "aero-auth"
 Variants {
     model: Quickshell.screens
 
@@ -43,7 +42,7 @@ Variants {
             }
         }
 
-        // it's modal: clicks outside the dialog go nowhere
+        // swallows clicks outside the dialog: it's modal
         MouseArea {
             anchors.fill: parent
         }

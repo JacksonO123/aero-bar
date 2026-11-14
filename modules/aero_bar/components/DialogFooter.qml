@@ -1,7 +1,5 @@
 import QtQuick
 
-// The grey command area along the bottom of a Win7 dialog: buttons on the right, and an
-// optional item (e.g. a DisclosureToggle) on the left.
 Rectangle {
     id: root
 

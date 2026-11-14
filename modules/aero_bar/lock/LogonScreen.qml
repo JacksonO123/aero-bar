@@ -3,19 +3,13 @@ import "../components"
 import "../../../services"
 import "../../../utils/constants.js" as Constants
 
-// The Win7 logon screen both the lock screen and the login screen (greeter) are built on: the
-// background, whatever goes in the middle (`content`), the time, and the power button with
-// its menu. `controls` sit just left of the power button.
 Item {
     id: root
 
     default property alias content: center.data
     property alias controls: controlsRow.data
-    // what the power menu runs: anything with sleep(), restart() and shutDown()
-    // (StartMenuState, GreeterState)
     required property var power
 
-    // a click on the background (the menus have closed themselves)
     signal backgroundClicked
 
     anchors.fill: parent
@@ -48,7 +42,6 @@ Item {
         spacing: 14
     }
 
-    // time and date, bottom left
     Column {
         x: 48
         anchors.bottom: parent.bottom
@@ -84,7 +77,6 @@ Item {
         spacing: 18
     }
 
-    // power, bottom right
     GlassOrb {
         id: powerButton
         anchors.right: parent.right

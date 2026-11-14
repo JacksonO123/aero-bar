@@ -1,6 +1,5 @@
 import QtQuick
 
-// Speaker with 0-3 sound waves depending on level, and a red Aero "no" badge when muted.
 Canvas {
     id: root
 

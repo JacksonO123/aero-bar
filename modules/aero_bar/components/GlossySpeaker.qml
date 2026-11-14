@@ -1,6 +1,5 @@
 import QtQuick
 
-// A little glossy speaker cabinet (tweeter + woofer), drawn so it matches the Aero look on any icon theme.
 Canvas {
     id: root
 
@@ -23,7 +22,6 @@ Canvas {
 
         const r = w * 0.16;
 
-        // cabinet
         const body = ctx.createLinearGradient(0, 0, w, 0);
         body.addColorStop(0, "#56677a");
         body.addColorStop(0.5, "#2a3440");
@@ -59,7 +57,6 @@ Canvas {
         driver(w / 2, h * 0.24, w * 0.15);
         driver(w / 2, h * 0.64, w * 0.32);
 
-        // gloss across the top of the cabinet
         ctx.save();
         ctx.beginPath();
         ctx.roundedRect(1, 1, w - 2, h - 2, r, r);

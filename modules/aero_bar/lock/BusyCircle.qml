@@ -1,6 +1,5 @@
 import QtQuick
 
-// Win7's busy ring: a bright comet chasing round a faint circle.
 Item {
     id: root
 

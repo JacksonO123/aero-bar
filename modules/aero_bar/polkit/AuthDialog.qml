@@ -3,7 +3,6 @@ import Quickshell
 import "../components"
 import "../../../services"
 
-// The Windows 7 UAC dialog, asking for a password on polkit's behalf.
 AeroWindow {
     id: root
 
@@ -16,7 +15,6 @@ AeroWindow {
         return a && b && a.id === b.id && a.isGroup === b.isGroup;
     }
 
-    // the password box of the selected identity's tile
     property Item passwordField: null
 
     function focusPassword() {
@@ -89,7 +87,6 @@ AeroWindow {
             }
         }
 
-        // what is asking
         ImageIcon {
             id: actionIcon
             x: 26
@@ -228,7 +225,6 @@ AeroWindow {
 
                     TextField {
                         id: field
-                        // shows (and takes the keyboard) on the selected identity's tile
                         autoFocus: true
                         x: 80
                         y: 38

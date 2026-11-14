@@ -6,39 +6,27 @@ import Quickshell.Services.Notifications
 import QtQuick
 import "../utils/constants.js" as Constants
 
-// The shell's notification server. New notifications pop up as Win7 balloons above the tray
-// and are kept in the Action Center (the flag in the taskbar) until dismissed.
-//
-// Only one notification daemon can run: stop mako / dunst / swaync before using this.
-//   qs ipc call notifications toggleDnd
-//   qs ipc call notifications clear
+// stop mako / dunst / swaync first; qs ipc call notifications toggleDnd|clear
 Singleton {
     id: root
 
     readonly property alias server: server
-    // newest last
     readonly property var list: server.trackedNotifications.values.filter(n => n !== null)
     readonly property int count: list.length
 
-    // ids that arrived while the Action Center was closed and are still around
     property var unreadIds: []
     readonly property int unread: unreadIds.length
-    // Action Center panes currently open (one per screen at most)
     property int panesOpen: 0
     readonly property bool centerOpen: panesOpen > 0
 
     readonly property bool doNotDisturb: settings?.doNotDisturb ?? false
 
-    // arrival time per notification id (the server doesn't keep one)
+    // the server doesn't record arrival times
     property var times: ({})
 
-    // ids of the balloons on screen, oldest first
     readonly property alias popups: popupModel
 
-    // when each balloon times out (ms since the epoch), by notification id; a hovered or critical
-    // one has none. Kept here rather than in the balloons: every screen has a copy of each, and
-    // the countdown must carry on when focus moves to another screen. Changed in place (nothing
-    // binds to it).
+    // kept here as every screen has a copy of each balloon; nothing binds to it
     property var deadlines: ({})
 
     onCenterOpenChanged: {
@@ -78,7 +66,6 @@ Singleton {
         unreadIds = [];
     }
 
-    // the buttons to show: every action but the default one (that's clicking the notification)
     function extraActions(n) {
         return (n?.actions ?? []).filter(a => a.identifier !== "default");
     }
@@ -87,7 +74,6 @@ Singleton {
         return n?.actions?.find(a => a.identifier === "default") ?? null;
     }
 
-    // clicking a notification: run its default action if it has one, otherwise just put it away
     function activate(n) {
         const action = defaultAction(n);
         if (action) {
@@ -96,8 +82,6 @@ Singleton {
             dismiss(n);
         }
     }
-
-    // ---- balloons ------------------------------------------------------------------------------
 
     function dropPopup(id) {
         delete deadlines[id];
@@ -113,16 +97,14 @@ Singleton {
         popupModel.clear();
     }
 
-    // (re)start a balloon's countdown: when it pops up, and when the pointer leaves it. Takes the
-    // notification itself: a new one isn't in `list` until its `notification` handler is done.
+    // takes n, not an id: a new one isn't in list until its handler returns
     function countDown(n) {
         if (n && n.urgency !== NotificationUrgency.Critical) {
-            // the app's timeout comes through as sent, in ms (the docs' "seconds" is wrong)
+            // expireTimeout is in ms, despite the docs saying seconds
             deadlines[n.id] = Date.now() + (n.expireTimeout > 0 ? n.expireTimeout : Constants.NOTIFICATION_TIMEOUT);
         }
     }
 
-    // a hovered balloon waits
     function holdPopup(id) {
         delete deadlines[id];
     }
@@ -142,9 +124,7 @@ Singleton {
         }
     }
 
-    // Keep it (in the server's list) and note when it arrived. `times` is changed in place: the
-    // time must exist before `tracked` creates the rows that read it, and nothing on screen
-    // reacts to an entry going away.
+    // times[id] must exist before tracked = true creates the rows that read it
     function track(n) {
         const id = n.id;
         times[id] = new Date();
@@ -153,8 +133,7 @@ Singleton {
             root.unreadIds = root.unreadIds.filter(u => u !== id);
             root.dropPopup(id);
         });
-        // sent again with its id (`replaces_id`): the server updates it in place, with no new
-        // `notification` signal
+        // replaces_id updates it in place, with no new notification signal
         n.summaryChanged.connect(() => root.replaced(n));
         n.bodyChanged.connect(() => root.replaced(n));
         n.tracked = true;
@@ -163,13 +142,13 @@ Singleton {
     function receive(n) {
         track(n);
 
-        // carried over from before a shell reload (keepOnReload): kept, but not announced again
+        // carried over a reload (keepOnReload): already announced
         if (!n.lastGeneration) {
             announce(n);
         }
     }
 
-    // a replacement can change the summary and the body: announce it once, after both
+    // summary and body both change on replace: announce once, after both
     property var replacing: []
 
     function replaced(n) {
@@ -185,8 +164,6 @@ Singleton {
         });
     }
 
-    // count it as unread and pop up its balloon (in its old one's place, if it's a replacement).
-    // Nothing pops up over an open Action Center, which shows it straight away.
     function announce(n) {
         if (centerOpen) {
             return;

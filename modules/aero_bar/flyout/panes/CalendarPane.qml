@@ -5,8 +5,6 @@ import "../../components"
 import "../../../../services"
 import "../../../../utils/constants.js" as Constants
 
-// Windows 7 clock flyout: long date, month calendar and a glass analog clock. The expand button
-// (or clicking the month title) zooms out to the whole year; clicking a month zooms back in.
 FlyoutPane {
     id: root
 
@@ -77,7 +75,6 @@ FlyoutPane {
         return cells;
     }
 
-    // weekday headings, in the locale's week order (cached: twelve mini months share them)
     readonly property var dayAbbreviations: dayNames(2)
     readonly property var dayLetters: dayNames(1)
 
@@ -106,8 +103,6 @@ FlyoutPane {
         precision: SystemClock.Seconds
         enabled: root.active
     }
-
-    // ---- building blocks ------------------------------------------------------------------
 
     component NavArrow: Item {
         id: arrow
@@ -168,7 +163,6 @@ FlyoutPane {
         }
     }
 
-    // year/month toggle: a little grid of months, or a single month
     component ZoomButton: LightButton {
         id: zoom
 
@@ -250,7 +244,6 @@ FlyoutPane {
             }
         }
 
-        // built only for today's cell (every other day would carry a hidden orb)
         Loader {
             anchors.centerIn: parent
             active: cell.isToday
@@ -382,8 +375,6 @@ FlyoutPane {
         }
     }
 
-    // ---- header: long date, like the Win7 flyout ----------------------------------------------
-
     Item {
         id: header
         x: root.padding
@@ -411,7 +402,6 @@ FlyoutPane {
             font.pixelSize: 11
         }
 
-        // Win7 separator: a line that fades out at both ends
         Rectangle {
             anchors.bottom: parent.bottom
             width: parent.width
@@ -438,8 +428,6 @@ FlyoutPane {
             }
         }
     }
-
-    // ---- month view ---------------------------------------------------------------------------
 
     Row {
         id: monthView
@@ -617,8 +605,6 @@ FlyoutPane {
         }
     }
 
-    // ---- year view ----------------------------------------------------------------------------
-
     Column {
         id: yearView
         x: root.padding
@@ -696,7 +682,6 @@ FlyoutPane {
                 }
             }
 
-            // the year grid fades in again when the year changes
             NumberAnimation {
                 id: yearSlide
                 target: yearGrid

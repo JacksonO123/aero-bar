@@ -1,6 +1,5 @@
 import QtQuick
 
-// The red Windows 7 caption close button. It hangs from the top edge of a glass frame.
 Item {
     id: root
 
@@ -32,7 +31,7 @@ Item {
         }
     }
 
-    // square top corners: it is attached to the frame's top edge
+    // square top corners: it hangs from the frame's top edge
     Item {
         anchors.fill: parent
         clip: true
@@ -62,7 +61,6 @@ Item {
         }
     }
 
-    // the cross, white with a dark outline
     Canvas {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: mouse.pressed ? 1 : 0

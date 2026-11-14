@@ -1,9 +1,6 @@
 import QtQuick
 import "../flyout"
 
-// A 30px taskbar button that pins its flyout pane open on click (Action Center, network,
-// Bluetooth) and stays lit while that pane is showing. Right-click toggles too, unless the
-// button gives its own `rightClick` function.
 Win7Frame {
     id: root
 

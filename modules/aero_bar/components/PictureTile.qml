@@ -1,10 +1,6 @@
 import QtQuick
 import "../../../utils/path.js" as PathUtils
 
-// One picture in a picker's grid (Desktop Background, Change Your Picture): a framed thumbnail
-// with a soft shadow and a touch of gloss that lifts a little under the pointer, with Win7's
-// blue selection, an aqua glow and a glossy green tick when it's the chosen one. Size it to the
-// grid's cells.
 Item {
     id: root
 
@@ -27,13 +23,11 @@ Item {
         selected: root.selected
     }
 
-    // the framed picture, with its shadow, raised a touch under the pointer
     Item {
         id: card
         anchors.fill: parent
         scale: 1 + hp.hoverT * 0.035
 
-        // an aqua glow around the chosen picture (only built there)
         Loader {
             anchors.fill: frame
             active: root.selected
@@ -55,7 +49,6 @@ Item {
             color: Qt.rgba(0, 0.05, 0.12, 0.14)
         }
 
-        // the thumbnail, in a thin frame
         Rectangle {
             id: frame
             x: 8
@@ -84,7 +77,6 @@ Item {
                 }
             }
 
-            // a light two-tone gloss over the top of the picture
             Rectangle {
                 x: picture.x
                 y: picture.y
@@ -102,7 +94,6 @@ Item {
                 }
             }
 
-            // a faint inner highlight over the picture's edge
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1
@@ -113,7 +104,6 @@ Item {
         }
     }
 
-    // a soft shadow under the frame, deeper while it's raised
     component Shadow: Rectangle {
         property real offset: 1
         x: 8
@@ -122,7 +112,6 @@ Item {
         height: parent.height - 16
     }
 
-    // a glossy green tick on the chosen picture, popping in (only built there)
     Loader {
         x: 2
         y: 2

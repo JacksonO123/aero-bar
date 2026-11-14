@@ -1,13 +1,11 @@
 import QtQuick
 
-// Win7's bevelled edge: a dark outline with a 1px highlight just inside it.
 Item {
     id: root
 
     property real radius: 0
     property color outerColor: Qt.rgba(0, 0, 0, 0.6)
     property color innerColor: Qt.rgba(1, 1, 1, 0.35)
-    // draw the outline over the highlight (where they meet in the anti-aliased corners)
     property bool outlineOnTop: false
 
     Rectangle {

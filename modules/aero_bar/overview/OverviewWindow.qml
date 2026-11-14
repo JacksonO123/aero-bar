@@ -1,9 +1,6 @@
 import QtQuick
 import "../components"
 
-// A window in the overview: a tiny Aero window (glass frame, caption, frosted client area with
-// the app icon and its reflection). Handles its own drag / resize gestures and reports them to
-// the overview, which owns the logic.
 Item {
     id: win
 
@@ -20,8 +17,7 @@ Item {
     required property bool fullscreen
     required property int focusHistoryId
 
-    // where the window sits in the overview. windowRect() is null while its workspace isn't laid
-    // out (e.g. mid-update), so hold the last good spot rather than jumping to 0,0.
+    // windowRect() is null mid-relayout: keep the last spot instead of 0,0
     readonly property var target: overview.windowRect(wsId, gx, gy, gw, gh)
     property var lastTarget: ({
             x: 0,
@@ -37,7 +33,6 @@ Item {
     readonly property var geo: target ?? lastTarget
 
     readonly property bool dragging: overview.dragInfo !== null && overview.dragInfo.address === address
-    // while the pointer drives the geometry, don't animate it
     readonly property bool animate: !dragging && !overview.resizing
     readonly property bool resizingThis: overview.resizeInfo !== null && overview.resizeInfo.address === address
     readonly property bool focused: overview.focusedAddress === address
@@ -55,7 +50,6 @@ Item {
         vh = Qt.binding(() => win.geo.h);
     }
 
-    // the geometry follows layout changes with this
     component Glide: NumberAnimation {
         duration: 300
         easing.type: Easing.OutCubic
@@ -130,7 +124,6 @@ Item {
             }
         }
 
-        // drop shadow
         Rectangle {
             x: 1
             y: win.dragging ? 4 : 2
@@ -140,7 +133,6 @@ Item {
             color: Qt.rgba(0, 0, 0, win.dragging ? 0.45 : win.floating ? 0.32 : 0.2)
         }
 
-        // focused window halo
         Rectangle {
             anchors.fill: parent
             anchors.margins: -2
@@ -151,7 +143,6 @@ Item {
             visible: win.focused && !win.dragging
         }
 
-        // glass frame, two-tone like the Win7 caption
         Rectangle {
             anchors.fill: parent
             radius: 3
@@ -159,7 +150,6 @@ Item {
             gradient: SplitGradient {
                 split: 0.45
                 splitEnd: 0.451
-                // a little stronger on the focused window
                 colors: {
                     const f = win.focused;
                     const top = Qt.rgba(0.82, 0.92, 1.0, f ? 0.85 : 0.7);
@@ -185,7 +175,6 @@ Item {
             styleColor: Qt.rgba(1, 1, 1, 0.45)
         }
 
-        // frosted client area
         Rectangle {
             id: client
             x: win.borderW
@@ -229,7 +218,6 @@ Item {
             pressedT: mouseArea.pressed ? 1 : 0
         }
 
-        // "drop here to swap" highlight
         Rectangle {
             anchors.fill: parent
             anchors.margins: -2
@@ -258,7 +246,6 @@ Item {
             }
         }
 
-        // live size readout while resizing
         Rectangle {
             anchors.centerIn: parent
             visible: win.resizingThis
@@ -278,7 +265,6 @@ Item {
             }
         }
 
-        // Win7 thumbnail close button
         SmallClose {
             id: closeButton
             anchors.top: parent.top
@@ -302,7 +288,7 @@ Item {
         hoverEnabled: true
         preventStealing: true
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-        z: -1 // keep the close button on top
+        z: -1 // under the close button
 
         property string edge: ""
         property string mode: ""
@@ -333,10 +319,9 @@ Item {
         }
 
         function edgeAt(mx, my) {
-            // the area extends 2px past the window on each side
             const x = mx - 2, y = my - 2;
             const m = Math.max(3, Math.min(6, win.width / 5, win.height / 5));
-            // (looking up which edges can move scans every window: only near an edge)
+            // early out: resizableEdges() scans every window
             if (x >= m && x <= win.width - m && y >= m && y <= win.height - m) {
                 return "";
             }

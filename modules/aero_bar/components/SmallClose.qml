@@ -1,8 +1,6 @@
 import QtQuick
 import "../../../utils/colors.js" as ColorUtils
 
-// The little x on balloons, list rows and taskbar thumbnails: a small red glass square under
-// the pointer. `lit` keeps the red square showing (dimmer) even when not hovered.
 Item {
     id: root
 
@@ -15,7 +13,6 @@ Item {
 
     readonly property alias hoverT: hp.hoverT
     readonly property alias pressedT: hp.pressedT
-    // how far the red glass shows: always when lit, else as the pointer arrives
     readonly property real shownT: lit ? 1 : hoverT
     readonly property color glyphColor: ColorUtils.interpolateColors("#5b6470", "white", shownT)
 
@@ -51,7 +48,7 @@ Item {
         }
     }
 
-    // the x: two plain rotated bars (cheap enough for every overview window)
+    // plain bars, not a Canvas: cheap enough for every overview window
     component Bar: Rectangle {
         width: 9
         height: 1.6

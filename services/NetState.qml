@@ -4,7 +4,6 @@ import Quickshell
 import Quickshell.Networking
 import QtQuick
 
-// What the network icon and flyout show, derived from Quickshell.Networking (NetworkManager).
 Singleton {
     id: root
 
@@ -15,8 +14,7 @@ Singleton {
     readonly property var wiredUp: wiredDevices.find(d => d.connected) ?? null
     readonly property var wifiAll: wifiDevice ? wifiDevice.networks.values : []
     readonly property var wifiConnected: wifiAll.find(n => n.connected) ?? null
-    // for the flyout: connected first, then strongest. Signal levels change all the time, so
-    // only sort while a network pane is open to show it.
+    // signal levels change constantly: only sort while a pane shows the list
     readonly property var wifiNetworks: panesOpen > 0 ? wifiAll.slice().sort((a, b) => (b.connected - a.connected) || (b.signalStrength - a.signalStrength)) : []
 
     readonly property bool connected: wiredUp !== null || wifiConnected !== null
@@ -41,10 +39,8 @@ Singleton {
         }
         return "Connected";
     }
-    // badge on the tray icon: "" | "warning" | "error"
     readonly property string badge: !connected ? "error" : limited ? "warning" : ""
 
-    // network flyouts open: scan for Wi-Fi networks only while one is
     property int panesOpen: 0
 
     Binding {

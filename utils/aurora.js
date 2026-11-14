@@ -1,11 +1,7 @@
 .pragma library
 
-// Frutiger Aero light for a Canvas: soft ribbons sweeping up to the right, out-of-focus bubbles
-// and glassy ones. Paint ribbons and soft bubbles with ctx.globalCompositeOperation = "lighter"
-// so they glow. Colours are "r,g,b" strings; positions are fractions of the canvas (w by h).
+// colours are "r,g,b" strings; r is px, other lengths are fractions of w, h
 
-// a ribbon from the left edge at height y0 to the right edge at y1, `thick` tall, bowing by
-// `bend`, brightest (`alpha`) along its middle in `core`, fading to `edge` at its sides
 function ribbon(ctx, w, h, y0, y1, thick, bend, alpha, core, edge) {
   ctx.beginPath();
   ctx.moveTo(-w * 0.1, h * y0);
@@ -21,7 +17,6 @@ function ribbon(ctx, w, h, y0, y1, thick, bend, alpha, core, edge) {
   ctx.fill();
 }
 
-// a soft bubble at (x, y), `r` px across its glow, `alpha` at its centre
 function bubble(ctx, w, h, x, y, r, alpha, rgb) {
   const g = ctx.createRadialGradient(w * x, h * y, 0, w * x, h * y, r);
   g.addColorStop(0, "rgba(" + rgb + "," + alpha + ")");
@@ -32,8 +27,6 @@ function bubble(ctx, w, h, x, y, r, alpha, rgb) {
   ctx.fill();
 }
 
-// a glassy bubble at (x, y), `r` px across: a clear body that thickens to a pale blue rim, and a
-// glint at its top left (`alpha` is its overall strength)
 function glassBubble(ctx, w, h, x, y, r, alpha) {
   const cx = w * x, cy = h * y;
   const body = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r);

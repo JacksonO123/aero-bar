@@ -4,24 +4,17 @@ import Quickshell
 import Quickshell.Services.Polkit
 import QtQuick
 
-// The polkit agent: when a program asks for admin rights (pkexec, GParted, mounting a disk...)
-// polkit asks us for a password, and modules/aero_bar/polkit shows a Win7 UAC-style prompt.
-//
-// Only one agent can be registered per session: stop hyprpolkitagent / polkit-gnome first.
+// only one polkit agent per session: stop hyprpolkitagent / polkit-gnome first
 Singleton {
     id: root
 
     readonly property alias agent: agent
     readonly property var flow: agent.flow
     readonly property bool active: agent.isActive && flow !== null
-    // the prompt shows on the screen that was focused when the request came in
     property string screenName: ""
-    // where it actually shows (screenName, or the focused screen if that one is gone)
     readonly property string screen: Screens.resolve(screenName)
-    // the last attempt failed; cleared when the user types again
     property bool wrongPassword: false
-    // a password was submitted. Picking another identity cancels the session, which polkit also
-    // reports as a failure: only one after a submit means a wrong password.
+    // switching identity also reports a failure; only one after a submit counts
     property bool submitted: false
 
     function submit(password) {

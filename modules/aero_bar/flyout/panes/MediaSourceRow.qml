@@ -2,20 +2,15 @@ import QtQuick
 import "../../components"
 import "../../../../services"
 
-// One media source in the "Now Playing" list: its album art, what it's playing, its own
-// controls and progress. The one the taskbar shows is highlighted; clicking the row makes it
-// that one.
 Item {
     id: row
 
     required property var player
-    // the pane is on screen: titles scroll, progress moves
     property bool active: false
 
     readonly property bool current: player === Media.player
     readonly property bool playing: player?.isPlaying ?? false
     readonly property real length: Media.lengthOf(player)
-    // titles scroll while the pointer is over the row
     readonly property bool scrolling: active && rowHover.hovered
 
     readonly property real artSize: 64
@@ -23,7 +18,7 @@ Item {
 
     implicitHeight: 96
 
-    // on the row itself, so it stays hot over the controls too
+    // a HoverHandler, so the row stays hot over the controls too
     HoverHandler {
         id: rowHover
     }
@@ -35,7 +30,7 @@ Item {
         selected: row.current
     }
 
-    // under the controls, so they keep their own clicks
+    // before the controls, so they keep their own clicks
     MouseArea {
         anchors.fill: parent
         onClicked: Media.show(row.player)
@@ -55,7 +50,6 @@ Item {
         width: controls.x - x - 10
         spacing: 1
 
-        // the app (cut short if it's long), and whether it's playing
         Row {
             id: identityLine
             width: parent.width
@@ -115,7 +109,6 @@ Item {
         player: row.player
     }
 
-    // progress, under the title and the controls
     SeekBar {
         id: seekBar
         x: row.textX
@@ -130,8 +123,6 @@ Item {
         onSeek: seconds => Media.seek(seconds, row.player)
     }
 
-    // room for the longest time this track shows, so the bar doesn't move as it plays and the
-    // bars of tracks under 100 minutes line up
     TextMetrics {
         id: timeSpace
         font: time.font

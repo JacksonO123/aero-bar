@@ -1,9 +1,6 @@
 import QtQuick
 import "../components"
 
-// The Windows 7 "Shut down ▸" split button: one dark glass shell split into a label half and an
-// arrow half. Each half glows pale blue from below on hover and darkens when pressed; the arrow
-// half stays pressed while its menu is open.
 Item {
     id: root
 
@@ -20,7 +17,6 @@ Item {
     implicitWidth: labelText.implicitWidth + 30 + arrowWidth
     implicitHeight: 23
 
-    // one half's hover / pressed glow, drawn in the full button shape and clipped to the half
     component SegmentGlow: Canvas {
         id: glow
 
@@ -86,8 +82,6 @@ Item {
         }
     }
 
-    // ---- shell ---------------------------------------------------------------------------------
-
     Rectangle {
         anchors.fill: parent
         radius: root.radius
@@ -126,7 +120,6 @@ Item {
         lit: arrowMouse.containsMouse || pressed
     }
 
-    // inner highlight: bright along the top, faint elsewhere
     Rectangle {
         anchors.fill: parent
         anchors.margins: 1
@@ -150,7 +143,6 @@ Item {
         color: Qt.rgba(1, 1, 1, 0.5)
     }
 
-    // split: a dark groove with a light edge
     Rectangle {
         x: root.mainWidth - 1
         y: 2
@@ -167,9 +159,6 @@ Item {
         color: Qt.rgba(1, 1, 1, 0.22)
     }
 
-    // ---- content -------------------------------------------------------------------------------
-
-    // white label with Win7's soft dark caption glow
     CaptionText {
         id: labelText
         x: (root.mainWidth - width) / 2

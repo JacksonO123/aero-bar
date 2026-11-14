@@ -3,7 +3,6 @@ import Quickshell.Wayland
 import QtQuick
 import "../../../services"
 
-// Balloons above the notification area of the focused screen, newest at the bottom.
 Variants {
     model: Quickshell.screens
 
@@ -46,7 +45,7 @@ Variants {
                     required property int nid
                     required property int index
 
-                    // every screen has a copy; only the one showing can hold its countdown
+                    // every screen has a copy; only the visible one may hold its countdown
                     readonly property bool holding: hovered && window.wanted
 
                     notification: Notifications.find(nid)

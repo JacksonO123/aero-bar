@@ -6,15 +6,12 @@ import "../../notifications"
 import "../../../../services"
 import "../../../../utils/constants.js" as Constants
 
-// The Action Center: everything that hasn't been dismissed, newest app group first, with
-// "Do not disturb" and "Clear all" at the bottom.
 FlyoutPane {
     id: root
 
     readonly property real padding: 12
     readonly property color linkColor: "#1c5ea8"
 
-    // app names, ordered by each app's newest notification
     readonly property var apps: {
         const out = [];
         for (const n of Notifications.list.slice().reverse()) {
@@ -30,7 +27,6 @@ FlyoutPane {
         return n.appName || "Other";
     }
 
-    // an app's notifications, newest first
     function itemsOf(app) {
         return Notifications.list.filter(n => appOf(n) === app).reverse();
     }
@@ -44,7 +40,6 @@ FlyoutPane {
         when: root.active
     }
 
-    // today's notifications show the time, older ones the date (re-evaluated as the clock ticks)
     function timeText(n) {
         const t = Notifications.timeOf(n);
         if (!t) {
@@ -86,7 +81,6 @@ FlyoutPane {
             width: parent.width
         }
 
-        // nothing to show
         Row {
             visible: Notifications.count === 0
             height: 56
@@ -150,7 +144,7 @@ FlyoutPane {
                 width: scroller.width
                 spacing: 10
 
-                // ScriptModels: rows stay put as notifications come and go
+                // ScriptModels keep rows as notifications come and go
                 Repeater {
                     model: ScriptModel {
                         values: root.apps
@@ -187,7 +181,7 @@ FlyoutPane {
                                     hotBorderColor: "#70c0e7"
                                 }
 
-                                // stays hovered over the row's close button and links
+                                // a HoverHandler stays hovered over the close button and links
                                 HoverHandler {
                                     id: rowHover
                                 }
@@ -231,7 +225,6 @@ FlyoutPane {
                                         Text {
                                             id: time
                                             anchors.right: parent.right
-                                            // steps aside for the close button
                                             anchors.rightMargin: rowHover.hovered ? 20 : 0
                                             text: root.timeText(row.n)
                                             color: "#6b7785"
@@ -248,7 +241,6 @@ FlyoutPane {
                                         SmallClose {
                                             anchors.right: parent.right
                                             anchors.verticalCenter: summary.verticalCenter
-                                            // fades in with the row's highlight
                                             opacity: rowHighlight.opacity
                                             visible: opacity > 0
                                             onClicked: Notifications.dismiss(row.n)

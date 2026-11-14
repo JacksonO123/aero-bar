@@ -1,6 +1,5 @@
 import QtQuick
 
-// Win7 group header: blue caption followed by a rule that fades out to the right.
 Item {
     id: root
 

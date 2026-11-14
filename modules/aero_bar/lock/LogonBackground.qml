@@ -1,7 +1,6 @@
 import QtQuick
 import "../../../utils/aurora.js" as Aurora
 
-// A deep-blue logon backdrop with soft aurora ribbons and a glow behind the user tile.
 Canvas {
     id: root
 
@@ -30,7 +29,6 @@ Canvas {
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, w, h);
 
-        // ribbons of light sweeping up to the right, and a few out-of-focus bubbles
         ctx.globalCompositeOperation = "lighter";
         const ribbon = (y0, y1, thick, bend, alpha) => Aurora.ribbon(ctx, w, h, y0, y1, thick, bend, alpha, "150,230,255", "120,220,255");
         ribbon(0.9, 0.35, 0.06, 0.12, 0.22);
@@ -45,7 +43,6 @@ Canvas {
         bubble(0.3, 0.68, h * 0.03, 0.15);
         ctx.globalCompositeOperation = "source-over";
 
-        // vignette
         g = ctx.createRadialGradient(w * 0.5, h * 0.5, h * 0.4, w * 0.5, h * 0.5, w * 0.75);
         g.addColorStop(0, "rgba(0,0,0,0)");
         g.addColorStop(1, "rgba(0,10,30,0.45)");

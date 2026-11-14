@@ -1,7 +1,5 @@
 import QtQuick
 
-// Win7's round chevron button with a label ("Show details" / "Hide details"); the whole row
-// toggles `open`.
 Item {
     id: root
 

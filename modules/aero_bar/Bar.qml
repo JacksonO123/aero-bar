@@ -32,7 +32,6 @@ Variants {
         exclusiveZone: Constants.BAR_HEIGHT
         color: "transparent"
 
-        // input only where something is drawn: the bar, an open flyout, the overview
         mask: Region {
             item: bar
 
@@ -142,7 +141,6 @@ Variants {
 
             AppPane {
                 flyoutEl: flyout
-                // the bar window sits at the bottom of its screen
                 windowOrigin: Qt.point(here.modelData.x, here.modelData.y + here.modelData.height - here.height)
             }
 
@@ -182,14 +180,12 @@ Variants {
             anchors.bottomMargin: 10
         }
 
-        // a click anywhere outside the bar closes a pinned (click-opened) flyout like the calendar
         HyprlandFocusGrab {
             windows: [here]
             active: flyout.pinned
             onCleared: flyout.close()
         }
 
-        // the start menu opening closes any flyout
         Connections {
             target: StartMenuState
 

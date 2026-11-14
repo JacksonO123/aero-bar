@@ -1,6 +1,5 @@
 import QtQuick
 
-// Glass-faced analog clock: chrome bezel, ticked face, ticking red second hand, gloss on top.
 Item {
     id: root
 
@@ -24,7 +23,7 @@ Item {
         property color color: "black"
         property bool ticking: false
 
-        // unwrapped angle so 354° -> 0° animates forward instead of spinning back
+        // unwrapped so 354° -> 0° animates forward instead of spinning back
         property real angle: target
         onTargetChanged: angle += ((target - angle) % 360 + 540) % 360 - 180
 
@@ -75,7 +74,6 @@ Item {
                 ctx.fill();
             };
 
-            // chrome bezel
             const bezel = ctx.createLinearGradient(0, 0, 0, w);
             bezel.addColorStop(0, "#ffffff");
             bezel.addColorStop(0.5, "#9fb0c2");
@@ -83,14 +81,12 @@ Item {
             circle(r, bezel);
             circle(r - 3, "#566a7f");
 
-            // face
             const glow = ctx.createRadialGradient(c, c * 0.7, 0, c, c, r - 4);
             glow.addColorStop(0, "#ffffff");
             glow.addColorStop(0.65, "#eef6fc");
             glow.addColorStop(1, "#c3d8ea");
             circle(r - 4, glow);
 
-            // ticks
             for (let i = 0; i < 60; i++) {
                 const hour = i % 5 === 0;
                 const a = i / 60 * Math.PI * 2;
@@ -145,7 +141,6 @@ Item {
         ticking: true
     }
 
-    // centre cap
     Rectangle {
         anchors.centerIn: parent
         width: 9

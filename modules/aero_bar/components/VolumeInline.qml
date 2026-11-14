@@ -4,8 +4,6 @@ import "../flyout"
 import "../../../services"
 import "../../../utils/constants.js" as Constants
 
-// Speaker icon. Hover for the volume flyout, scroll to change volume,
-// left click to mute, right click to open the mixer.
 Win7Frame {
     id: root
 

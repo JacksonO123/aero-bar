@@ -4,9 +4,6 @@ import Quickshell
 import Quickshell.Services.Mpris
 import QtQuick
 
-// Picks the "current" MPRIS player and exposes its track in a null-safe way.
-// Preference order: a player the user switched to (until another one starts playing), whatever
-// is playing, whatever played last, anything with a title, anything at all.
 Singleton {
     id: root
 
@@ -15,7 +12,6 @@ Singleton {
     property MprisPlayer pinned: null
     property MprisPlayer lastActive: null
 
-    // a player that starts playing takes over from the pinned one
     readonly property var playing: players.filter(p => p.isPlaying)
     property var wasPlaying: []
 
@@ -78,8 +74,6 @@ Singleton {
         }
     }
 
-    // ---- controls: the current player, or the one given ---------------------------------------
-
     function togglePlaying(p = player) {
         if (p?.canTogglePlaying) {
             p.togglePlaying();
@@ -110,9 +104,6 @@ Singleton {
         }
     }
 
-    // ---- which player the taskbar shows -------------------------------------------------------
-
-    // `p` (until another player starts playing)
     function show(p) {
         pinned = p;
     }
@@ -127,8 +118,6 @@ Singleton {
         show(list[(index + 1) % list.length]);
     }
 
-    // ---- about any player ---------------------------------------------------------------------
-
     function titleOf(p) {
         return p ? (p.trackTitle || "Unknown Title") : "";
     }
@@ -141,7 +130,6 @@ Singleton {
         return (p?.canSeek ?? false) && (p?.positionSupported ?? false);
     }
 
-    // 3:07, or 1:02:07 past an hour
     function formatTime(seconds) {
         const s = Math.max(0, Math.floor(seconds));
         const h = Math.floor(s / 3600);
