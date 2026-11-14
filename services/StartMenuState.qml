@@ -178,7 +178,9 @@ Singleton {
 
     property string userName: Quickshell.env("USER") ?? "user"
     property string fullName: ""
-    property string picture: ""
+    // the picture you chose in "Change Your Picture", else the one found below
+    readonly property string picture: AccountPicture.picture || foundPicture
+    property string foundPicture: ""
     readonly property string displayName: fullName || userName
 
     Process {
@@ -195,7 +197,7 @@ done`]
                     if (line.startsWith("name:")) {
                         root.fullName = line.slice(5).trim();
                     } else if (line.startsWith("pic:")) {
-                        root.picture = line.slice(4).trim();
+                        root.foundPicture = line.slice(4).trim();
                     }
                 }
             }

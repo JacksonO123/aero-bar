@@ -14,3 +14,6 @@ singleton Peek Peek.qml
 singleton Screens Screens.qml
 singleton GreeterState GreeterState.qml
 singleton Wallpaper Wallpaper.qml
+singleton AccountPicture AccountPicture.qml
+PictureFolder 1.0 PictureFolder.qml
+FileChooser 1.0 FileChooser.qml

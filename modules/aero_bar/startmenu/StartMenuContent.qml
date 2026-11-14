@@ -614,7 +614,8 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: StartMenuState.run(StartMenuState.controlPanelCommand)
+            // like Win7's User Accounts, for changing your picture
+            onClicked: StartMenuState.run(() => AccountPicture.openDialog(StartMenuState.screen))
         }
     }
 }

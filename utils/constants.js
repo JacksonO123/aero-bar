@@ -48,6 +48,12 @@ const WALLPAPER_DIR = "~/Pictures/Wallpapers";
 // your script that sets the wallpaper; it gets the picture's path as its last argument
 const WALLPAPER_SET_CMD = ["~/.local/bin/set-wallpaper"];
 
+// ---- account picture ------------------------------------------------------------------------
+
+// the pictures "Change Your Picture" offers (put the Windows 7 account pictures here: they're in
+// C:\ProgramData\Microsoft\User Account Pictures\Default Pictures on a Windows 7 PC)
+const ACCOUNT_PICTURES_DIR = "~/Pictures/Account Pictures";
+
 // ---- other ----------------------------------------------------------------------------------
 
 // "no workspace" for workspace ids (hover / highlight state)

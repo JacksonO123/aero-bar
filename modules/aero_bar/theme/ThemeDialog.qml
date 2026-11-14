@@ -37,6 +37,7 @@ Variants {
     }
 
     DialogWindow {
+        id: window
         service: Theme
         title: "Window Color and Appearance"
         dialogWidth: 540
@@ -148,13 +149,19 @@ Variants {
                 y: mixer.y + mixer.height + 16
                 width: parent.width
 
-                // Win7's Personalization links: on to the wallpaper (keeping the colour)
-                leading: LinkText {
-                    text: "Desktop Background"
-                    onClicked: {
-                        const screen = Theme.screen;
-                        Theme.save();
-                        Wallpaper.openDialog(screen);
+                // Win7's Personalization links: on to the wallpaper or your account picture
+                // (keeping the colour)
+                leading: Row {
+                    spacing: 18
+
+                    LinkText {
+                        text: "Desktop Background"
+                        onClicked: window.switchTo(Wallpaper)
+                    }
+
+                    LinkText {
+                        text: "Account Picture"
+                        onClicked: window.switchTo(AccountPicture)
                     }
                 }
 

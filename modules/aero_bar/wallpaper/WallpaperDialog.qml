@@ -231,8 +231,10 @@ Variants {
                     // only while this screen shows the dialog (and fades it out)
                     model: window.visible ? Wallpaper.images : []
 
-                    delegate: WallpaperTile {
+                    delegate: PictureTile {
                         required property string modelData
+                        width: grid.cellWidth
+                        height: grid.cellHeight
                         path: modelData
                         selected: modelData === Wallpaper.selected
                         onClicked: Wallpaper.pick(modelData)
@@ -275,13 +277,19 @@ Variants {
                 y: count.y + count.height + 12
                 width: parent.width
 
-                // Win7's Personalization links: on to the glass colour (keeping the picture)
-                leading: LinkText {
-                    text: "Window Color"
-                    onClicked: {
-                        const screen = Wallpaper.screen;
-                        Wallpaper.save();
-                        Theme.openDialog(screen);
+                // Win7's Personalization links: on to the glass colour or your account picture
+                // (keeping the background)
+                leading: Row {
+                    spacing: 18
+
+                    LinkText {
+                        text: "Window Color"
+                        onClicked: window.switchTo(Theme)
+                    }
+
+                    LinkText {
+                        text: "Account Picture"
+                        onClicked: window.switchTo(AccountPicture)
                     }
                 }
 

@@ -1,9 +1,8 @@
 import QtQuick
-import "../components"
 
-// One picture in the Desktop Background picker: a framed thumbnail with a soft shadow and a
-// touch of gloss, hot-tracking under the pointer, with Win7's blue selection and a ticked box
-// when it's the chosen one.
+// One picture in a picker's grid (Desktop Background, Change Your Picture): a framed thumbnail
+// with a soft shadow and a touch of gloss, hot-tracking under the pointer, with Win7's blue
+// selection and a ticked box when it's the chosen one. Size it to the grid's cells.
 Item {
     id: root
 
@@ -11,9 +10,7 @@ Item {
     property bool selected: false
 
     signal clicked
-
-    implicitWidth: 166
-    implicitHeight: 118
+    signal doubleClicked
 
     RowHighlight {
         anchors.fill: parent
@@ -115,5 +112,6 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         onClicked: root.clicked()
+        onDoubleClicked: root.doubleClicked()
     }
 }

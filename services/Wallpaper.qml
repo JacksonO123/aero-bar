@@ -17,12 +17,8 @@ Singleton {
 
     // set in utils/constants.js: the script that sets the wallpaper, and the folder to look in
     // until you choose another one
-    readonly property var setCommand: Constants.WALLPAPER_SET_CMD.map(expandHome)
-    readonly property string defaultDirectory: expandHome(Constants.WALLPAPER_DIR)
-
-    function expandHome(path) {
-        return path.startsWith("~") ? PathUtils.pathRelativeToHome(path.slice(1)) : path;
-    }
+    readonly property var setCommand: Constants.WALLPAPER_SET_CMD.map(PathUtils.expandHome)
+    readonly property string defaultDirectory: PathUtils.expandHome(Constants.WALLPAPER_DIR)
 
     // ---- saved ------------------------------------------------------------------------------
 
@@ -43,22 +39,21 @@ Singleton {
     readonly property string selected: preview || current
 
     // the pictures in `directory` (and the folders below it), sorted by name
-    property var images: []
-    property bool scanning: false
+    readonly property var images: folder.images
+    readonly property bool scanning: folder.scanning
     // the folder couldn't be read
-    property bool missing: false
-    // the folder chooser for "Browse…" (zenity or kdialog), looked for each time the picker opens
-    property string chooserTool: ""
-    readonly property bool canBrowse: chooserTool !== ""
+    readonly property bool missing: folder.missing
+    // "Browse…" for another folder (the chooser is looked for each time the picker opens)
+    readonly property bool canBrowse: chooser.available
 
     function openDialog(screenName) {
         preview = "";
         // stay on this screen, even if focus moves to another one while it is open
         dialogScreen = screenName || Screens.focused;
         // before it shows, so the grid doesn't build tiles for the old list first
-        scan();
+        folder.scan();
         dialogOpen = true;
-        chooserCheck.running = true;
+        chooser.check();
     }
 
     // click a picture: it becomes the background right away, like Win7
@@ -90,83 +85,22 @@ Singleton {
     // an empty path goes back to the default folder
     function setDirectory(path) {
         const dir = path.trim();
-        saved.directory = dir === "" ? "" : expandHome(dir.replace(/\/+$/, "") || "/");
-        scan();
-    }
-
-    function scan() {
-        images = [];
-        missing = false;
-        scanning = true;
-        scanner.running = false;
-        scanner.running = true;
+        saved.directory = dir === "" ? "" : PathUtils.expandHome(dir.replace(/\/+$/, "") || "/");
+        folder.scan();
     }
 
     function browse() {
-        chooser.running = true;
+        chooser.chooseFolder(directory);
     }
 
-    // a script listing the pictures under $1 (exit status 3: the folder isn't there or can't be
-    // read)
-    function findPictures() {
-        const types = ["jpg", "jpeg", "png", "webp", "bmp", "gif"].map(t => `-iname "*.${t}"`).join(" -o ");
-        return `test -d "$1" && test -r "$1" || exit 3; find -L "$1" -maxdepth 3 -type f \\( ${types} \\) 2>/dev/null`;
+    PictureFolder {
+        id: folder
+        directory: root.directory
     }
 
-    function chooserCommand() {
-        if (chooserTool.endsWith("kdialog")) {
-            return [chooserTool, "--getexistingdirectory", directory];
-        }
-        return [chooserTool, "--file-selection", "--directory", "--filename=" + directory + "/"];
-    }
-
-    Process {
-        id: scanner
-
-        command: ["sh", "-c", root.findPictures(), "sh", root.directory]
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const byName = (a, b) => a.localeCompare(b, undefined, {
-                        numeric: true,
-                        sensitivity: "base"
-                    });
-                root.images = text.split("\n").filter(line => line !== "").sort(byName);
-                root.scanning = false;
-            }
-        }
-
-        onExited: code => {
-            if (code === 3) {
-                root.missing = true;
-                root.scanning = false;
-            }
-        }
-    }
-
-    Process {
-        id: chooserCheck
-        command: ["sh", "-c", "command -v zenity || command -v kdialog"]
-
-        stdout: StdioCollector {
-            onStreamFinished: root.chooserTool = text.trim().split("\n")[0]
-        }
-    }
-
-    Process {
+    FileChooser {
         id: chooser
-
-        // prints the chosen folder
-        command: root.chooserCommand()
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const dir = text.trim();
-                if (dir !== "") {
-                    root.setDirectory(dir);
-                }
-            }
-        }
+        onChosen: path => root.setDirectory(path)
     }
 
     FileView {

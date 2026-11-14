@@ -36,6 +36,14 @@ PanelWindow {
         }
     }
 
+    // Win7's Personalization links: keep what's chosen here and open `other` (a service with
+    // openDialog()) on the same screen
+    function switchTo(other) {
+        const screen = service.screen;
+        service.save();
+        other.openDialog(screen);
+    }
+
     AeroWindow {
         id: dialog
 
