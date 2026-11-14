@@ -5,6 +5,7 @@ Item {
     id: root
 
     property alias text: label.text
+    property bool isDefault: false
 
     signal clicked
 
@@ -24,7 +25,7 @@ Item {
         anchors.fill: parent
         radius: 3
         border.width: 1
-        border.color: Qt.rgba(0, 0.05, 0.15, 0.55)
+        border.color: root.isDefault ? Qt.rgba(0.4, 0.78, 1, 0.85) : Qt.rgba(0, 0.05, 0.15, 0.55)
 
         gradient: SplitGradient {
             split: 0.48
@@ -45,7 +46,7 @@ Item {
             radius: 2
             color: "transparent"
             border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.45 + 0.3 * root.hoverT)
+            border.color: root.isDefault ? Qt.rgba(0.78, 0.94, 1, 0.6 + 0.3 * root.hoverT) : Qt.rgba(1, 1, 1, 0.45 + 0.3 * root.hoverT)
         }
     }
 

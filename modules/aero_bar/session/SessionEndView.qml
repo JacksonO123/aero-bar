@@ -7,8 +7,11 @@ import "../../../services"
 LogonScreen {
     id: root
 
+    property string screenName: ""
+
     clockShown: false
     shown: SessionEnd.active
+    wallpaper: Wallpaper.pathFor(screenName)
 
     readonly property var words: ({
             shutDown: {
@@ -233,9 +236,10 @@ LogonScreen {
                     onClicked: SessionEnd.finish()
                 }
 
-                AeroButton {
+                LogonButton {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Cancel"
+                    isDefault: true
                     onClicked: SessionEnd.cancel()
                 }
             }

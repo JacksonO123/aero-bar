@@ -2,6 +2,9 @@ import QtQuick
 import "../../../services"
 
 Item {
+    id: root
+
+    property string screenName: ""
     readonly property bool showing: loader.active
 
     anchors.fill: parent
@@ -11,7 +14,9 @@ Item {
         id: loader
         anchors.fill: parent
         active: false
-        sourceComponent: SessionEndView {}
+        sourceComponent: SessionEndView {
+            screenName: root.screenName
+        }
     }
 
     Connections {

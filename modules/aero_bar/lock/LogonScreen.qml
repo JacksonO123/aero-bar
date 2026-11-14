@@ -2,6 +2,7 @@ import QtQuick
 import "../components"
 import "../../../services"
 import "../../../utils/constants.js" as Constants
+import "../../../utils/path.js" as PathUtils
 
 Item {
     id: root
@@ -11,6 +12,8 @@ Item {
     // anything with sleep(), restart() and shutDown(); null hides the power button
     property var power: null
     property bool clockShown: true
+    // shown over the aurora once loaded
+    property string wallpaper: ""
     property bool shown: true
     property bool entered: false
 
@@ -29,6 +32,41 @@ Item {
 
     LogonBackground {
         anchors.fill: parent
+        visible: picture.opacity < 1
+    }
+
+    Image {
+        id: picture
+        anchors.fill: parent
+        source: PathUtils.fileUrl(root.wallpaper)
+        sourceSize: Qt.size(width, height)
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        opacity: status === Image.Ready ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 250
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                GradientStop {
+                    position: 0
+                    color: Qt.rgba(0.02, 0.08, 0.2, 0.3)
+                }
+                GradientStop {
+                    position: 0.5
+                    color: Qt.rgba(0.02, 0.08, 0.2, 0.42)
+                }
+                GradientStop {
+                    position: 1
+                    color: Qt.rgba(0.02, 0.06, 0.16, 0.6)
+                }
+            }
+        }
     }
 
     MouseArea {

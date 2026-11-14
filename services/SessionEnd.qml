@@ -27,6 +27,7 @@ Singleton {
 
         action = kind;
         phase = "closing";
+        Wallpaper.refreshActive();
         HyprState.closeWindows(windows.map(Taskbar.hyprAddress));
         patience.restart();
         finishIfClosed();

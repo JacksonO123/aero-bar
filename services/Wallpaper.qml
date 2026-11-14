@@ -60,6 +60,17 @@ Singleton {
         dialogOpen = false;
     }
 
+    // what hyprpaper shows on each monitor ("" for all), else the picture saved here
+    property var active: ({})
+
+    function pathFor(screenName) {
+        return active[screenName] || active[""] || current;
+    }
+
+    function refreshActive() {
+        activeQuery.running = true;
+    }
+
     function apply(path) {
         Quickshell.execDetached(setCommand.concat([path]));
     }
@@ -82,6 +93,25 @@ Singleton {
     FileChooser {
         id: chooser
         onChosen: path => root.setDirectory(path)
+    }
+
+    Process {
+        id: activeQuery
+        command: ["hyprctl", "hyprpaper", "listactive"]
+
+        // "DP-1: /path" per line ("DP-1 = /path" before hyprpaper 0.8)
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const map = {};
+                for (const line of text.split("\n")) {
+                    const match = line.match(/^\s*([^:=]*?)\s*[:=]\s*(\/.*\S)\s*$/);
+                    if (match) {
+                        map[match[1]] = match[2];
+                    }
+                }
+                root.active = map;
+            }
+        }
     }
 
     FileView {

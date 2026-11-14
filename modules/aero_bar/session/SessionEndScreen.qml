@@ -26,6 +26,7 @@ Variants {
 
         SessionEndLayer {
             id: layer
+            screenName: modelData.name
         }
     }
 }
