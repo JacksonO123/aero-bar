@@ -12,7 +12,7 @@ Scope {
     // the file types it finds (also the filter for picking a single picture)
     readonly property var types: ["jpg", "jpeg", "png", "webp", "bmp", "gif"]
 
-    // full paths
+    // full paths, in natural order ("2.jpg" before "10.jpg")
     property var images: []
     property bool scanning: false
     // the folder couldn't be read
@@ -40,11 +40,12 @@ Scope {
 
         stdout: StdioCollector {
             onStreamFinished: {
-                const byName = (a, b) => a.localeCompare(b, undefined, {
-                        numeric: true,
-                        sensitivity: "base"
-                    });
-                root.images = text.split("\n").filter(line => line !== "").sort(byName);
+                // Qt's localeCompare ignores options like `numeric`, so pad the numbers instead
+                const keyed = text.split("\n").filter(line => line !== "").map(path => ({
+                            path,
+                            key: path.replace(/\d+/g, n => n.padStart(12, "0"))
+                        }));
+                root.images = keyed.sort((a, b) => a.key.localeCompare(b.key)).map(entry => entry.path);
                 root.scanning = false;
             }
         }

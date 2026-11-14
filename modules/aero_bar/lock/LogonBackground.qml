@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../utils/aurora.js" as Aurora
 
 // A deep-blue logon backdrop with soft aurora ribbons and a glow behind the user tile.
 Canvas {
@@ -29,37 +30,15 @@ Canvas {
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, w, h);
 
-        // ribbons of light sweeping up to the right
+        // ribbons of light sweeping up to the right, and a few out-of-focus bubbles
         ctx.globalCompositeOperation = "lighter";
-        const ribbon = (y0, y1, thick, bend, alpha) => {
-            ctx.beginPath();
-            ctx.moveTo(-w * 0.1, h * y0);
-            ctx.bezierCurveTo(w * 0.3, h * (y0 - bend), w * 0.65, h * (y1 + bend), w * 1.1, h * y1);
-            ctx.lineTo(w * 1.1, h * (y1 + thick));
-            ctx.bezierCurveTo(w * 0.65, h * (y1 + bend + thick * 1.6), w * 0.3, h * (y0 - bend + thick * 0.6), -w * 0.1, h * (y0 + thick));
-            ctx.closePath();
-            const rg = ctx.createLinearGradient(0, h * (y1 - 0.1), 0, h * (y0 + thick));
-            rg.addColorStop(0, "rgba(120,220,255,0)");
-            rg.addColorStop(0.5, "rgba(150,230,255," + alpha + ")");
-            rg.addColorStop(1, "rgba(120,220,255,0)");
-            ctx.fillStyle = rg;
-            ctx.fill();
-        };
+        const ribbon = (y0, y1, thick, bend, alpha) => Aurora.ribbon(ctx, w, h, y0, y1, thick, bend, alpha, "150,230,255", "120,220,255");
         ribbon(0.9, 0.35, 0.06, 0.12, 0.22);
         ribbon(0.98, 0.5, 0.1, 0.1, 0.14);
         ribbon(0.78, 0.18, 0.03, 0.16, 0.25);
         ribbon(1.05, 0.66, 0.05, 0.06, 0.12);
 
-        // a few out-of-focus bubbles
-        const bubble = (x, y, r, a) => {
-            const bg = ctx.createRadialGradient(w * x, h * y, 0, w * x, h * y, r);
-            bg.addColorStop(0, "rgba(200,240,255," + a + ")");
-            bg.addColorStop(1, "rgba(200,240,255,0)");
-            ctx.fillStyle = bg;
-            ctx.beginPath();
-            ctx.arc(w * x, h * y, r, 0, Math.PI * 2);
-            ctx.fill();
-        };
+        const bubble = (x, y, r, alpha) => Aurora.bubble(ctx, w, h, x, y, r, alpha, "200,240,255");
         bubble(0.18, 0.22, h * 0.06, 0.12);
         bubble(0.82, 0.3, h * 0.04, 0.15);
         bubble(0.7, 0.75, h * 0.08, 0.08);

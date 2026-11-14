@@ -81,7 +81,7 @@ Singleton {
         }
     ]
 
-    // the user tile opens Control Panel; the user's name (top of the places) opens their home
+    // the Control Panel place, and the user's name (top of the places), which opens their home
     property var controlPanelCommand: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
     property var homeCommand: ["sh", "-c", "xdg-open \"$HOME\""]
 

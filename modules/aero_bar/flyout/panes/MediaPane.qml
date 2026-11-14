@@ -229,8 +229,8 @@ FlyoutPane {
                     width: scroller.width
                     spacing: 4
 
-                    // built when the list first shows; a ScriptModel keeps each player's row as
-                    // players come and go
+                    // only while the list shows (and fades out); a ScriptModel keeps each
+                    // player's row as players come and go
                     Repeater {
                         model: ScriptModel {
                             values: root.showAll ? Media.players : []
@@ -240,7 +240,7 @@ FlyoutPane {
                             required property var modelData
                             width: list.width
                             player: modelData
-                            active: root.active && root.showAll
+                            active: root.active
                         }
                     }
                 }

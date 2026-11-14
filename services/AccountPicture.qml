@@ -34,8 +34,6 @@ Singleton {
     // the pictures to choose from, sorted by name
     readonly property var images: folder.images
     readonly property bool scanning: folder.scanning
-    // the folder couldn't be read
-    readonly property bool missing: folder.missing
     // "Browse for more pictures…" (the chooser is looked for each time the picker opens)
     readonly property bool canBrowse: chooser.available
 
@@ -71,7 +69,7 @@ busctl call org.freedesktop.Accounts "/org/freedesktop/Accounts/User$(id -u)" or
     }
 
     function browse() {
-        chooser.chooseFile(PathUtils.expandHome("~/Pictures"), "Pictures", folder.types);
+        chooser.chooseFile(PathUtils.pathRelativeToHome("Pictures"), "Pictures", folder.types);
     }
 
     PictureFolder {

@@ -2,7 +2,8 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 
-// A Win7 dialog in its own window on one screen (Window Color, Desktop Background): the glass
+// A Win7 dialog in its own window on one screen (Window Color, Desktop Background, Change Your
+// Picture): the glass
 // AeroWindow fades and drops in while `service.dialogOpen` and the service's screen is this one.
 // Enter saves; Esc and the close button cancel. `service` has dialogOpen, screen, save() and
 // cancel().
@@ -39,9 +40,8 @@ PanelWindow {
     // Win7's Personalization links: keep what's chosen here and open `other` (a service with
     // openDialog()) on the same screen
     function switchTo(other) {
-        const screen = service.screen;
         service.save();
-        other.openDialog(screen);
+        other.openDialog(service.screen);
     }
 
     AeroWindow {
