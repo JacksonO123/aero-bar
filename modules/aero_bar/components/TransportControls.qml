@@ -1,6 +1,5 @@
 import QtQuick
 import "../../../services"
-import "../../../utils/colors.js" as ColorUtils
 
 Item {
     id: root
@@ -22,19 +21,14 @@ Item {
         id: segment
 
         property string glyph: "prev"
-        property bool leftSide: true
         property bool active: true
         signal activated
 
-        property real pressedT: segmentMouse.pressed ? 1 : 0
-
         opacity: active ? 1 : 0.4
 
-        Behavior on pressedT {
-            NumberAnimation {
-                duration: 80
-                easing.type: Easing.OutQuad
-            }
+        HoverPress {
+            id: hp
+            pressed: segmentMouse.pressed
         }
 
         Rectangle {
@@ -45,11 +39,10 @@ Item {
 
             gradient: SplitGradient {
                 colors: {
-                    const press = (rest, pressed) => ColorUtils.interpolateColors(rest, pressed, segment.pressedT);
-                    const top = press("#eef8ff", "#cfe9fa");
-                    const aboveSplit = press("#cbe9fc", "#9fd2f2");
-                    const belowSplit = press("#a9dcfa", "#79bfea");
-                    const bottom = press("#d4eefd", "#a6d6f3");
+                    const top = hp.shade("#eef8ff", "#eef8ff", "#cfe9fa");
+                    const aboveSplit = hp.shade("#cbe9fc", "#cbe9fc", "#9fd2f2");
+                    const belowSplit = hp.shade("#a9dcfa", "#a9dcfa", "#79bfea");
+                    const bottom = hp.shade("#d4eefd", "#d4eefd", "#a6d6f3");
                     return [top, aboveSplit, belowSplit, bottom];
                 }
             }
@@ -63,7 +56,7 @@ Item {
 
         MediaGlyph {
             anchors.verticalCenter: parent.verticalCenter
-            x: segment.leftSide ? 12 : parent.width - width - 12
+            x: segment.glyph === "prev" ? 12 : parent.width - width - 12
             width: 13
             height: 11
             kind: segment.glyph
@@ -112,7 +105,6 @@ Item {
         width: capsule.width / 2
         height: capsule.height
         glyph: "prev"
-        leftSide: true
         active: root.canPrevious
         onActivated: Media.previous(root.player)
     }
@@ -123,7 +115,6 @@ Item {
         width: capsule.width / 2
         height: capsule.height
         glyph: "next"
-        leftSide: false
         active: root.canNext
         onActivated: Media.next(root.player)
     }

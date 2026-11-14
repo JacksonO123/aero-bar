@@ -76,7 +76,7 @@ Item {
     Bevel {
         anchors.fill: parent
         radius: 3
-        outerColor: ColorUtils.interpolateColors(ColorUtils.interpolateColors("#707070", "#3c7fb1", root.isDefault ? 1 : root.hoverT), "#2c628b", root.pressedT)
+        outerColor: hp.shade(root.isDefault ? "#3c7fb1" : "#707070", "#3c7fb1", "#2c628b")
         innerColor: ColorUtils.interpolateColors(Qt.rgba(1, 1, 1, 0.8), Qt.rgba(0, 0.1, 0.25, 0.25), root.pressedT)
         outlineOnTop: true
     }

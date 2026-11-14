@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Widgets
 import "../components"
 import "../../../utils/constants.js" as Constants
+import "../../../utils/aurora.js" as Aurora
 
 Item {
     id: card
@@ -145,11 +146,7 @@ Item {
                         return;
                     }
 
-                    const glow = ctx.createRadialGradient(w * 0.2, h * 0.1, 0, w * 0.2, h * 0.1, w * 0.6);
-                    glow.addColorStop(0, Qt.rgba(1, 1, 1, 0.35));
-                    glow.addColorStop(1, Qt.rgba(1, 1, 1, 0));
-                    ctx.fillStyle = glow;
-                    ctx.fillRect(0, 0, w, h);
+                    Aurora.bubble(ctx, w, h, 0.2, 0.1, w * 0.6, 0.35, "255,255,255");
 
                     const ribbon = (y0, y1, y2, thickness, color) => {
                         const g = ctx.createLinearGradient(0, 0, w, 0);

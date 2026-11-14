@@ -39,13 +39,7 @@ Singleton {
             return lastActive;
         }
 
-        for (const p of list) {
-            if (p.trackTitle) {
-                return p;
-            }
-        }
-
-        return list.length > 0 ? list[0] : null;
+        return list.find(p => p.trackTitle) ?? list[0] ?? null;
     }
 
     readonly property bool hasPlayer: player !== null

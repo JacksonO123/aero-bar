@@ -295,9 +295,10 @@ done`]
 
     readonly property var categories: {
         const groups = {};
+        const keys = Object.keys(categoryNames);
         for (const e of applications) {
             const cats = e.categories ?? [];
-            const key = Object.keys(categoryNames).find(k => cats.includes(k));
+            const key = keys.find(k => cats.includes(k));
             const name = key ? categoryNames[key] : "Other";
             (groups[name] = groups[name] ?? []).push(e);
         }
