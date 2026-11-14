@@ -58,6 +58,7 @@ Item {
     property var dragInfo: null
     property var resizeInfo: null
     property var dropTarget: null
+    // where a dragged window is held (for the drop tooltip)
     property point pointer: Qt.point(0, 0)
     property int hoveredWorkspaceId: Constants.NO_WORKSPACE
     readonly property bool resizing: resizeInfo !== null
@@ -82,10 +83,8 @@ Item {
 
     readonly property bool triggerHovered: anchorItem.hovered ?? false
 
-    // whatever keeps it open right now; once nothing does, it closes after a moment
+    // whatever keeps it open right now
     readonly property bool keepOpen: triggerHovered || frame.hovered || interacting
-
-    onKeepOpenChanged: keepOpen ? closeTimer.stop() : scheduleClose()
 
     onTriggerHoveredChanged: {
         if (!triggerHovered) {
@@ -111,12 +110,6 @@ Item {
         }
     }
 
-    function scheduleClose() {
-        if (open && !keepOpen) {
-            closeTimer.restart();
-        }
-    }
-
     Connections {
         target: root.anchorItem
 
@@ -134,14 +127,12 @@ Item {
         onTriggered: root.open = true
     }
 
+    // once nothing keeps it open, it closes after a moment
     Timer {
         id: closeTimer
         interval: 450
-        onTriggered: {
-            if (!root.keepOpen) {
-                root.open = false;
-            }
-        }
+        running: root.open && !root.keepOpen
+        onTriggered: root.open = false
     }
 
     Binding {
@@ -565,7 +556,6 @@ Item {
     // ---- dragging windows ----------------------------------------------------------------------
 
     function beginDrag(w, px, py) {
-        w.held = true;
         dragInfo = {
             address: w.address,
             offX: px - w.vx,
@@ -599,7 +589,6 @@ Item {
 
         dragInfo = null;
         dropTarget = null;
-        w.held = false;
         w.rebind(); // animates from wherever it was dropped to its (new) slot
         finishInteraction();
     }
@@ -754,7 +743,6 @@ Item {
             dy: 0,
             links
         };
-        pointer = Qt.point(px, py);
     }
 
     // the candidates whose spans along a divider overlap `start`, or one already taken
@@ -827,7 +815,6 @@ Item {
 
         r.dx = dx;
         r.dy = dy;
-        pointer = Qt.point(px, py);
     }
 
     // The window whose split owns a divider is (almost always) the one with the longest edge
@@ -893,7 +880,6 @@ Item {
         if (syncPending && HyprState.dataEpoch >= requiredEpoch) {
             sync();
         }
-        scheduleClose();
     }
 
     // ---- simple actions ------------------------------------------------------------------------

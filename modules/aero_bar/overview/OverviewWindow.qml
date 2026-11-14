@@ -36,10 +36,9 @@ Item {
     }
     readonly property var geo: target ?? lastTarget
 
-    // `held` = geometry is being driven by the pointer, so don't animate it
-    property bool held: false
-    readonly property bool animate: !held && !overview.resizing
     readonly property bool dragging: overview.dragInfo !== null && overview.dragInfo.address === address
+    // while the pointer drives the geometry, don't animate it
+    readonly property bool animate: !dragging && !overview.resizing
     readonly property bool resizingThis: overview.resizeInfo !== null && overview.resizeInfo.address === address
     readonly property bool focused: overview.focusedAddress === address
     readonly property bool swapTarget: overview.dropTarget !== null && overview.dropTarget.type === "swap" && overview.dropTarget.address === address
@@ -86,7 +85,7 @@ Item {
     y: vy
     width: vw
     height: vh
-    visible: target !== null || held
+    visible: target !== null || dragging
     z: dragging ? 1000 : floating ? 300 - Math.min(focusHistoryId, 200) : 10
 
     property real hoverT: mouseArea.containsMouse && !overview.interacting ? 1 : 0

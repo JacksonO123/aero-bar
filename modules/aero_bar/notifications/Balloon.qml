@@ -10,7 +10,8 @@ Item {
 
     property var notification: null
     property bool tail: false
-    readonly property bool hovered: mouse.containsMouse || close.hovered
+    // a HoverHandler stays hovered over the close and action buttons too
+    readonly property bool hovered: hover.hovered
     readonly property real tailHeight: tail ? 10 : 0
     readonly property bool urgent: notification?.urgency === NotificationUrgency.Critical
 
@@ -76,6 +77,10 @@ Item {
             ctx.strokeStyle = urgent ? "#b0473a" : "#767676";
             ctx.stroke();
         }
+    }
+
+    HoverHandler {
+        id: hover
     }
 
     MouseArea {
