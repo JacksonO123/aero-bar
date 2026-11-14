@@ -45,7 +45,11 @@ FlyoutPane {
         selected = n;
     }
 
+    // NetworkManager drops an invalid WPA key without reporting a failure
     function submitKey() {
+        if (!/^(.{8,63}|[0-9a-fA-F]{64})$/.test(key)) {
+            return;
+        }
         const psk = key;
         key = "";
         askKey = false;

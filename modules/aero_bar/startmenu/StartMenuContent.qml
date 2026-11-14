@@ -129,7 +129,11 @@ Item {
 
         height: 28
         frameOpacity: hoverT
-        onClicked: StartMenuState.run(place.command)
+        onClicked: mouse => {
+            if (mouse.button === Qt.LeftButton) {
+                StartMenuState.run(place.command);
+            }
+        }
 
         Win7Hover {
             radius: place.radius

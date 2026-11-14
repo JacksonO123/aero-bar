@@ -57,7 +57,7 @@ FlyoutPane {
 
                 width: root.thumbW
                 height: root.thumbH + 28
-                frameOpacity: Math.max(hoverT, toplevel.activated ? 0.5 : 0)
+                frameOpacity: Math.max(hoverT, toplevel.wayland?.activated ? 0.5 : 0)
 
                 Component.onDestruction: Peek.hide(toplevel)
 
@@ -76,7 +76,7 @@ FlyoutPane {
                         HyprState.closeWindow(address);
                         return;
                     }
-                    HyprState.focusWindow(address);
+                    HyprState.focusWindow(address, true);
                     root.flyoutEl.close();
                 }
 

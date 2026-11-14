@@ -7,7 +7,7 @@ import QtQuick
 import "../utils/path.js" as PathUtils
 import "../utils/constants.js" as Constants
 
-// Hyprland: bindr = SUPER, SUPER_L, global, quickshell:startmenu
+// hl.bind("SUPER + SUPER_L", hl.dsp.global("quickshell:startmenu"), { release = true })
 Singleton {
     id: root
 
@@ -136,7 +136,7 @@ Singleton {
     GlobalShortcut {
         name: "startmenu"
         description: "Toggle the Aero start menu"
-        onPressed: root.toggle("")
+        onReleased: root.toggle("")
     }
 
     IpcHandler {
@@ -207,7 +207,10 @@ done`]
         }
 
         if (entry.runInTerminal) {
-            Quickshell.execDetached(Constants.TERMINAL_CMD.concat(entry.command));
+            Quickshell.execDetached({
+                command: Constants.TERMINAL_CMD.concat(entry.command),
+                workingDirectory: entry.workingDirectory
+            });
         } else {
             entry.execute();
         }

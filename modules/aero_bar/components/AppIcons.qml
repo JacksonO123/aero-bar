@@ -27,7 +27,8 @@ Row {
             readonly property var app: modelData
             readonly property var windows: Taskbar.windowsFor(modelData)
             readonly property bool running: windows.length > 0
-            readonly property bool active: windows.some(t => t.activated)
+            // the wayland state clears when focus moves to an empty workspace; the IPC one doesn't
+            readonly property bool active: windows.some(t => t.wayland?.activated)
 
             anchors.top: parent.top
             anchors.topMargin: -1
@@ -36,9 +37,9 @@ Row {
             frameOpacity: Math.max(entry.hoverT, running ? (active ? 0.9 : 0.6) : 0)
 
             function focusNext() {
-                const i = windows.findIndex(t => t.activated);
+                const i = windows.findIndex(t => t.wayland?.activated);
                 const next = windows[(i + 1) % windows.length];
-                HyprState.focusWindow(Taskbar.hyprAddress(next));
+                HyprState.focusWindow(Taskbar.hyprAddress(next), true);
             }
 
             onClicked: mouse => {

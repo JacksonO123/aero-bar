@@ -13,7 +13,7 @@ FlyoutPane {
     readonly property bool discovering: adapter?.discovering ?? false
     readonly property var all: Bluetooth.devices.values
     readonly property var paired: all.filter(d => d.paired || d.bonded || d.connected).sort((a, b) => b.connected - a.connected)
-    readonly property var found: all.filter(d => !(d.paired || d.bonded || d.connected) && d.name !== "")
+    readonly property var found: all.filter(d => !(d.paired || d.bonded || d.connected) && d.deviceName !== "")
     readonly property real padding: 12
 
     // kept here, not on the row: the row moves to "Devices" once paired

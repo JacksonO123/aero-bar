@@ -17,7 +17,8 @@ FlyoutPane {
 
     readonly property var nodes: Pipewire.nodes.values
     readonly property var sinks: nodes.filter(n => n.audio && n.isSink && !n.isStream)
-    readonly property var streams: nodes.filter(n => n.audio && n.isStream && !n.isSink).slice(0, 6)
+    // playing apps are sink streams in Pipewire
+    readonly property var streams: nodes.filter(n => n.audio && n.isStream && n.isSink).slice(0, 6)
 
     width: 326
     height: content.height + padding * 2 - 2

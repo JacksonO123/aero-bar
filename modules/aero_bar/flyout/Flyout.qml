@@ -118,8 +118,9 @@ Item {
     Timer {
         id: closeTimer
         interval: root.closeDelay
+        // a module's hover can arrive before the previous one's leave
         onTriggered: {
-            if (!root.keepOpen) {
+            if (!root.keepOpen && !(root.current?.hovered ?? false)) {
                 root.close();
             }
         }

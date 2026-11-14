@@ -305,11 +305,11 @@ Singleton {
         return workspaceSelector(monitor.activeWorkspaceId);
     }
 
-    function focusWindow(address) {
+    function focusWindow(address, restoreCursor) {
         return dispatch({
             op: "focusWindow",
             address
-        });
+        }, restoreCursor);
     }
 
     function closeWindow(address) {

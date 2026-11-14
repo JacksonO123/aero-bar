@@ -23,7 +23,8 @@ Singleton {
 
     function windowsFor(app) {
         const ids = idsOf(app);
-        return toplevels.filter(t => ids.includes(appIdOf(t).toLowerCase()));
+        // no wayland handle: hidden X11 windows and popups, not real windows
+        return toplevels.filter(t => t.wayland && ids.includes(appIdOf(t).toLowerCase()));
     }
 
     // Quickshell addresses lack the "0x" prefix hyprctl and dispatchers use
