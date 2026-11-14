@@ -148,6 +148,7 @@ Variants {
 
             MediaPane {
                 owner: mediaInline
+                flyoutEl: flyout
             }
 
             CalendarPane {

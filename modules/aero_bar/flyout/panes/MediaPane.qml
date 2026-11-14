@@ -1,10 +1,16 @@
 import QtQuick
+import Quickshell
 import ".."
 import "../../components"
 import "../../../../services"
 
+// The media flyout. Hover the taskbar's media module: what's playing in the player it shows.
+// Click it (the flyout is pinned): "Now Playing", every media source with its own controls.
 FlyoutPane {
     id: root
+
+    required property var flyoutEl
+    readonly property bool showAll: flyoutEl.pinned
 
     readonly property var player: Media.player
     readonly property real position: player?.position ?? 0
@@ -13,25 +19,28 @@ FlyoutPane {
     readonly property real artSize: 92
     readonly property real padding: 10
 
-    width: 340
-    height: content.height + padding * 2
+    width: showAll ? 460 : 340
+    height: (showAll ? sources.height : content.height) + padding * 2
+
+    // the players whose progress is on screen
+    readonly property var shownPlayers: showAll ? Media.players : [player]
 
     // mpris position isn't reactive; poll it only while this pane is on screen
     Timer {
         interval: 500
         repeat: true
         triggeredOnStart: true
-        running: root.active && Media.isPlaying
-        onTriggered: root.player?.positionChanged()
+        running: root.active && root.shownPlayers.some(p => p?.isPlaying)
+        onTriggered: {
+            for (const p of root.shownPlayers) {
+                if (p?.isPlaying) {
+                    p.positionChanged();
+                }
+            }
+        }
     }
 
-    function formatTime(seconds) {
-        const s = Math.max(0, Math.floor(seconds));
-        const h = Math.floor(s / 3600);
-        const m = Math.floor((s % 3600) / 60);
-        const sec = String(s % 60).padStart(2, "0");
-        return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
-    }
+    // ---- the player the taskbar shows (hover) --------------------------------------------------
 
     Column {
         id: content
@@ -39,6 +48,7 @@ FlyoutPane {
         y: root.padding
         width: root.width - root.padding * 2
         spacing: 6
+        visible: !root.showAll
 
         Row {
             spacing: 12
@@ -138,7 +148,7 @@ FlyoutPane {
                 width: 36
                 anchors.verticalCenter: parent.verticalCenter
                 horizontalAlignment: Text.AlignRight
-                text: root.formatTime(seekBar.shownPosition)
+                text: Media.formatTime(seekBar.shownPosition)
                 color: "#4a5a6a"
                 font.pixelSize: 10
             }
@@ -158,9 +168,83 @@ FlyoutPane {
             Text {
                 width: 36
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.formatTime(root.length)
+                text: Media.formatTime(root.length)
                 color: "#4a5a6a"
                 font.pixelSize: 10
+            }
+        }
+    }
+
+    // ---- every media source (click) ------------------------------------------------------------
+
+    Column {
+        id: sources
+        x: root.padding
+        y: root.padding
+        width: root.width - root.padding * 2
+        spacing: 8
+        visible: root.showAll
+
+        Item {
+            width: parent.width
+            height: heading.height
+
+            Text {
+                id: heading
+                text: "Now Playing"
+                color: "#1e3c78"
+                font.pixelSize: 15
+            }
+
+            Text {
+                anchors.right: parent.right
+                anchors.baseline: heading.baseline
+                text: Media.players.length === 1 ? "1 source" : Media.players.length + " sources"
+                color: "#6b7785"
+                font.pixelSize: 11
+            }
+        }
+
+        FlyoutRule {
+            width: parent.width
+        }
+
+        Item {
+            width: parent.width
+            // about three and a half rows, then it scrolls
+            height: Math.min(list.height, 350)
+
+            Flickable {
+                id: scroller
+                anchors.fill: parent
+                contentHeight: list.height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+
+                Column {
+                    id: list
+                    width: scroller.width
+                    spacing: 4
+
+                    // a ScriptModel keeps each player's row as players come and go
+                    Repeater {
+                        model: ScriptModel {
+                            values: Media.players
+                        }
+
+                        MediaSourceRow {
+                            required property var modelData
+                            width: list.width
+                            player: modelData
+                            active: root.active && root.showAll
+                        }
+                    }
+                }
+            }
+
+            ScrollThumb {
+                anchors.right: parent.right
+                flickable: scroller
             }
         }
     }

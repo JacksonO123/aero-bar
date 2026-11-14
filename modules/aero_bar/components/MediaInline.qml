@@ -2,8 +2,9 @@ import QtQuick
 import "../flyout"
 import "../../../services"
 
-// Now playing: album art thumbnail + title/artist, stacked like the clock.
-// Left click: play/pause, middle click: next track, right click: raise the player.
+// Now playing: album art thumbnail + title/artist, stacked like the clock. Hover: the player's
+// flyout. Left click: "Now Playing" with every media source (pinned, like the calendar),
+// middle click: play/pause, right click: raise the player.
 Win7Frame {
     id: root
 
@@ -24,9 +25,9 @@ Win7Frame {
 
     onClicked: mouse => {
         if (mouse.button === Qt.LeftButton) {
-            Media.togglePlaying();
+            flyoutEl.toggle(root);
         } else if (mouse.button === Qt.MiddleButton) {
-            Media.next();
+            Media.togglePlaying();
         } else if (mouse.button === Qt.RightButton) {
             Media.raise();
         }
@@ -51,13 +52,13 @@ Win7Frame {
             anchors.verticalCenter: parent.verticalCenter
             source: Media.artUrl
 
-            // shows what a click will do: play when paused, pause on hover while playing
+            // a play mark while paused
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1
                 radius: 2
                 color: Qt.rgba(0, 0, 0, 0.38)
-                opacity: !Media.isPlaying || root.hoverT > 0.5 ? 1 : 0
+                opacity: Media.isPlaying ? 0 : 1
 
                 Behavior on opacity {
                     NumberAnimation {
@@ -67,10 +68,10 @@ Win7Frame {
 
                 MediaGlyph {
                     anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: Media.isPlaying ? 0 : 1
+                    anchors.horizontalCenterOffset: 1
                     width: 10
                     height: 11
-                    kind: Media.isPlaying ? "pause" : "play"
+                    kind: "play"
                 }
             }
         }

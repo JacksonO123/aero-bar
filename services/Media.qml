@@ -63,7 +63,7 @@ Singleton {
     readonly property bool canNext: player?.canGoNext ?? false
     readonly property bool canPrevious: player?.canGoPrevious ?? false
     readonly property bool canSeek: (player?.canSeek ?? false) && (player?.positionSupported ?? false)
-    readonly property real length: (player?.lengthSupported ?? false) ? player.length : 0
+    readonly property real length: lengthOf(player)
 
     onPlayerChanged: {
         if (player && player.isPlaying) {
@@ -81,34 +81,54 @@ Singleton {
         }
     }
 
-    function togglePlaying() {
-        if (canToggle) {
-            player.togglePlaying();
+    // ---- controls: the current player, or the one given ---------------------------------------
+
+    function togglePlaying(p = player) {
+        if (p?.canTogglePlaying) {
+            p.togglePlaying();
         }
     }
 
-    function next() {
-        if (canNext) {
-            player.next();
+    function next(p = player) {
+        if (p?.canGoNext) {
+            p.next();
         }
     }
 
-    function previous() {
-        if (canPrevious) {
-            player.previous();
+    function previous(p = player) {
+        if (p?.canGoPrevious) {
+            p.previous();
         }
     }
 
-    function raise() {
-        if (player?.canRaise) {
-            player.raise();
+    function raise(p = player) {
+        if (p?.canRaise) {
+            p.raise();
         }
     }
 
-    function seek(seconds) {
-        if (canSeek) {
-            player.position = Math.max(0, Math.min(length, seconds));
+    // 3:07, or 1:02:07 past an hour
+    function formatTime(seconds) {
+        const s = Math.max(0, Math.floor(seconds));
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = String(s % 60).padStart(2, "0");
+        return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+    }
+
+    function lengthOf(p) {
+        return (p?.lengthSupported ?? false) ? p.length : 0;
+    }
+
+    function seek(seconds, p = player) {
+        if ((p?.canSeek ?? false) && (p?.positionSupported ?? false)) {
+            p.position = Math.max(0, Math.min(lengthOf(p), seconds));
         }
+    }
+
+    // the taskbar shows `p` (until another player starts playing)
+    function show(p) {
+        pinned = p;
     }
 
     function cycle() {
@@ -118,6 +138,6 @@ Singleton {
         }
 
         const index = list.indexOf(player);
-        pinned = list[(index + 1) % list.length];
+        show(list[(index + 1) % list.length]);
     }
 }
