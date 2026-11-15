@@ -75,7 +75,7 @@ Scope {
 
             visible: wanted || panel.opacity > 0.01
             anchors.bottom: true
-            margins.bottom: 70
+            margins.bottom: 60
             exclusiveZone: 0
             implicitWidth: panel.width
             implicitHeight: panel.height + 10
@@ -89,8 +89,8 @@ Scope {
             Item {
                 id: panel
 
-                width: 300
-                height: 64
+                width: 280
+                height: 54
                 y: window.wanted ? 0 : 10
                 opacity: window.wanted ? 1 : 0
                 scale: window.wanted ? 1 : 0.92
@@ -124,16 +124,16 @@ Scope {
                 }
 
                 GlossySpeaker {
-                    x: 16
+                    x: 10
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 30
-                    height: 38
+                    width: 24
+                    height: 32
                     muted: Audio.muted
                 }
 
                 Row {
                     id: segments
-                    x: 60
+                    x: 42
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 2
 
@@ -184,10 +184,10 @@ Scope {
 
                 CaptionText {
                     anchors.right: parent.right
-                    anchors.rightMargin: 16
+                    anchors.rightMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
                     text: Audio.muted ? "Muted" : Math.round(Audio.volume * 100)
-                    font.pixelSize: Audio.muted ? 13 : 20
+                    font.pixelSize: Audio.muted ? 11 : 16
                     font.bold: true
                 }
             }

@@ -79,18 +79,6 @@ Row {
                 }
             }
 
-            Rectangle {
-                visible: entry.windows.length > 1
-                x: parent.width - 3
-                y: 4
-                width: 3
-                height: parent.height - 8
-                radius: 2
-                color: Qt.rgba(1, 1, 1, 0.12)
-                border.width: 1
-                border.color: Qt.rgba(1, 1, 1, 0.3)
-            }
-
             Image {
                 property int size: entry.modelData.size
 

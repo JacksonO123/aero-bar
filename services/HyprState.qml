@@ -138,7 +138,8 @@ Singleton {
                     name: String(w.name),
                     selector: selectorOf(w),
                     layout: String(w.tiledLayout ?? ""),
-                    monitorId: w.monitorID ?? -1
+                    monitorId: w.monitorID ?? -1,
+                    persistent: !!w.ispersistent
                 })).sort((a, b) => a.id - b.id);
     }
 

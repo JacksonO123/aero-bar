@@ -631,7 +631,16 @@ Item {
                 epoch = HyprState.moveFloating(w.address, geo.gx, geo.gy);
             }
         } else if (t.type === "new") {
-            epoch = HyprState.moveToWorkspace(w.address, "emptym", null);
+            let preserved = 0, highest = 0;
+            for (const ws of HyprState.workspaces) {
+                if (ws.persistent) {
+                    preserved++;
+                }
+                if (ws.id > highest) {
+                    highest = ws.id;
+                }
+            }
+            epoch = HyprState.moveToWorkspace(w.address, String(Math.max(preserved, highest) + 1), null);
         }
 
         requiredEpoch = Math.max(requiredEpoch, epoch);

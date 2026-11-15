@@ -3,12 +3,14 @@ import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 import Quickshell.Services.Mpris
+import "../../flyout"
 import "../../components"
 
 Win7Frame {
     id: trayItem
 
     required property SystemTrayItem trayItemData
+    required property Flyout flyoutEl
 
     width: 26
     height: 26
@@ -42,6 +44,7 @@ Win7Frame {
     }
 
     onClicked: mouse => {
+        flyoutEl.close();
         const player = findPlayer();
 
         if (mouse.button === Qt.LeftButton) {

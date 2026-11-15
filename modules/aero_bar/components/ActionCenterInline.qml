@@ -4,10 +4,10 @@ import "../../../services"
 FlyoutButton {
     rightClick: () => Notifications.setDoNotDisturb(!Notifications.doNotDisturb)
 
-    FlagGlyph {
+    BellGlyph {
         anchors.centerIn: parent
-        width: 18
-        height: 18
+        width: 25
+        height: 24
         quiet: Notifications.doNotDisturb
     }
 

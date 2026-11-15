@@ -20,9 +20,20 @@ Win7Frame {
 
     onClicked: mouse => {
         if (mouse.button === Qt.RightButton) {
-            Quickshell.execDetached(Constants.VOLUME_MIXER_CMD);
-        } else if (mouse.button === Qt.LeftButton) {
+            if (flyoutEl.current && flyoutEl.current !== root) {
+                flyoutEl.close();
+            }
             Audio.toggleMute();
+        } else if (mouse.button === Qt.MiddleButton) {
+            if (flyoutEl.current && flyoutEl.current !== root) {
+                flyoutEl.close();
+            }
+            Quickshell.execDetached(Constants.VOLUME_MIXER_CMD);
+        } else {
+            if (flyoutEl.current && flyoutEl.current !== root) {
+                flyoutEl.close();
+            }
+            flyoutEl.toggle(root);
         }
     }
 

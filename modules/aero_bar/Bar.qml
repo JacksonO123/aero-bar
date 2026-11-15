@@ -55,6 +55,11 @@ Variants {
 
             TwoToneBackground {}
 
+            MouseArea {
+                anchors.fill: parent
+                onClicked: flyout.close()
+            }
+
             Rectangle {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
@@ -82,6 +87,7 @@ Variants {
 
             WorkspaceButtons {
                 id: workspaceButtons
+                flyoutEl: flyout
                 anchors.centerIn: parent
             }
 
@@ -93,7 +99,9 @@ Variants {
                 anchors.rightMargin: 4
                 spacing: 4
 
-                Tray {}
+                Tray {
+                    flyoutEl: flyout
+                }
 
                 MediaInline {
                     id: mediaInline
@@ -128,7 +136,12 @@ Variants {
                     anchors.bottomMargin: 4
                     date: Clock.date
                     active: flyout.pinned && flyout.current === clockButton
-                    onClicked: flyout.toggle(clockButton)
+                    onClicked: {
+                        if (flyout.current && flyout.current !== clockButton) {
+                            flyout.close();
+                        }
+                        flyout.toggle(clockButton);
+                    }
                 }
             }
         }

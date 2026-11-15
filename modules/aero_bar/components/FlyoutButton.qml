@@ -15,7 +15,19 @@ Win7Frame {
     anchors.bottomMargin: 4
     frameOpacity: Math.max(hoverT, active ? 1 : 0)
 
-    onClicked: mouse => mouse.button === Qt.RightButton && rightClick ? rightClick() : flyoutEl.toggle(root)
+    onClicked: mouse => {
+        if (mouse.button === Qt.RightButton && rightClick) {
+            if (flyoutEl.current && flyoutEl.current !== root) {
+                flyoutEl.close();
+            }
+            rightClick();
+        } else {
+            if (flyoutEl.current && flyoutEl.current !== root) {
+                flyoutEl.close();
+            }
+            flyoutEl.toggle(root);
+        }
+    }
 
     Win7Hover {
         radius: root.radius

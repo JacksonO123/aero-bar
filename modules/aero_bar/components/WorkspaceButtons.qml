@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Hyprland
 import QtQuick.Layouts
 import Quickshell.Widgets
+import "../flyout"
 import "../../../utils/colors.js" as ColorUtils
 import "../../../services"
 import "../../../utils/constants.js" as Constants
@@ -12,6 +13,7 @@ RowLayout {
 
     readonly property bool hovered: hoverHandler.hovered
     property int highlightWorkspaceId: Constants.NO_WORKSPACE
+    required property Flyout flyoutEl
     signal buttonClicked
 
     function workspaceAt(item, px, py) {
@@ -72,6 +74,7 @@ RowLayout {
             frameOpacity: 2 + frame.pressedT + (frame.hoverT / 2) + frame.highlightT
 
             onClicked: {
+                flyoutEl.close();
                 frame.modelData.activate();
                 root.buttonClicked();
             }
