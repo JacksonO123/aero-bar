@@ -93,15 +93,23 @@ Scope {
                 height: 64
                 y: window.wanted ? 0 : 10
                 opacity: window.wanted ? 1 : 0
+                scale: window.wanted ? 1 : 0.92
+                transformOrigin: Item.Center
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: window.wanted ? 120 : 400
+                        duration: window.wanted ? 90 : 220
                     }
                 }
                 Behavior on y {
                     NumberAnimation {
-                        duration: 220
+                        duration: 140
+                        easing.type: Easing.OutCubic
+                    }
+                }
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: window.wanted ? 90 : 220
                         easing.type: Easing.OutCubic
                     }
                 }
