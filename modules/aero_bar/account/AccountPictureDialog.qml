@@ -94,7 +94,7 @@ Variants {
                             return "Looking for pictures…";
                         }
                         const browse = AccountPicture.canBrowse ? ", or browse for a picture of your own" : "";
-                        return `Put the Windows 7 account pictures in ${AccountPicture.directory}${browse}.`;
+                        return `Put the account pictures in ${AccountPicture.directory}${browse}.`;
                     }
                     color: "#6d6d6d"
                     font.pixelSize: 12

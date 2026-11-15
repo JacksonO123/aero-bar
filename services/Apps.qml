@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import QtQuick
 import "../utils/path.js" as PathUtils
+import "../utils/constants.js" as Constants
 
 // appIds: window classes from `hyprctl clients`, matched case-insensitively
 Singleton {
@@ -17,9 +18,9 @@ Singleton {
             size: 22
         },
         {
-            cmd: ["alacritty"],
-            name: "Alacritty",
-            appIds: ["Alacritty"],
+            cmd: [Constants.TERMINAL.cmd],
+            name: Constants.TERMINAL.name,
+            appIds: Constants.TERMINAL.appIds,
             img: Qt.resolvedUrl("../assets/term-icon-reflect.png"),
             offset: 10,
             size: 23

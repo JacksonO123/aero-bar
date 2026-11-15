@@ -11,7 +11,6 @@ Item {
 
     property string mode: "home" // home | all | search
     property int selected: 0
-    property string hoveredIcon: ""
     property bool powerMenuOpen: false
     property bool keyboardNav: false
     property bool allProgramsBuilt: false
@@ -81,15 +80,6 @@ Item {
             return results.length + 1; // + the Run row
         }
         return mode === "home" ? StartMenuState.frequentApps.length : 0;
-    }
-
-    // the next place's hover can arrive before this one's ends: clear only our icon
-    function showPlaceIcon(icon, hovered) {
-        if (hovered) {
-            hoveredIcon = icon;
-        } else if (hoveredIcon === icon) {
-            hoveredIcon = "";
-        }
     }
 
     Keys.onPressed: event => {
@@ -469,7 +459,6 @@ Item {
                 icon: "user-home"
                 emphasised: true
                 command: StartMenuState.homeCommand
-                onHoveredChanged: root.showPlaceIcon(icon, hovered)
             }
 
             Repeater {
@@ -481,7 +470,6 @@ Item {
                     label: modelData.label
                     icon: modelData.icon
                     command: modelData.command
-                    onHoveredChanged: root.showPlaceIcon(icon, hovered)
                 }
             }
 
@@ -506,7 +494,6 @@ Item {
                     label: modelData.label
                     icon: modelData.icon
                     command: modelData.command
-                    onHoveredChanged: root.showPlaceIcon(icon, hovered)
                 }
             }
         }
@@ -583,7 +570,6 @@ Item {
         x: root.rightX + (root.rightW - width) / 2
         y: root.rise
         picture: StartMenuState.picture
-        iconName: root.hoveredIcon
         hoverT: tileMouse.containsMouse ? 1 : 0
 
         MouseArea {

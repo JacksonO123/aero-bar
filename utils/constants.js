@@ -19,8 +19,27 @@ const MAX_NOTIFICATION_POPUPS = 3;
 
 const VOLUME_MIXER_CMD = ["pavucontrol"];
 
-// prefix for Terminal=true apps; their command is appended
-const TERMINAL_CMD = ["alacritty", "-e"];
+// the terminal the shell opens; change these values to switch terminals
+const TERMINAL = {
+    // binary to run
+    cmd: "alacritty",
+    // display name, used in the taskbar and frequent apps
+    name: "Alacritty",
+    // flag used to open in a given directory
+    workingDirectoryFlag: ["--working-directory"],
+    // prefix used to run a command inside the terminal
+    commandPrefix: ["-e"],
+    // window classes the taskbar matches against
+    appIds: ["Alacritty"]
+};
+
+function terminalIn(dir) {
+    return [TERMINAL.cmd, ...TERMINAL.workingDirectoryFlag, dir];
+}
+
+function terminalRunning(command) {
+    return [TERMINAL.cmd, ...TERMINAL.commandPrefix, ...command];
+}
 
 const NETWORK_SETTINGS_CMD = ["nm-connection-editor"];
 const BLUETOOTH_SETTINGS_CMD = ["blueman-manager"];
@@ -34,7 +53,7 @@ const WALLPAPER_DIR = "~/Pictures/Wallpapers";
 // gets the picture's path as its last argument
 const WALLPAPER_SET_CMD = ["~/.local/bin/set-wallpaper"];
 
-const ACCOUNT_PICTURES_DIR = "~/Pictures/Account Pictures";
+const ACCOUNT_PICTURES_DIR = "~/Pictures/account_pictures";
 
 const NO_WORKSPACE = -99999;
 

@@ -17,11 +17,12 @@ Singleton {
     property double closedAt: 0
     readonly property int reopenGuard: 300 // ms
 
-    property var defaultApps: ["google-chrome", "Alacritty", "org.kde.dolphin", "spotify", "code", "firefox", "steam", "discord"]
+    property var defaultApps: ["google-chrome", Constants.TERMINAL.name, "org.kde.dolphin", "spotify", "code", "firefox", "steam", "discord"]
     property int maxFrequent: 9
 
     function userDir(kind, fallback) {
-        return ["sh", "-c", `d=$(xdg-user-dir ${kind} 2>/dev/null); xdg-open "\${d:-$HOME/${fallback}}"`];
+        const t = Constants.TERMINAL;
+        return ["sh", "-c", `d=$(xdg-user-dir ${kind} 2>/dev/null); ${t.cmd} ${t.workingDirectoryFlag.join(" ")} "\${d:-$HOME/${fallback}}"`];
     }
 
     property var places: [
@@ -51,7 +52,7 @@ Singleton {
         {
             label: "Computer",
             icon: "computer",
-            command: ["xdg-open", "/"]
+            command: Constants.terminalIn("/")
         },
         {
             label: "Control Panel",
@@ -66,12 +67,12 @@ Singleton {
         {
             label: "Terminal",
             icon: "utilities-terminal",
-            command: ["alacritty"]
+            command: [Constants.TERMINAL.cmd]
         }
     ]
 
     property var controlPanelCommand: [PathUtils.pathRelativeToHome(".local/bin/control-center")]
-    property var homeCommand: ["sh", "-c", "xdg-open \"$HOME\""]
+    property var homeCommand: Constants.terminalIn(Quickshell.env("HOME"))
 
     function lock() {
         LockState.lock();
@@ -208,7 +209,7 @@ done`]
 
         if (entry.runInTerminal) {
             Quickshell.execDetached({
-                command: Constants.TERMINAL_CMD.concat(entry.command),
+                command: Constants.terminalRunning(entry.command),
                 workingDirectory: entry.workingDirectory
             });
         } else {
