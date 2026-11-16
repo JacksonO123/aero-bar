@@ -59,3 +59,5 @@ const NO_WORKSPACE = -99999;
 
 const TIME_FORMAT = "h:mm AP";
 const TIME_FORMAT_SECONDS = "h:mm:ss AP";
+
+const WALLPAPER_CMD = "/home/jotto/scripts/bin/wallpaper";

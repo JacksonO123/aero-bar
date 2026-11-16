@@ -49,6 +49,7 @@ Singleton {
         if (preview !== "") {
             saved.current = preview;
             refreshActive();
+            Quickshell.execDetached([Constants.WALLPAPER_CMD, preview]);
         }
         preview = "";
         dialogOpen = false;
