@@ -1,7 +1,9 @@
 import QtQuick
 import Quickshell.Widgets
 import "../components"
+import "../../../services"
 import "../../../utils/constants.js" as Constants
+import "../../../utils/path.js" as PathUtils
 import "../../../utils/aurora.js" as Aurora
 
 Item {
@@ -24,6 +26,7 @@ Item {
 
     readonly property var reserved: entry ? entry.mon.reserved : [0, 0, 0, 0]
     readonly property real s: entry ? entry.scale : 0
+    readonly property string wallpaper: entry ? Wallpaper.pathFor(entry.mon.name) : ""
 
     x: entry ? entry.x : 0
     y: entry ? entry.y - headerH : 0
@@ -109,8 +112,19 @@ Item {
             radius: 3
             color: "#1b5f9c"
 
+            Image {
+                id: wallpaperImage
+                anchors.fill: parent
+                source: width > 0 && height > 0 ? PathUtils.fileUrl(card.wallpaper) : ""
+                sourceSize: Qt.size(width, height)
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                opacity: status === Image.Ready ? 1 : 0
+            }
+
             Rectangle {
                 anchors.fill: parent
+                visible: wallpaperImage.opacity < 1
 
                 gradient: Gradient {
                     GradientStop {
@@ -135,6 +149,7 @@ Item {
             Canvas {
                 id: aurora
                 anchors.fill: parent
+                visible: wallpaperImage.opacity < 1
                 onWidthChanged: requestPaint()
                 onHeightChanged: requestPaint()
 

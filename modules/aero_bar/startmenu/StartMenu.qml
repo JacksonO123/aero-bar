@@ -23,7 +23,8 @@ Variants {
             left: true
         }
         margins {
-            left: 4
+            left: 10
+            bottom: 10
         }
 
         // 0: reserve nothing, but stay clear of the bar's exclusive zone
