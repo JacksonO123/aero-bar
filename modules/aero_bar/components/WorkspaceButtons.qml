@@ -79,13 +79,6 @@ RowLayout {
                 root.buttonClicked();
             }
 
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 2
-                radius: frame.radius
-                color: Qt.rgba(0.38, 0.56, 0.64, frame.isActive / 1.6)
-            }
-
             ClippingRectangle {
 
                 anchors.fill: parent
@@ -94,6 +87,15 @@ RowLayout {
 
                 TwoToneBackground {
                     type: "foreground"
+                    tintStrength: 0.2
+                    bodyAlpha: 0.95
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    radius: frame.radius
+                    color: Qt.rgba(0.38, 0.56, 0.64, frame.isActive * 0.15625)
                 }
 
                 Rectangle {
