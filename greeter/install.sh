@@ -52,6 +52,18 @@ command = "Hyprland --config $COMPOSITOR_CONFIG"
 user = "greeter"
 TOML
 
+cat >/etc/pam.d/greetd <<'PAM'
+#%PAM-1.0
+
+auth       required     pam_securetty.so
+auth       requisite    pam_nologin.so
+auth       include      system-local-login
+-auth      optional     pam_gnome_keyring.so
+account    include      system-local-login
+session    include      system-local-login
+-session   optional     pam_gnome_keyring.so    auto_start
+PAM
+
 cat <<DONE
 
 Installed. greetd will run: Hyprland --config $COMPOSITOR_CONFIG
