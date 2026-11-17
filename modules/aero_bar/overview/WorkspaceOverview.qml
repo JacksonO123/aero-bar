@@ -44,7 +44,13 @@ Item {
     property var resizeInfo: null
     property var dropTarget: null
     property point pointer: Qt.point(0, 0)
-    property int hoveredWorkspaceId: Constants.NO_WORKSPACE
+    property int cardHoveredWsId: Constants.NO_WORKSPACE
+    property var hoveredWindow: null
+
+    readonly property int hoveredWorkspaceId:
+        cardHoveredWsId !== Constants.NO_WORKSPACE
+            ? cardHoveredWsId
+            : (hoveredWindow ? hoveredWindow.wsId : Constants.NO_WORKSPACE)
     readonly property bool resizing: resizeInfo !== null
     readonly property bool interacting: dragInfo !== null || resizeInfo !== null
     property bool syncPending: false
@@ -81,7 +87,8 @@ Item {
             HyprState.retain(true);
         } else {
             HyprState.release(true);
-            hoveredWorkspaceId = Constants.NO_WORKSPACE;
+            cardHoveredWsId = Constants.NO_WORKSPACE;
+            hoveredWindow = null;
         }
     }
 

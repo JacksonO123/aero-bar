@@ -266,9 +266,9 @@ Item {
 
         onHoveredChanged: {
             if (hovered) {
-                card.overview.hoveredWorkspaceId = card.wsId;
-            } else if (card.overview.hoveredWorkspaceId === card.wsId) {
-                card.overview.hoveredWorkspaceId = Constants.NO_WORKSPACE;
+                card.overview.cardHoveredWsId = card.wsId;
+            } else if (card.overview.cardHoveredWsId === card.wsId) {
+                card.overview.cardHoveredWsId = Constants.NO_WORKSPACE;
             }
         }
     }

@@ -279,6 +279,13 @@ Item {
             opacity: Math.max(win.hoverT, hovered ? 1 : 0)
             lit: true
             onClicked: win.overview.closeWindow(win.address)
+            onHoveredChanged: {
+                if (closeButton.hovered) {
+                    win.overview.hoveredWindow = win;
+                } else if (win.overview.hoveredWindow === win) {
+                    win.overview.hoveredWindow = null;
+                }
+            }
         }
     }
 
@@ -290,6 +297,14 @@ Item {
         preventStealing: true
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
         z: -1 // under the close button
+
+        onContainsMouseChanged: {
+            if (mouseArea.containsMouse) {
+                win.overview.hoveredWindow = win;
+            } else if (win.overview.hoveredWindow === win) {
+                win.overview.hoveredWindow = null;
+            }
+        }
 
         property string edge: ""
         property string mode: ""
